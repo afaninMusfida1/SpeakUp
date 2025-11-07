@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Heart, MessageCircle, MapPin, BookOpen, Shield, Users, Menu, X } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const Button = ({ children, variant = "default", className = "", ...props }) => {
   let baseStyle = "px-4 py-2 font-semibold rounded-xl transition-all duration-200 shadow-lg active:scale-[0.98] focus:ring-4 focus:ring-opacity-50";
@@ -141,7 +142,11 @@ const Footer = () => {
 
 // --- Main App 
 const App = () => {
-  const onGetStarted = () => alert("Anda menekan tombol 'Butuh Bantuan/Masuk'. Di aplikasi nyata, ini akan mengarahkan ke halaman login atau hotline.");
+const navigate = useNavigate();
+
+  const onGetStarted = () => {
+    navigate('/login');
+  };
   const onLearnMore = () => {
       document.getElementById('edukasi-content')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -152,7 +157,6 @@ const App = () => {
       {/* Navbar */}
       <Navbar onGetStarted={onGetStarted} />
 
-      {/* Hero Section */}
       {/* Hero Section */}
 <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
   <div className="grid md:grid-cols-2 gap-8 md:gap-10 items-center">
@@ -321,7 +325,6 @@ const App = () => {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">P2TP2A</h3>
             <p className="text-gray-600 mb-3">Perlindungan Perempuan & Anak</p>
-            {/* Ini adalah placeholder; di aplikasi nyata ini akan menjadi tombol ke Peta Darurat */}
             <p className="text-blue-600 font-semibold">Cek lokasi terdekat</p> 
           </Card>
         </div>

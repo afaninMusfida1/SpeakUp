@@ -5,7 +5,8 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import ChatPage from './pages/ChatPage';
-import EmergencyMap from './pages/EmergencyMap';
+import MapsPage from './pages/MapsPage';
+import MenfessPage from './pages/MenfessPage';
 
 export default function App() {
   return (
@@ -18,7 +19,8 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/chat" element={<ChatPage />} />
-            <Route path="/emergency" element={<EmergencyMap />} />
+            <Route path="/maps" element={<MapsPage />} />
+            <Route path="/menfess" element={<MenfessPage />} />
           </Routes>
         </main>
         <Footer />
