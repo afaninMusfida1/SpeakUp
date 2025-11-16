@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Heart, MessageCircle, MapPin, BookOpen, Shield, Users, Menu, X } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
+import Navbar from "../components/Navbar";
 
 const Button = ({ children, variant = "default", className = "", ...props }) => {
   let baseStyle = "px-4 py-2 font-semibold rounded-xl transition-all duration-200 shadow-lg active:scale-[0.98] focus:ring-4 focus:ring-opacity-50";
@@ -44,112 +45,55 @@ const ImageWithFallback = ({ src, alt, className }) => {
   );
 };
 
-// --- Navbar 
-const Navbar = ({ onGetStarted }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Shield className="w-8 h-8 text-blue-600" />
-            <span className="text-blue-900 font-extrabold text-xl">SpeakUp</span>
-          </div>
-          <div className="hidden md:flex items-center gap-6">
-            <a href="#fitur" className="text-gray-700 hover:text-blue-600 transition-colors">Fitur</a>
-            <a href="#bantuan" className="text-gray-700 hover:text-blue-600 transition-colors">Bantuan</a>
-            <Button onClick={onGetStarted} className="bg-blue-600 hover:bg-blue-700 rounded-full shadow-md">
-              Masuk
-            </Button>
-          </div>
-          {/* Mobile Menu Button */}
-          <button className="md:hidden p-2 text-gray-700" onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu Content */}
-      {isOpen && (
-        <div className="md:hidden bg-white/95 border-t border-gray-100 py-4">
-          <div className="flex flex-col gap-3 px-4 sm:px-6">
-            <a href="#fitur" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-blue-600 transition-colors p-2 block">Fitur</a>
-            <a href="#edukasi-content" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-blue-600 transition-colors p-2 block">Edukasi</a>
-            <a href="#bantuan" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-blue-600 transition-colors p-2 block">Bantuan</a>
-            <Button onClick={() => { setIsOpen(false); onGetStarted(); }} className="bg-blue-600 hover:bg-blue-700 rounded-full w-full mt-2">
-              Masuk
-            </Button>
-          </div>
-        </div>
-      )}
-    </nav>
-  );
-};
-
-// --- Footer 
-const Footer = () => {
-  return (
-    <footer className="bg-gray-900 text-white mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8">
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Shield className="w-6 h-6 text-blue-400" />
-              <span className="text-xl font-extrabold">SpeakUp</span>
-            </div>
-            <p className="text-gray-400">
-              Ruang aman untuk bicara, belajar, dan mendapatkan dukungan.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="mb-4 text-lg font-semibold">Fitur</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li><a href="#fitur" className="hover:text-white transition-colors">Chat Anonim</a></li>
-              <li><a href="#fitur" className="hover:text-white transition-colors">Menfess</a></li>
-              <li><a href="#fitur" className="hover:text-white transition-colors">Edukasi</a></li>
-              <li><a href="#fitur" className="hover:text-white transition-colors">Peta Darurat</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-4 text-lg font-semibold">Bantuan</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li><a href="#bantuan" className="hover:text-white transition-colors">FAQ</a></li>
-              <li><a href="#bantuan" className="hover:text-white transition-colors">Hubungi Kami</a></li>
-              <li><a href="#bantuan" className="hover:text-white transition-colors">Hotline</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-4 text-lg font-semibold">Legal</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Kebijakan Privasi</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Syarat & Ketentuan</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Tentang Kami</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
-          <p>© 2025 SpeakUp. Privasimu terjaga. Identitasmu dilindungi.</p>
-        </div>
-      </div>
-    </footer>
-  );
-};
-
 // --- Main App 
 const App = () => {
 const navigate = useNavigate();
+const [isOpen, setIsOpen] = useState(false);
 
   const onGetStarted = () => {
     navigate('/login');
   };
   const onLearnMore = () => {
-      document.getElementById('edukasi-content')?.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('edukasi')?.scrollIntoView({ behavior: 'smooth' });
   };
+  const handleLogin = () => {
+    navigate("/login");
+    setIsOpen(false);
+  };
+
+  const educationArticles = [
+  {
+    id: 1,
+    title: "Pentingnya Consent dalam Hubungan",
+    description: "Pelajari mengapa persetujuan adalah dasar dari setiap hubungan yang sehat.",
+    image: "https://placehold.co/600x400/blue/white?text=Consent",
+    category: "Consent",
+    color: "blue",
+    readTime: "5 min",
+  },
+  {
+    id: 2,
+    title: "Menjaga Batasan Diri dan Orang Lain",
+    description: "Cara sehat untuk mengatakan tidak dan menghormati keputusan orang lain.",
+    image: "https://placehold.co/600x400/pink/white?text=Boundaries",
+    category: "Hubungan",
+    color: "pink",
+    readTime: "4 min",
+  },
+];
+
+const getCategoryColor = (color) => {
+  switch (color) {
+    case "blue":
+      return "bg-blue-100 text-blue-700";
+    case "pink":
+      return "bg-pink-100 text-pink-700";
+    case "purple":
+      return "bg-purple-100 text-purple-700";
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+};
 
   return (
     <div className="min-h-screen font-sans bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -173,18 +117,18 @@ const navigate = useNavigate();
         SpeakUp adalah platform yang memberikan ruang aman untuk edukasi seksual, berbagi cerita secara anonim, dan mendapatkan bantuan darurat. Kamu nggak sendiri, kami di sini untuk mendengarkan.
       </p>
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
-        <Button 
-          onClick={onGetStarted}
-          className="bg-red-500 hover:bg-red-600 rounded-full px-6 py-3 gap-2 text-base shadow-lg shadow-red-300/40"
-        >
-          🚨 Butuh Bantuan Sekarang
-        </Button>
+        <Button
+              onClick={handleLogin}
+              className="bg-blue-600 hover:bg-blue-700 rounded-full shadow-md px-7"
+            >
+              Masuk
+            </Button>
         <Button 
           onClick={onLearnMore}
           variant="outline" 
           className="rounded-full px-6 py-3 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 text-base shadow-sm"
         >
-          📚 Pelajari Edukasi Seksual
+          📚 Pelajari Selengkapnya
         </Button>
       </div>
     </div>
@@ -252,6 +196,59 @@ const navigate = useNavigate();
           </Card>
         </div>
       </section>
+
+{/* Article Section */}
+        <section id="edukasi" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                📚 Edukasi & Artikel
+              </h2>
+              <p className="text-gray-600">
+                Pelajari lebih dalam tentang consent, hubungan sehat, dan hak-hakmu
+              </p>
+            </div>
+            <Button variant="outline" className="rounded-2xl">
+              Lihat Semua
+            </Button>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {educationArticles.map((article) => (
+              <Card 
+                key={article.id}
+                className="bg-white rounded-3xl border-2 border-gray-100 overflow-hidden hover:shadow-xl hover:border-gray-200 transition-all cursor-pointer group"
+              >
+                <div className="aspect-video overflow-hidden bg-gray-100">
+                  <ImageWithFallback 
+                    src={article.image}
+                    alt={article.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getCategoryColor(article.color)}`}>
+                      {article.category}
+                    </span>
+                    <span className="text-gray-500 text-sm">
+                      ⏱️ {article.readTime}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                    {article.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4">
+                    {article.description}
+                  </p>
+                  <Button variant="ghost" className="text-blue-600 hover:text-blue-700 p-0 h-auto">
+                    Baca Selengkapnya →
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </section>
 
       {/* Testimonial Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -330,9 +327,8 @@ const navigate = useNavigate();
         </div>
       </section>
 
-      {/* Footer */}
-      <Footer />
-    </div>
+      
+        </div>
   );
 };
 
