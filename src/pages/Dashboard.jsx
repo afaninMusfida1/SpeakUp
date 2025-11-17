@@ -1,5 +1,4 @@
-// src/pages/Dashboard.jsx
-import React, { useState, useEffect } from "react"; // <-- TAMBAHKAN useState dan useEffect
+import React, { useState, useEffect } from "react"; 
 import {
   ArrowLeft,
   MessageSquare,
@@ -8,13 +7,15 @@ import {
   BookText,
   Shield,
   MapPinCheck,
-  Siren
+  Siren,
+  User
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import Navbar from "../components/Navbar";
 
 /* ===========================
    Custom SVG divIcon (MapPinCheck)
@@ -146,73 +147,70 @@ export default function Dashboard({ username = "Pengguna" }) {
   const handleGoToMaps = () => navigate("/maps");
   const handleBack = () => navigate(-1);
 
-  // 1. Tentukan koordinat default dan inisialisasi state
-  const defaultCenter = [-6.200000, 106.816666]; // Jakarta (default)
-  const [mapCenter, setMapCenter] = useState(defaultCenter);
-  const [isLocationFound, setIsLocationFound] = useState(false);
+  const [mapCenter, setMapCenter] = useState(null);
+  const [showMap, setShowMap] = useState(false);
 
   // 2. Gunakan useEffect untuk mendapatkan lokasi pengguna
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setMapCenter([latitude, longitude]);
-          setIsLocationFound(true);
-        },
-        (error) => {
-          console.error("Gagal mendapatkan lokasi:", error);
-          // Jika gagal, tetap menggunakan mapCenter default
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-      );
-    } else {
-      console.warn("Geolocation tidak didukung oleh browser ini.");
-    }
-  }, []);
+  if (!navigator.geolocation) {
+    console.warn("Geolocation tidak didukung.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      setMapCenter([latitude, longitude]);
+      setShowMap(true); // hanya tampil jika user izinkan
+    },
+    (err) => {
+      console.warn("User menolak atau gagal ambil lokasi:", err);
+      setShowMap(false); // jangan tampilkan maps
+    },
+    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+  );
+}, []);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* HEADER */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={handleBack}
-              variant="ghost"
-              className="rounded-lg p-2"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
+      <Navbar 
+        rightElement={
+          <button
+            onClick={() => navigate("/profile")}
+            className="p-2 hover:bg-white/40 rounded-full transition"
+          >
+            <User className="w-6 h-6 text-gray-700" />
+          </button>
+        }
+        showMenu={false}
+        />
 
-            <div>
-              <h2 className="text-gray-900 font-semibold">Dashboard</h2>
-              <p className="text-gray-600 text-sm">{username}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={handleGoToMaps}
-              className="text-red-600 font-semibold text-lg"
-            >
-              🚨 Butuh bantuan
-            </Button>
-          </div>
-        </div>
-      </header>
 
       {/* CONTENT */}
       <main className="max-w-6xl mx-auto px-4 py-10">
-        {/* Greeting */}
-        <section className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Halo, kamu aman di sini
-          </h1>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            Ruang aman untuk belajar, berbagi, dan mendapatkan dukungan.
-          </p>
-        </section>
+
+        <section className="mb-6 px-1">
+        <div className="flex items-center justify-between">
+
+            {/* Text */}
+            <div>
+            <h1 className="text-xl font-bold text-gray-900">
+                Halo, kamu aman di sini
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">
+                Ruang aman untuk belajar dan mendapatkan dukungan.
+            </p>
+            </div>
+
+            {/* Optional illustration / icon */}
+            <div className="hidden sm:block opacity-80">
+            <Shield className="w-10 h-10 text-blue-500" />
+            </div>
+
+        </div>
+        </section>
+
 
         {/* ACTION CARDS */}
         <section className="grid md:grid-cols-2 gap-6 mb-10">
@@ -279,21 +277,34 @@ export default function Dashboard({ username = "Pengguna" }) {
             </Button>
           </div>
 
-          <div className="w-full h-[240px] rounded-2xl overflow-hidden shadow-md border">
-            <MapContainer
-              center={mapCenter} // Menggunakan state mapCenter (lokasi pengguna)
-              zoom={isLocationFound ? 16 : 14} // Zoom lebih dekat jika lokasi sudah ditemukan
-              scrollWheelZoom={false}
-              key={mapCenter.toString()} // Key untuk me-reset map ketika center berubah
-              style={{ width: "100%", height: "100%" }}
-            >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              {/* The first marker now points to the user's location */}
-              <Marker position={mapCenter} icon={PinIcon("#ef4444", 36)} />
-              <Marker position={[mapCenter[0] - 0.02, mapCenter[1] + 0.02]} icon={PinIcon("#f97316", 36)} />
-              <Marker position={[mapCenter[0] + 0.015, mapCenter[1] - 0.015]} icon={PinIcon("#6366f1", 36)} />
-            </MapContainer>
-          </div>
+          <div className="w-full h-[240px] overflow-hidden shadow-md border">
+            {showMap && mapCenter && (
+                <MapContainer
+                center={mapCenter}
+                zoom={16}
+                scrollWheelZoom={false}
+                key={mapCenter.toString()}
+                style={{ width: "100%", height: "100%" }}
+                >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+                {/* marker user */}
+                <Marker position={mapCenter} icon={PinIcon("#ef4444", 36)} />
+
+                {/* marker contoh */}
+                <Marker position={[mapCenter[0] - 0.02, mapCenter[1] + 0.02]} icon={PinIcon("#f97316", 36)} />
+                <Marker position={[mapCenter[0] + 0.015, mapCenter[1] - 0.015]} icon={PinIcon("#6366f1", 36)} />
+                </MapContainer>
+            )}
+
+            {/* Optional: indikator user menolak */}
+            {!showMap && (
+                <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+                Lokasi tidak diizinkan — peta tidak dapat ditampilkan.
+                </div>
+            )}
+            </div>
+
         </section>
 
         {/* ARTICLES */}

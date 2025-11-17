@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, Send, Camera, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 const PlainButton = ({ onClick, children, className, variant, disabled, ...props }) => {
   let baseClasses =
@@ -154,35 +155,20 @@ export default function ChatPage({ username, onBack }) {
   const formatTime = (date) =>
     date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 
-  const handleBackPage = () => navigate("/dashboard");
+  const handleBackPage = () => navigate(-1);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <PlainButton variant="ghost" onClick={handleBackPage} className="rounded-xl p-2">
-            <ArrowLeft className="w-5 h-5" />
-          </PlainButton>
+      <Navbar 
+      backButton={true}
+      title="Satgas SpeakUp"
+      />
 
-          <PlainAvatar className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600">
-            <span className="text-white text-xl">🧑‍⚖️</span>
-          </PlainAvatar>
-
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Satgas SpeakUp</h3>
-            <div className="flex items-center gap-1 text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-green-600">Online</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Privacy */}
-      <div className="bg-blue-50 border-b border-blue-100 px-4 py-3 text-center text-sm text-blue-800">
+      {/* <div className="bg-blue-50 border-b border-blue-100 px-4 py-3 text-center text-sm text-blue-800">
         🔒 Percakapan ini terenkripsi. Identitas kamu aman.
-      </div>
+      </div> */}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

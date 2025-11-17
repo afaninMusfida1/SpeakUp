@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Shield, Mail, MapPin, Lock, User, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { loginUser } from "../api/auth";
+import { useNavigate, useLocation } from "react-router-dom";
+import { loginUser, registerUser } from "../api/auth";
 
 const CustomButton = React.forwardRef(({ className, variant, ...props }, ref) => {
   const base =
@@ -15,68 +15,82 @@ const CustomButton = React.forwardRef(({ className, variant, ...props }, ref) =>
   return <button ref={ref} className={`${base} ${style} ${className}`} {...props} />;
 });
 
-export default function LoginPage() {
-  const [isRegister, setIsRegister] = useState(false);
+export default function LoginRegisterPage() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  /** MODE diambil dari URL */
+  const isRegister = pathname === "/register";
+
+  /** STATE */
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
-  const [location, setLocation] = useState("");
+  const [email, setEmail] = useState("");
+  const [locationData, setLocationData] = useState("");
   const [password, setPassword] = useState("");
   const [retypePassword, setRetypePassword] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           const { latitude, longitude } = pos.coords;
-          setLocation(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+          setLocationData(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
         },
         (err) => {
-          console.warn("Tidak bisa ambil lokasi:", err.message);
-          setLocation("Tidak diketahui");
+          console.warn("Lokasi gagal:", err.message);
+          setLocationData("Tidak diketahui");
         }
       );
     } else {
-      setLocation("Tidak didukung");
+      setLocationData("Tidak didukung");
     }
   }, []);
 
+  /** SUBMIT */
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // 💡 Validasi tambahan untuk retype password
-    if (isRegister && password !== retypePassword) {
-      alert("Password dan Retype Password tidak sama!");
-      return;
+  if (isRegister && password !== retypePassword) {
+    alert("Password dan Retype Password tidak sama!");
+    return;
+  }
+
+  try {
+    const payload = { name, email, password, address, location };
+
+    const res = isRegister
+      ? await registerUser(payload)   // ⬅ REGISTER
+      : await loginUser(payload);    // ⬅ LOGIN
+
+    console.log("Res:", res);
+
+    if (res.data?.token) {
+      localStorage.setItem("token", res.data.token);
     }
 
-    try {
-      const payload = { name, email, password, address, location };
-      const res = await loginUser(payload);
-      console.log("Res:", res);
-      if (res.data?.token) localStorage.setItem("token", res.data.token);
-      navigate("/dashboard");
-    } catch (err) {
-      console.error("Error:", err);
-      alert(`${isRegister ? "Registrasi" : "Login"} gagal!`);
-    }
-  };
+    navigate("/dashboard");
+  } catch (err) {
+    console.error("Error:", err);
+    alert(`${isRegister ? "Registrasi" : "Login"} gagal!`);
+  }
+};
+
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:2007/api/v1/auth/google"; // sesuaikan dengan backend-mu
+    window.location.href = "http://localhost:2007/api/v1/auth/google";
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 font-sans relative">
-      {/* efek blur background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl"></div>
       </div>
 
       <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8 items-center relative">
-        {/* 💠 Kiri: centang-centang tetap */}
+
+        {/* LEFT SIDE INFO */}
         <div className="hidden md:block space-y-6">
           <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-gray-100 shadow-xl">
             <Shield className="w-16 h-16 text-blue-600 mb-4" />
@@ -84,7 +98,7 @@ export default function LoginPage() {
               Privasimu Terjaga
             </h2>
             <p className="text-gray-600 mb-6">
-              SpeakUp tidak menyimpan identitas aslimu. Semua percakapan dan menfess bersifat anonim.
+              SpeakUp tidak menyimpan identitas aslimu. Semua percakapan anonim.
             </p>
 
             <div className="space-y-4">
@@ -121,7 +135,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 🧾 Kanan: Form */}
+        {/* FORM */}
         <div className="p-8 md:p-10 bg-white/90 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-xl relative">
           <button
             onClick={() => navigate("/")}
@@ -148,66 +162,71 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {isRegister && (
               <>
+                {/* Nama */}
                 <div className="space-y-2">
                   <label className="text-gray-700 text-sm font-medium">Nama</label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Nama"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 rounded-2xl border border-gray-200 focus:border-blue-500 h-12"
+                      placeholder="Nama"
                     />
                   </div>
                 </div>
 
+                {/* Alamat */}
                 <div className="space-y-2">
                   <label className="text-gray-700 text-sm font-medium">Alamat</label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Alamat"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 rounded-2xl border border-gray-200 focus:border-blue-500 h-12"
+                      placeholder="Alamat"
                     />
                   </div>
                 </div>
               </>
             )}
 
+            {/* Email */}
             <div className="space-y-2">
               <label className="text-gray-700 text-sm font-medium">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="email"
-                  placeholder="contoh@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="w-full pl-10 pr-4 py-2 rounded-2xl border border-gray-200 focus:border-blue-500 h-12"
+                  placeholder="contoh@email.com"
                 />
               </div>
             </div>
 
+            {/* Password */}
             <div className="space-y-2">
               <label className="text-gray-700 text-sm font-medium">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="password"
-                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full pl-10 pr-4 py-2 rounded-2xl border border-gray-200 focus:border-blue-500 h-12"
+                  placeholder="••••••••"
                 />
               </div>
             </div>
 
+            {/* Retype password */}
             {isRegister && (
               <div className="space-y-2">
                 <label className="text-gray-700 text-sm font-medium">Retype Password</label>
@@ -215,50 +234,37 @@ export default function LoginPage() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="password"
-                    placeholder="Ulangi password"
                     value={retypePassword}
                     onChange={(e) => setRetypePassword(e.target.value)}
-                    required
                     className="w-full pl-10 pr-4 py-2 rounded-2xl border border-gray-200 focus:border-blue-500 h-12"
+                    placeholder="Ulangi password"
                   />
                 </div>
               </div>
             )}
 
-            {/* <div className="space-y-2">
-              <label className="text-gray-700 text-sm font-medium">Lokasi</label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  value={location}
-                  readOnly
-                  className="w-full pl-10 pr-4 py-2 rounded-2xl border border-gray-200 bg-gray-50 text-gray-600 h-12"
-                />
-              </div>
-              <p className="text-xs text-gray-400 italic">
-                Lokasi otomatis diambil dari perangkatmu
-              </p>
-            </div> */}
-
             <CustomButton type="submit">
               {isRegister ? "Daftar" : "Masuk"}
             </CustomButton>
 
+            {/* GOOGLE LOGIN */}
             <button
               type="button"
               onClick={handleGoogleLogin}
               className="w-full rounded-2xl h-12 border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2"
             >
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" />
               <span className="text-gray-700 font-medium">Masuk dengan Google</span>
             </button>
 
+            {/* SWITCH LOGIN / REGISTER */}
             <div className="text-center text-sm text-gray-600">
               {isRegister ? "Sudah punya akun?" : "Belum punya akun?"}{" "}
               <button
                 type="button"
-                onClick={() => setIsRegister(!isRegister)}
+                onClick={() =>
+                  navigate(isRegister ? "/login" : "/register")
+                }
                 className="text-blue-600 hover:underline font-medium"
               >
                 {isRegister ? "Masuk di sini" : "Daftar di sini"}

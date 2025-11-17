@@ -1,6 +1,7 @@
 import React from "react";
 import { AlertCircle, MessageCircle, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 export function SituationPage({ onLogout }) {
   const navigate = useNavigate();
@@ -17,31 +18,11 @@ export function SituationPage({ onLogout }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-100">
-      {/* Header */}
-      <header className="bg-white/70 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          
-          {/* Left */}
-          <button
-            onClick={() => navigate("/")}
-            className="text-gray-600 hover:text-gray-900 transition font-medium"
-          >
-            ← Kembali
-          </button>
+      <Navbar 
+        backButton={true}
+        title="Situasi Kamu"
+        />
 
-          {/* Right - Profile */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white">
-              👤
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900">Halo!</p>
-              <p className="text-sm text-gray-500">Kami hadir untukmu</p>
-            </div>
-          </div>
-
-        </div>
-      </header>
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-12 text-center">

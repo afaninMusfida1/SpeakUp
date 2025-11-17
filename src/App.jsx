@@ -11,7 +11,7 @@ export default function App() {
         <main className="flex-grow">
           <AppRoute/>
         </main>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     </Router>
   );

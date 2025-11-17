@@ -6,6 +6,7 @@ import ChatPage from "../pages/ChatPage";
 import MapsPage from "../pages/MapsPage";
 import MenfessPage from "../pages/MenfessPage";
 import { SituationPage } from "../pages/SituationPage";
+import ProfilePage from "../pages/ProfilPage";
 
 export default function AppRoute() {
   return (
@@ -18,6 +19,7 @@ export default function AppRoute() {
       <Route path="/maps" element={<MapsPage />} />
       <Route path="/menfess" element={<MenfessPage />} />
       <Route path="/situation" element={<SituationPage/>} />
+      <Route path="/profile" element={<ProfilePage/>} />
 
     </Routes>
   );
