@@ -5,7 +5,6 @@ import { Phone, MessageCircle, Navigation, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
-// Fix Leaflet default icon paths (CDN)
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -13,7 +12,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// Small UI primitives (kept same style)
 const PlainButton = ({ children, className = "", onClick, variant = "default", ...props }) => {
   let base = "flex items-center justify-center font-medium transition-colors";
   if (variant === "ghost") base += " text-gray-700 hover:bg-gray-100 p-2";
@@ -54,17 +52,16 @@ const haversineKm = (lat1, lon1, lat2, lon2) => {
 export default function MapsPage({ onStartChat }) {
   const navigate = useNavigate();
 
-  const [userPos, setUserPos] = useState(null); // [lat, lng]
+  const [userPos, setUserPos] = useState(null); 
   const [showMap, setShowMap] = useState(false);
-  const [loadingLoc, setLoadingLoc] = useState(true); // saat ambil GPS
+  const [loadingLoc, setLoadingLoc] = useState(true); 
   const [loadingBackend, setLoadingBackend] = useState(false);
-  const [locations, setLocations] = useState([]); // array lokasi dari backend
+  const [locations, setLocations] = useState([]); 
   const [selectedLocation, setSelectedLocation] = useState(null);
 
-  // Ganti URL ini kalau endpoint-mu beda
   const BACKEND_NEARBY_URL = "/api/v1/nearby";
 
-  // 1) Ambil lokasi user (geolocation)
+  // geolocation
   useEffect(() => {
     if (!navigator.geolocation) {
       setUserPos(null);
@@ -82,7 +79,6 @@ export default function MapsPage({ onStartChat }) {
         setLoadingLoc(false);
       },
       (err) => {
-        // user menolak atau error -> jangan tampilkan map
         console.warn("Geolocation error / denied:", err);
         setUserPos(null);
         setShowMap(false);
@@ -92,7 +88,6 @@ export default function MapsPage({ onStartChat }) {
     );
   }, []);
 
-  // 2) Fetch daftar lokasi terdekat dari backend (hanya jika userPos ada)
   useEffect(() => {
     if (!userPos) return;
 
@@ -101,7 +96,6 @@ export default function MapsPage({ onStartChat }) {
 
     (async () => {
       try {
-        // backend diharapkan menerima query?lat=..&lng=..
         const url = `${BACKEND_NEARBY_URL}?lat=${encodeURIComponent(userPos[0])}&lng=${encodeURIComponent(userPos[1])}`;
         const res = await fetch(url, { method: "GET" });
 
@@ -175,7 +169,6 @@ export default function MapsPage({ onStartChat }) {
         }
       } catch (err) {
         console.error("Gagal fetch lokasi terdekat:", err);
-        // Sesuai permintaan: jangan tampilkan data ngawur. Tetap kosong.
         if (!cancelled) setLocations([]);
       } finally {
         if (!cancelled) setLoadingBackend(false);
@@ -208,9 +201,7 @@ export default function MapsPage({ onStartChat }) {
         </button>
       </div>
 
-      {/* LAYOUT: MAP + SIDEBAR */}
       <div className="flex-1 grid lg:grid-cols-[1fr,400px]">
-        {/* MAP AREA */}
         <div className="relative">
           {/* When user denies or still loading geolocation */}
           {!showMap && !loadingLoc && (
@@ -282,7 +273,6 @@ export default function MapsPage({ onStartChat }) {
               >
                 <div className="flex items-start gap-3">
                   <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
-                    {/* icon: small heuristic based on category; fallback pin */}
                     <span className="text-2xl">
                       {location.category === "police" ? "🚓" : location.category === "hospital" ? "🏥" : "📍"}
                     </span>
@@ -290,7 +280,6 @@ export default function MapsPage({ onStartChat }) {
 
                   <div className="flex-1">
                     <PlainBadge className={`mb-2 ${location.category === "police" ? "bg-blue-100 text-blue-700" : location.category === "hospital" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"}`}>
-                      {/* badge text: use name (nama_kantor) as requested */}
                       {location.name}
                     </PlainBadge>
 

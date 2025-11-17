@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-// --- Button Konsisten ---
 const Button = ({ children, variant = "default", className = "", ...props }) => {
   let baseStyle = "font-semibold transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-opacity-50";
 
@@ -27,12 +26,10 @@ const Button = ({ children, variant = "default", className = "", ...props }) => 
   );
 };
 
-// --- Card ---
 const Card = ({ children, className = "" }) => (
   <div className={`bg-white rounded-2xl shadow-lg ${className}`}>{children}</div>
 );
 
-// --- ImageWithFallback ---
 const ImageWithFallback = ({ src, alt, className }) => {
   const [imgSrc, setImgSrc] = useState(src);
   const placeholderUrl = `https://placehold.co/1080x720/6366f1/ffffff?text=${alt.replace(/\s/g, '+')}`;
@@ -47,7 +44,6 @@ const ImageWithFallback = ({ src, alt, className }) => {
   );
 };
 
-// --- FAQItem ---
 const FAQItem = ({ question, answer, icon: Icon, defaultOpen = false }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
@@ -71,7 +67,6 @@ const FAQItem = ({ question, answer, icon: Icon, defaultOpen = false }) => {
   );
 };
 
-// --- Main App ---
 const App = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);

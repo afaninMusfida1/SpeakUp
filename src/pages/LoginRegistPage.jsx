@@ -1,7 +1,87 @@
 import React, { useState, useEffect } from "react";
 import { Shield, Mail, MapPin, Lock, User, ArrowLeft } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { loginUser, registerUser } from "../api/auth";
+import { useNavigate, useLocation } from "react-router-dom"; 
+
+
+const generateMockToken = (email) => {
+    let role = "User"; // Default role
+    let name = "SpeakUp User";
+
+    // LOGIKA SIMULASI ROLE
+    if (email && email.toLowerCase().includes("satgas")) {
+        role = "Satgas";
+        name = "Satgas Tim";
+    }
+
+    // Payload (decoded): {"userId":"12345","name":"...", "role": "..."}
+    const payloadContent = JSON.stringify({
+        userId: "12345",
+        name: name,
+        role: role
+    });
+    
+    const encodedPayload = btoa(payloadContent).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+
+    return `mock_header.${encodedPayload}.mock_signature`;
+};
+
+// hrsnya MEMANGGIL ENDPOINT BACKEND 
+const loginUser = async (payload) => {
+    console.log("MOCK API: loginUser called with:", payload.email);
+    const mockToken = generateMockToken(payload.email);
+    return new Promise(resolve => setTimeout(() => resolve({
+        data: { token: mockToken },
+        token: mockToken
+    }), 500));
+};
+
+const registerUser = async (payload) => {
+    console.log("MOCK API: registerUser called with:", payload.email);
+    const mockToken = generateMockToken(payload.email);
+    return new Promise(resolve => setTimeout(() => resolve({
+        data: { token: mockToken },
+        token: mockToken
+    }), 500));
+};
+
+const loginUserWithGoogle = async (payload) => {
+    console.log("MOCK API: loginUserWithGoogle called");
+    const decoded = jwtDecode(payload.googleCredential);
+    const mockToken = generateMockToken(decoded.email); 
+    return new Promise(resolve => setTimeout(() => resolve({
+        data: { token: mockToken },
+        token: mockToken
+    }), 500));
+};
+
+const registerUserWithGoogle = async (payload) => {
+    console.log("MOCK API: registerUserWithGoogle called");
+    const decoded = jwtDecode(payload.googleCredential);
+    const mockToken = generateMockToken(decoded.email); 
+    return new Promise(resolve => setTimeout(() => resolve({
+        data: { token: mockToken },
+        token: mockToken
+    }), 500));
+};
+
+const jwtDecode = (token) => {
+    try {
+        const parts = token.split('.');
+        const payloadPart = parts.length === 3 ? parts[1] : parts.length > 1 ? parts[1] : '';
+        if (!payloadPart) throw new Error('Invalid JWT format');
+
+        const base64Url = payloadPart;
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        console.error("Failed to decode JWT:", e);
+        return {};
+    }
+};
 
 const CustomButton = React.forwardRef(({ className, variant, ...props }, ref) => {
   const base =
@@ -15,70 +95,143 @@ const CustomButton = React.forwardRef(({ className, variant, ...props }, ref) =>
   return <button ref={ref} className={`${base} ${style} ${className}`} {...props} />;
 });
 
-export default function LoginRegisterPage() {
+export default function LoginRegisterPage({ onAuthSuccess = () => {} }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  /** MODE diambil dari URL */
-  const isRegister = pathname === "/register";
+  const isRegister = pathname === "/register"; 
 
-  /** STATE */
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
+  const [locationStatus, setLocationStatus] = useState("Fetching location..."); 
   const [locationData, setLocationData] = useState("");
   const [password, setPassword] = useState("");
   const [retypePassword, setRetypePassword] = useState("");
+  const [error, setError] = useState(null); 
 
   useEffect(() => {
+    // Geolocation
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           const { latitude, longitude } = pos.coords;
-          setLocationData(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+          const coords = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+          setLocationData(coords);
+          setLocationStatus(`Location Captured: ${coords}`); 
         },
         (err) => {
           console.warn("Lokasi gagal:", err.message);
-          setLocationData("Tidak diketahui");
+          setLocationData("N/A");
+          setLocationStatus("Location unavailable (Permission denied or error).");
         }
       );
     } else {
-      setLocationData("Tidak didukung");
+      setLocationData("N/A");
+      setLocationStatus("Geolocation not supported by this browser.");
     }
-  }, []);
 
-  /** SUBMIT */
+    // Google Sign-In (GIS) Initialization
+    if (window.google) {
+        window.google.accounts.id.initialize({
+            client_id: "848372084731-3lqj9eof64595qvdjm176kg47j91b89k.apps.googleusercontent.com", 
+            callback: handleGoogleCredentialResponse,
+        });
+
+        window.google.accounts.id.renderButton(
+            document.getElementById("googleSignInButton"),
+            { 
+                theme: "outline", 
+                size: "large", 
+                type: "standard", 
+                shape: "pill", 
+                width: "100%",
+                text: isRegister ? "signup_with" : "signin_with" 
+            } 
+        );
+    }
+  }, [isRegister]);
+
+  const processAuthResponse = (token) => {
+    if (token) {
+        localStorage.setItem("token", token);
+       
+        const decodedPayload = jwtDecode(token);
+        const userRole = decodedPayload.role || "User"; 
+        localStorage.setItem("userRole", userRole); 
+        
+        console.log(`SUCCESS: Role user diidentifikasi sebagai: ${userRole}. Navigating to /dashboard...`);
+        
+        onAuthSuccess(); 
+        
+        setTimeout(() => {
+             navigate("/dashboard"); 
+        }, 0);
+
+    } else {
+        setError("Autentikasi gagal: Tidak ada token yang diterima dari server.");
+    }
+  };
+
+  /** SUBMIT MANUAL */
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    setError(null); 
 
-  if (isRegister && password !== retypePassword) {
-    alert("Password dan Retype Password tidak sama!");
-    return;
-  }
-
-  try {
-    const payload = { name, email, password, address, location };
-
-    const res = isRegister
-      ? await registerUser(payload)   // ⬅ REGISTER
-      : await loginUser(payload);    // ⬅ LOGIN
-
-    console.log("Res:", res);
-
-    if (res.data?.token) {
-      localStorage.setItem("token", res.data.token);
+    if (isRegister && password !== retypePassword) {
+      setError("Password dan Retype Password tidak sama! Mohon periksa kembali.");
+      return;
     }
 
-    navigate("/dashboard");
-  } catch (err) {
-    console.error("Error:", err);
-    alert(`${isRegister ? "Registrasi" : "Login"} gagal!`);
-  }
-};
+    try {
+      const payload = { name, email, password, address, location: locationData };
+      const res = isRegister
+        ? await registerUser(payload) 
+        : await loginUser(payload); // hrsnya API call ke backend
+
+      const token = res.data?.token || res.token;
+      
+      processAuthResponse(token); // Memproses token dan menyimpan role
+
+    } catch (err) {
+      console.error("Error during authentication:", err);
+      setError(`Authentication Error: ${err.message || 'Terjadi kesalahan server saat mencoba autentikasi.'}`);
+    }
+  };
 
 
-  const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:2007/api/v1/auth/google";
+  /** GOOGLE CREDENTIAL HANDLER */
+  const handleGoogleCredentialResponse = async (response) => {
+    setError(null);
+
+    const googleCredential = response.credential;
+    const decoded = jwtDecode(googleCredential);
+    const { email: googleEmail } = decoded; 
+
+    if (!googleEmail) {
+        setError("Autentikasi Google gagal: Email tidak ditemukan dalam token.");
+        return; 
+    }
+
+    try {
+        let payload = { googleCredential: googleCredential, email: googleEmail };
+        
+        if (isRegister) {
+            payload = { ...payload, name: name || decoded.name, address: address, location: locationData };
+        }
+
+        const res = isRegister
+            ? await registerUserWithGoogle(payload) 
+            : await loginUserWithGoogle(payload); //hrsnya API call ke backend
+
+        const token = res.data?.token || res.token;
+
+        processAuthResponse(token); // Memproses token dan menyimpan role
+        
+    } catch (err) {
+        console.error("Error Google Auth:", err);
+        setError(`Google Auth Error: ${err.message || 'Terjadi kesalahan server saat mencoba Google Auth.'}`);
+    }
   };
 
   return (
@@ -90,12 +243,11 @@ export default function LoginRegisterPage() {
 
       <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8 items-center relative">
 
-        {/* LEFT SIDE INFO */}
         <div className="hidden md:block space-y-6">
           <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-gray-100 shadow-xl">
             <Shield className="w-16 h-16 text-blue-600 mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Privasimu Terjaga
+              Privasimu Terjaga 
             </h2>
             <p className="text-gray-600 mb-6">
               SpeakUp tidak menyimpan identitas aslimu. Semua percakapan anonim.
@@ -158,6 +310,19 @@ export default function LoginRegisterPage() {
                 : "Kamu nggak sendiri. Kami di sini untuk mendengarkan."}
             </p>
           </div>
+          
+          <div className="text-xs text-gray-500 mb-4 p-2 bg-gray-50 rounded-xl flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <span className="font-medium">Lokasi:</span> 
+              {locationStatus}
+          </div>
+
+          {/* PESAN ERROR */}
+          {error && (
+            <div className="p-3 bg-red-100 border border-red-300 text-red-700 rounded-xl mb-4 text-sm font-medium">
+              Gagal: {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {isRegister && (
@@ -248,14 +413,11 @@ export default function LoginRegisterPage() {
             </CustomButton>
 
             {/* GOOGLE LOGIN */}
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              className="w-full rounded-2xl h-12 border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2"
+            <div 
+              id="googleSignInButton" 
+              className="w-full flex justify-center" 
             >
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" />
-              <span className="text-gray-700 font-medium">Masuk dengan Google</span>
-            </button>
+            </div>
 
             {/* SWITCH LOGIN / REGISTER */}
             <div className="text-center text-sm text-gray-600">

@@ -22,3 +22,9 @@ export const registerUser = async (data) => {
     throw err;
   }
 };
+
+export const loginUserWithGoogle = (payload) => 
+  axios.post(`${API_URL}/auth/google-login`, payload);
+
+export const registerUserWithGoogle = (payload) => 
+  axios.post(`${API_URL}/auth/google-register`, payload);
