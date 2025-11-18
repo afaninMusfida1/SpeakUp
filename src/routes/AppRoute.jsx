@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import React from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import LandingPage from "../pages/LandingPage";
 import LoginRegistPage from "../pages/LoginRegistPage";
 import Dashboard from "../pages/Dashboard";
@@ -7,74 +8,109 @@ import ChatList from "../pages/ChatList";
 import MapsPage from "../pages/MapsPage";
 import MenfessPage from "../pages/MenfessPage";
 import { SituationPage } from "../pages/SituationPage";
-import ProfilePage from "../pages/ProfilPage";
+import ProfilPage from "../pages/ProfilPage";
 
-// Helper function untuk mendapatkan role
-const getUserRole = () => {
-    return localStorage.getItem("userRole")?.toLowerCase() || "user";
+// 1. Helper untuk cek autentikasi
+const isAuthenticated = () => {
+    const token = localStorage.getItem("token");
+    return token && token !== "undefined" && token !== "null";
 };
 
-// Komponen helper untuk mengarahkan rute chat
-const ChatRouteHandler = ({ isAuthenticated }) => {
-    if (!isAuthenticated) {
-        return <Navigate to="/login" />;
+// 2. Helper untuk ambil role & data user
+const getUserData = () => {
+    const role = localStorage.getItem("userRole")?.toLowerCase() || "user";
+    
+    const userString = localStorage.getItem("user");
+    let userId = "default-user";
+    
+    if (userString) {
+        try {
+            const userObj = JSON.parse(userString);
+            userId = userObj.id || userObj.email || "default-user";
+        } catch (e) {
+            console.error("Gagal parse user data", e);
+        }
     }
-    
-    const role = getUserRole();
-    
-    if (role === 'satgas') {
-        // Jika Satgas, tampilkan daftar chat
+
+    return { role, userId };
+};
+
+// 3. Private Route Wrapper 
+const PrivateRoute = ({ children }) => {
+    if (!isAuthenticated()) {
+        return <Navigate to="/login" replace />;
+    }
+    return children;
+};
+
+const ChatEntryPoint = () => {
+    if (!isAuthenticated()) {
+        return <Navigate to="/login" replace />;
+    }
+
+    const { role, userId } = getUserData();
+
+    if (role === "satgas") {
         return <ChatList />;
     } else {
-        // Jika Pengguna, arahkan ke sesi chat default (misal, dengan ID 'new-session')
-        return <CurrentChat />;
+        const sessionID = `session-${userId}`; 
+        return <Navigate to={`/chat/${sessionID}`} replace />;
     }
 };
 
 export default function AppRoute() {
-    const isAuthenticated = !!localStorage.getItem("token"); // misal token disimpan di localStorage
-    const role = getUserRole(); // Ambil role di sini
-
-    // Tentukan chat ID default untuk Pengguna (misal, menggunakan username atau ID unik sesi)
-    const defaultUserChatId = localStorage.getItem("username") ? `session-${localStorage.getItem("username")}` : "session-user-default";
-
     return (
         <Routes>
-            {/* Public */}
+            {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginRegistPage />} />
             <Route path="/register" element={<LoginRegistPage />} />
             <Route path="/situation" element={<SituationPage />} />
 
             {/* Protected Routes */}
-            <Route
-                path="/dashboard"
-                element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+            <Route 
+                path="/dashboard" 
+                element={
+                    <PrivateRoute>
+                        <Dashboard />
+                    </PrivateRoute>
+                } 
             />
 
-            <Route
-                path="/chat"
-                element={isAuthenticated ? 
-                    (role === 'satgas' ? <ChatList /> : <Navigate to={`/chat/${defaultUserChatId}`} replace />) 
-                    : <Navigate to="/login" />}
-            />
+            <Route path="/chat" element={<ChatEntryPoint />} />
             
-            <Route
-                path="/chat/:chatId"
-                element={isAuthenticated ? <CurrentChat /> : <Navigate to="/login" />}
+            <Route 
+                path="/chat/:chatId" 
+                element={
+                    <PrivateRoute>
+                        <CurrentChat />
+                    </PrivateRoute>
+                } 
             />
 
-            <Route
-                path="/maps"
-                element={isAuthenticated ? <MapsPage /> : <Navigate to="/login" />}
+            <Route 
+                path="/maps" 
+                element={
+                    <PrivateRoute>
+                        <MapsPage />
+                    </PrivateRoute>
+                } 
             />
-            <Route
-                path="/menfess"
-                element={isAuthenticated ? <MenfessPage /> : <Navigate to="/login" />}
+            <Route 
+                path="/menfess" 
+                element={
+                    <PrivateRoute>
+                        <MenfessPage />
+                    </PrivateRoute>
+                } 
             />
-            <Route
-                path="/profile"
-                element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />}
+            <Route 
+                path="/profile" 
+                element={
+                    <PrivateRoute>
+                        <ProfilPage />
+                    </PrivateRoute>
+                } 
             />
         </Routes>
     );
