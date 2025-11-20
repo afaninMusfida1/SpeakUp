@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { Phone, MessageCircle, Navigation, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import useMaps from "../hooks/useMaps";
 
+// ====================================================================
+// LEAFLET CONFIG
+// ====================================================================
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -12,6 +16,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
+// ====================================================================
+// SUB-COMPONENTS
+// ====================================================================
 const PlainButton = ({ children, className = "", onClick, variant = "default", ...props }) => {
   let base = "flex items-center justify-center font-medium transition-colors";
   if (variant === "ghost") base += " text-gray-700 hover:bg-gray-100 p-2";
@@ -35,150 +42,22 @@ const PlainBadge = ({ children, className = "" }) => (
   </div>
 );
 
-/* Util: Haversine distance (km)*/
-const haversineKm = (lat1, lon1, lat2, lon2) => {
-  const toRad = (v) => (v * Math.PI) / 180;
-  const R = 6371; // km
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
-
-/* Main Page*/
-export default function MapsPage({ onStartChat }) {
+// ====================================================================
+// MAIN COMPONENT
+// ====================================================================
+export default function MapsPage() {
   const navigate = useNavigate();
-
-  const [userPos, setUserPos] = useState(null); 
-  const [showMap, setShowMap] = useState(false);
-  const [loadingLoc, setLoadingLoc] = useState(true); 
-  const [loadingBackend, setLoadingBackend] = useState(false);
-  const [locations, setLocations] = useState([]); 
-  const [selectedLocation, setSelectedLocation] = useState(null);
-
-  const BACKEND_NEARBY_URL = "/api/v1/nearby";
-
-  // geolocation
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      setUserPos(null);
-      setShowMap(false);
-      setLoadingLoc(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        setUserPos([lat, lng]);
-        setShowMap(true);
-        setLoadingLoc(false);
-      },
-      (err) => {
-        console.warn("Geolocation error / denied:", err);
-        setUserPos(null);
-        setShowMap(false);
-        setLoadingLoc(false);
-      },
-      { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!userPos) return;
-
-    let cancelled = false;
-    setLoadingBackend(true);
-
-    (async () => {
-      try {
-        const url = `${BACKEND_NEARBY_URL}?lat=${encodeURIComponent(userPos[0])}&lng=${encodeURIComponent(userPos[1])}`;
-        const res = await fetch(url, { method: "GET" });
-
-        if (!res.ok) throw new Error(`Backend returned ${res.status}`);
-
-        const data = await res.json();
-
-        // Backend bisa mengembalikan:
-        // - array Feature (OSM-format) OR
-        // - array plain records sesuai Prisma SatgasLocation
-        // Kita deteksi dan konversi ke bentuk internal:
-        const parsed = (Array.isArray(data) ? data : data.features || [])
-          .map((item) => {
-            // Jika OSM Feature format
-            if (item?.type === "Feature" && item?.properties) {
-              const props = item.properties;
-              const coords = item.geometry?.coordinates || [];
-              const lat = coords[1];
-              const lng = coords[0];
-              const name = props.name || props["alt_name"] || props["operator"] || "Tanpa Nama";
-              const addressParts = [];
-              if (props["addr:street"]) addressParts.push(props["addr:street"]);
-              if (props["addr:housenumber"]) addressParts.push(props["addr:housenumber"]);
-              if (props["addr:postcode"]) addressParts.push(props["addr:postcode"]);
-              const address = addressParts.join(" ").trim() || props.operator || "";
-              return {
-                id: item.id || `${lat}-${lng}`,
-                name,
-                address,
-                phone: props.phone || props.phone_number || null,
-                category: props.amenity || props.type || null,
-                latitude: lat,
-                longitude: lng,
-                // if backend supplied distance use it, else compute
-                distance:
-                  typeof props.distance !== "undefined" && props.distance !== null
-                    ? props.distance
-                    : (typeof lat === "number" && typeof lng === "number"
-                        ? (Math.round(haversineKm(userPos[0], userPos[1], lat, lng) * 10) / 10) + " km"
-                        : null),
-              };
-            }
-
-            // Jika backend mengembalikan record seperti Prisma SatgasLocation
-            // { id, nama_kantor, alamat, latitude, longitude, distance? }
-            if (item && item.nama_kantor && typeof item.latitude === "number" && typeof item.longitude === "number") {
-              const lat = item.latitude;
-              const lng = item.longitude;
-              return {
-                id: item.id,
-                name: item.nama_kantor,
-                address: item.alamat || "",
-                phone: item.phone || item.telp || null,
-                category: item.category || null,
-                latitude: lat,
-                longitude: lng,
-                distance:
-                  typeof item.distance !== "undefined" && item.distance !== null
-                    ? item.distance
-                    : (Math.round(haversineKm(userPos[0], userPos[1], lat, lng) * 10) / 10) + " km",
-              };
-            }
-
-            // Unknown format -> ignore by returning null
-            return null;
-          })
-          .filter(Boolean);
-
-        if (!cancelled) {
-          setLocations(parsed);
-        }
-      } catch (err) {
-        console.error("Gagal fetch lokasi terdekat:", err);
-        if (!cancelled) setLocations([]);
-      } finally {
-        if (!cancelled) setLoadingBackend(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [userPos]);
+  
+  // Menggunakan Hooks
+  const { 
+    userPos, 
+    showMap, 
+    loadingLoc, 
+    loadingBackend, 
+    locations, 
+    selectedLocation, 
+    setSelectedLocation 
+  } = useMaps();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -203,30 +82,31 @@ export default function MapsPage({ onStartChat }) {
 
       <div className="flex-1 grid lg:grid-cols-[1fr,400px]">
         <div className="relative">
-          {/* When user denies or still loading geolocation */}
+          {/* STATE: Denied / Error */}
           {!showMap && !loadingLoc && (
             <div className="w-full h-[400px] lg:h-full flex items-center justify-center text-gray-500 text-sm">
               Lokasi tidak diizinkan — peta tidak dapat ditampilkan.
             </div>
           )}
 
+          {/* STATE: Loading Loc */}
           {loadingLoc && (
             <div className="w-full h-[400px] lg:h-full flex items-center justify-center text-gray-500 text-sm">
               Menentukan lokasi...
             </div>
           )}
 
-          {/* Map shows only if allowed */}
+          {/* STATE: Show Map */}
           {showMap && userPos && (
             <MapContainer center={userPos} zoom={14} className="w-full h-[400px] lg:h-full" scrollWheelZoom>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-              {/* user marker */}
+              {/* User Marker */}
               <Marker position={userPos}>
                 <Popup>Lokasi Anda</Popup>
               </Marker>
 
-              {/* markers from backend */}
+              {/* Backend Markers */}
               {locations.map((loc) => (
                 <Marker
                   key={String(loc.id)}
@@ -247,8 +127,8 @@ export default function MapsPage({ onStartChat }) {
         </div>
 
         {/* SIDEBAR */}
-        <div className="bg-white border-l border-gray-200 overflow-y-auto">
-          <div className="p-4 border-b bg-white sticky top-0">
+        <div className="bg-white border-l border-gray-200 overflow-y-auto h-[50vh] lg:h-auto">
+          <div className="p-4 border-b bg-white sticky top-0 z-10">
             <h3 className="text-lg font-semibold">Lokasi Bantuan Terdekat</h3>
 
             {loadingLoc && <p className="text-sm text-gray-600">Menentukan lokasi...</p>}
@@ -258,11 +138,12 @@ export default function MapsPage({ onStartChat }) {
           </div>
 
           <div className="p-4 space-y-3">
-            {/* no data message */}
+            {/* No Data */}
             {showMap && !loadingBackend && locations.length === 0 && (
               <p className="text-sm text-gray-500">Tidak ada lokasi bantuan ditemukan di sekitar Anda.</p>
             )}
 
+            {/* List Locations */}
             {locations.map((location) => (
               <PlainCard
                 key={location.id}
@@ -312,6 +193,7 @@ export default function MapsPage({ onStartChat }) {
                         e.stopPropagation();
                         const lat = location.latitude;
                         const lng = location.longitude;
+                        // Fix: Menggunakan URL standar Google Maps untuk navigasi
                         window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, "_blank");
                       }}
                     >
@@ -337,13 +219,6 @@ export default function MapsPage({ onStartChat }) {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* EMERGENCY BUTTON */}
-      <div className="fixed bottom-6 right-6">
-        <PlainButton onClick={() => window.open("tel:110")} className="bg-red-600 hover:bg-red-700 w-16 h-16 rounded-full shadow-2xl p-0">
-          <Phone className="w-6 h-6" />
-        </PlainButton>
       </div>
     </div>
   );

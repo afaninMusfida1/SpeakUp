@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Shield, Menu, X, ArrowLeft, AlertTriangle } from "lucide-react";
+import { Shield, Menu, X, ArrowLeft, Siren} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Button = ({ children, variant = "default", className = "", ...props }) => {
@@ -21,9 +21,6 @@ const Button = ({ children, variant = "default", className = "", ...props }) => 
   );
 };
 
-// =============================
-//   FLEXIBLE + UNIVERSAL NAVBAR
-// =============================
 const Navbar = ({
   showMenu = false,     // Landing page
   showUrgent = false,   // Landing page
@@ -43,7 +40,7 @@ const Navbar = ({
   const onGetStarted = () => navigate("/situation");
 
   return (
-    <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-99">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         
         <div className="flex items-center justify-between">
@@ -99,7 +96,7 @@ const Navbar = ({
                   bg-red-600 text-white text-base font-semibold hover:bg-red-700 transition-colors 
                   duration-200 focus:outline-none focus:ring-4 focus:ring-red-300"
                 >
-                  <AlertTriangle size={20} strokeWidth={2.5} className="text-white" />
+                  <Siren size={20} strokeWidth={2.5} className="text-white" />
                   Urgent
                 </Button>
               )}
@@ -140,7 +137,7 @@ const Navbar = ({
               bg-red-600 text-white text-base font-semibold hover:bg-red-700 transition-colors 
               duration-200 focus:outline-none focus:ring-4 focus:ring-red-300"
             >
-              <AlertTriangle size={20} strokeWidth={2.5} className="text-white" />
+              <Siren size={20} strokeWidth={2.5} className="text-white" />
               Urgent
             </Button>
           </div>

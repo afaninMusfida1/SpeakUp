@@ -9,6 +9,8 @@ import MapsPage from "../pages/MapsPage";
 import MenfessPage from "../pages/MenfessPage";
 import { SituationPage } from "../pages/SituationPage";
 import ProfilPage from "../pages/ProfilPage";
+import ArticlePage from "../pages/ArticlePage"; 
+import ArticleDetail from "../pages/ArticleDetail";
 
 // 1. Helper untuk cek autentikasi
 const isAuthenticated = () => {
@@ -73,6 +75,23 @@ export default function AppRoute() {
                 element={
                     <PrivateRoute>
                         <Dashboard />
+                    </PrivateRoute>
+                } 
+            />
+
+            <Route 
+                path="/articles" 
+                element={
+                    <PrivateRoute>
+                        <ArticlePage />
+                    </PrivateRoute>
+                } 
+            />
+            <Route 
+                path="/article/:id" 
+                element={
+                    <PrivateRoute>
+                        <ArticleDetail />
                     </PrivateRoute>
                 } 
             />

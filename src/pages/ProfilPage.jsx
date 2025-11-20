@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import { User, Mail, MapPin, LogOut, Shield, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getUserProfile } from "../api/user"; 
-import Navbar from "../components/Navbar"; // 1. Import Navbar
+import Navbar from "../components/Navbar"; 
 
-// Komponen Card agar konsisten dengan Dashboard
 const Card = ({ children, className = "" }) => (
   <div className={`bg-white shadow-sm rounded-2xl border border-white/50 ${className}`}>
     {children}
