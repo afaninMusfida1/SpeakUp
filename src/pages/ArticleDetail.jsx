@@ -116,17 +116,19 @@ export default function ArticleDetail() {
 
         const fetchArticle = async () => {
             try {
+                console.log(articleId)
                 const response = await axios.get(`${API_BASE_URL}/article/${articleId}/content`);
                 
-                const result = response.data;
+                const result = response.data.payload.datas;
+                console.log(result)
 
                 if (result.code !== 200 || !result.data) {
                     setError(result.message || "Gagal memuat artikel atau artikel tidak ditemukan.");
                 } else {
                     setArticleData({
-                        ...result.data,
-                        content: result.data.content && result.data.content.length > 0 
-                                 ? result.data.content[0].content 
+                        ...result,
+                        content: result.contents && result.contents.length > 0 
+                                 ? result.content[0].content 
                                  : "Konten artikel belum tersedia."
                     });
                 }

@@ -13,7 +13,7 @@ const useLandingPageData = () => {
     const fetchArticles = async () => {
       setLoadingArticles(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/article`);
+        const response = await fetch(`${API_BASE_URL}/article?limit=2`);
         const result = await response.json();
 
         if (result.payload && Array.isArray(result.payload.datas)) {

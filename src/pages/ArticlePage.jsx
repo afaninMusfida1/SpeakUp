@@ -89,7 +89,7 @@ export default function ArticlePage() {
 
     // Daftar kategori yang tersedia berdasarkan data yang dimuat dari API
     const ALL_CATEGORIES = useMemo(() => {
-        const categories = articles.map(a => a.category); 
+        const categories = articles.map(a => a.category.name); 
         return ["Semua Kategori", ...new Set(categories)];
     }, [articles]);
 
@@ -98,7 +98,7 @@ export default function ArticlePage() {
             const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                   (article.summary || '').toLowerCase().includes(searchTerm.toLowerCase());
             
-            const matchesCategory = selectedCategory === "Semua Kategori" || article.category === selectedCategory;
+            const matchesCategory = selectedCategory === "Semua Kategori" || article.category.name === selectedCategory;
 
             return matchesSearch && matchesCategory;
         });
@@ -166,7 +166,7 @@ export default function ArticlePage() {
                         ) : (
                             ALL_CATEGORIES.map(category => (
                                 <Button
-                                    key={category}
+                                    key={category.name}
                                     onClick={() => setSelectedCategory(category)}
                                     variant={selectedCategory === category ? "default" : "outline"}
                                     className={`rounded-full px-5 py-1.5 text-sm font-semibold transition-all duration-200 ${
@@ -214,7 +214,7 @@ export default function ArticlePage() {
                                         <div className="p-6">
                                             <div className="flex items-center justify-between mb-3">
                                                 <span className={`px-3 py-1 text-xs font-bold rounded-full ${getCategoryColor(a.color)}`}>
-                                                    {a.category}
+                                                    {a.category.name}
                                                 </span>
                                                 <span className="text-gray-500 text-sm flex items-center gap-1 font-medium">
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
