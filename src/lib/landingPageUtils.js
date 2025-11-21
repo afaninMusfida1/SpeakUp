@@ -25,8 +25,8 @@ export const getCategoryColor = (color) => {
     return map[color] || map.blue; 
 };
 
-export const ARTICLE_PLACEHOLDER_URL = "https://via.placeholder.com/600x400/D1C4E9/4527A0?text=Edukasi+SpeakUp"; 
+// export const ARTICLE_PLACEHOLDER_URL = "https://via.placeholder.com/600x400/D1C4E9/4527A0?text=Edukasi+SpeakUp"; 
 
-export const GENERIC_FALLBACK_URL = "https://via.placeholder.com/600x400/CCCCCC/FFFFFF?text=No+Image"; 
+// export const GENERIC_FALLBACK_URL = "https://via.placeholder.com/600x400/CCCCCC/FFFFFF?text=No+Image"; 
 
 export const HERO_IMAGE_URL = `https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80`;

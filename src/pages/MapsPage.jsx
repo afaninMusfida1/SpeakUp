@@ -5,10 +5,9 @@ import { Phone, MessageCircle, Navigation, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import useMaps from "../hooks/useMaps";
+import { PinIcon } from "../lib/mapUtils";
 
-// ====================================================================
-// LEAFLET CONFIG
-// ====================================================================
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -16,9 +15,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// ====================================================================
-// SUB-COMPONENTS
-// ====================================================================
 const PlainButton = ({ children, className = "", onClick, variant = "default", ...props }) => {
   let base = "flex items-center justify-center font-medium transition-colors";
   if (variant === "ghost") base += " text-gray-700 hover:bg-gray-100 p-2";
@@ -42,13 +38,9 @@ const PlainBadge = ({ children, className = "" }) => (
   </div>
 );
 
-// ====================================================================
-// MAIN COMPONENT
-// ====================================================================
 export default function MapsPage() {
   const navigate = useNavigate();
   
-  // Menggunakan Hooks
   const { 
     userPos, 
     showMap, 
@@ -106,12 +98,13 @@ export default function MapsPage() {
                 <Popup>Lokasi Anda</Popup>
               </Marker>
 
-              {/* Backend Markers */}
               {locations.map((loc) => (
+                
                 <Marker
-                  key={String(loc.id)}
-                  position={[loc.latitude, loc.longitude]}
-                  eventHandlers={{ click: () => setSelectedLocation(loc) }}
+                    key={String(loc.id)}
+                    position={[loc.latitude, loc.longitude]}
+                    icon={PinIcon(pinColor, 40)} 
+                    eventHandlers={{ click: () => setSelectedLocation(loc) }}
                 >
                   <Popup>
                     <div className="text-sm">

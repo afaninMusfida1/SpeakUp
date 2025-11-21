@@ -97,7 +97,7 @@ const useLoginRegister = (onAuthSuccess) => {
     const debounceRef = useRef(false);
     const googleButtonRef = useRef(null);
     const googleInitialized = useRef(false);
-    const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID;
+    const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
     // 1. Load Google Script
     useEffect(() => {
