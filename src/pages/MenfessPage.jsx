@@ -1,193 +1,92 @@
-import { useState } from "react";
-import { ArrowLeft, Heart, MessageCircle, Send } from "lucide-react";
-import { useNavigate } from 'react-router-dom'; 
+import React from "react";
+import { ArrowLeft, MessageCircle, Send } from "lucide-react";
+import Navbar from "../components/Navbar";
+import useMenfess from "../hooks/useMenfess";
 
-const PlainButton = ({ onClick, children, className, variant, disabled, ...props }) => {
-    let baseClasses = "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2";
+const PlainButton = ({ onClick, children, className = "", variant, disabled, ...props }) => {
+  let baseClasses =
+    "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2";
 
-    if (variant === "ghost") {
-        baseClasses = "hover:bg-gray-100 hover:text-accent-foreground";
-    } else if (variant === "outline") {
-        baseClasses = "border border-input bg-background hover:bg-accent hover:text-accent-foreground";
-    }
+  if (variant === "ghost") baseClasses = "hover:bg-gray-100 hover:text-accent-foreground";
+  if (variant === "outline") baseClasses = "border border-gray-300 bg-white hover:bg-gray-50";
 
-    return (
-        <button 
-            onClick={onClick}
-            className={`${baseClasses} ${className}`}
-            disabled={disabled}
-            {...props}
-        >
-            {children}
-        </button>
-    );
+  return (
+    <button
+      onClick={onClick}
+      className={`${baseClasses} ${className}`}
+      disabled={disabled}
+      {...props}
+    >
+      {children}
+    </button>
+  );
 };
 
-const PlainCard = ({ onClick, children, className }) => (
-    <div 
-        onClick={onClick} 
-        className={`bg-white shadow-sm rounded-lg ${className} ${onClick ? 'cursor-pointer' : ''}`}
-    >
-        {children}
-    </div>
+const PlainCard = ({ onClick, children, className = "" }) => (
+  <div onClick={onClick} className={`bg-white shadow-md rounded-2xl ${className} ${onClick ? "cursor-pointer" : ""}`}>
+    {children}
+  </div>
 );
 
-const PlainTextarea = ({ value, onChange, placeholder, className, ...props }) => (
-    <textarea
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className={`flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-        {...props}
-    />
+const PlainTextarea = ({ value, onChange, placeholder, className = "", ...props }) => (
+  <textarea
+    value={value}
+    onChange={onChange}
+    placeholder={placeholder}
+    className={`flex w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 ${className}`}
+    {...props}
+  />
 );
 
-const PlainAvatar = ({ children, className }) => (
-    <div className={`rounded-full flex items-center justify-center flex-shrink-0 ${className}`}>
-        {children}
-    </div>
+const PlainAvatar = ({ children, className = "" }) => (
+  <div className={`rounded-full flex items-center justify-center flex-shrink-0 ${className}`}>{children}</div>
 );
 
-const PlainBadge = ({ children, className }) => (
-    <div className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${className}`}>
-        {children}
-    </div>
+const PlainBadge = ({ children, className = "" }) => (
+  <div className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${className}`}>{children}</div>
 );
 
-const mockMenfess = [
-  {
-    id: 1,
-    anonId: "Anonim #892",
-    content: "Hari ini aku akhirnya berani cerita ke orang tua tentang apa yang aku alami. Mereka mendengarkan dan mendukungku. Terima kasih SpeakUp sudah memberi aku keberanian. 💙",
-    timestamp: new Date(Date.now() - 3600000),
-    reactions: { heart: 42, pray: 28, hug: 15 },
-    comments: 8
-  },
-  {
-    id: 2,
-    anonId: "Anonim #234",
-    content: "Kadang aku merasa sendiri, tapi baca menfess di sini bikin aku ngerasa nggak sendirian. Semangat buat kalian semua yang lagi berjuang! 🌟",
-    timestamp: new Date(Date.now() - 7200000),
-    reactions: { heart: 67, pray: 34, hug: 29 },
-    comments: 12
-  },
-  {
-    id: 3,
-    anonId: "Anonim #567",
-    content: "Buat yang lagi mengalami hal serupa: kamu nggak salah, kamu nggak sendirian, dan bantuan ada di luar sana. Jangan takut untuk speak up.",
-    timestamp: new Date(Date.now() - 10800000),
-    reactions: { heart: 89, pray: 56, hug: 41 },
-    comments: 15
-  },
-  {
-    id: 4,
-    anonId: "Anonim #123",
-    content: "Edukasi tentang consent di dashboard sangat membantu aku memahami hak-hakku. Semoga lebih banyak orang yang aware tentang ini.",
-    timestamp: new Date(Date.now() - 14400000),
-    reactions: { heart: 52, pray: 21, hug: 18 },
-    comments: 6
-  }
-];
+// ====================================================================
+// MAIN COMPONENT
+// ====================================================================
 
-export default function MenfessPage({ username }) {
-  const [menfessList, setMenfessList] = useState(mockMenfess);
-  const [newMenfess, setNewMenfess] = useState("");
-  const [showCompose, setShowCompose] = useState(false);
-  const navigate = useNavigate(); 
-
-  const handleBack = () => {
-    navigate('/dashboard');
-    // Atau bisa menggunakan navigate(-1);
-  };
-
-
-  const handlePostMenfess = () => {
-    if (!newMenfess.trim()) return;
-
-    const newPost = {
-      id: menfessList.length + 1,
-      anonId: "Anonim #" + Math.floor(Math.random() * 1000), 
-      content: newMenfess,
-      timestamp: new Date(),
-      reactions: { heart: 0, pray: 0, hug: 0 },
-      comments: 0
-    };
-
-    setMenfessList([newPost, ...menfessList]);
-    setNewMenfess("");
-    setShowCompose(false);
-  };
-
-  const handleReaction = (id, reactionType) => {
-    setMenfessList(menfessList.map(menfess => {
-      if (menfess.id === id) {
-        const newReactions = { ...menfess.reactions };
-        if (menfess.userReacted === reactionType) {
-          newReactions[reactionType]--;
-          return { ...menfess, reactions: newReactions, userReacted: undefined };
-        } else {
-          if (menfess.userReacted) {
-            newReactions[menfess.userReacted]--;
-          }
-          newReactions[reactionType]++;
-          return { ...menfess, reactions: newReactions, userReacted: reactionType };
-        }
-      }
-      return menfess;
-    }));
-  };
-
-  const formatTimeAgo = (date) => {
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    if (seconds < 60) return 'Baru saja';
-    if (seconds < 3600) return `${Math.floor(seconds / 60)} menit lalu`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)} jam lalu`;
-    return `${Math.floor(seconds / 86400)} hari lalu`;
-  };
+const MenfessPage = () => {
+  // Menggunakan Hook
+  const {
+    menfessList,
+    newMenfess, setNewMenfess,
+    showCompose, setShowCompose,
+    visibleComments,
+    newComments, setNewComments,
+    loading,
+    loadingReplies,
+    error, setError,
+    handleBack,
+    handlePostMenfess,
+    handleAddComment,
+    toggleComments,
+    formatTimeAgo
+  } = useMenfess();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <PlainButton 
-              variant="ghost" 
-              onClick={handleBack} 
-              className="rounded-xl p-2"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </PlainButton>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Menfess Aman</h2>
-              <p className="text-sm text-gray-600">Ruang berbagi tanpa nama</p>
-            </div>
-          </div>
-          <a 
-            className="text-red-600 hover:text-red-700 font-medium"
-          >
-            🚨 Butuh bantuan
-          </a>
-        </div>
-      </div>
+      <Navbar backButton={true} title="Menfess" showUrgent={true} onBack={handleBack} />
 
       <div className="max-w-3xl mx-auto px-4 py-6">
-        {/* Page Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">
-            🕊️ Berbagi Cerita. Tanpa Nama, Tapi dengan Hati.
-          </h1>
-          <p className="text-gray-600">
-            Di sini kamu bisa berbagi pengalaman, perasaan, atau cerita tanpa khawatir identitasmu terungkap.
-          </p>
-        </div>
+        <section className="py-5">
+          <div className="max-w-xl mx-auto text-center px-4">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">🕊️ Berbagi Cerita Tanpa Nama</h1>
+            <p className="text-gray-600 text-base">
+              Bagikan pengalaman atau perasaanmu dengan aman. Identitasmu tetap rahasia.
+            </p>
+          </div>
+        </section>
 
-        {/* Compose Menfess */}
         {!showCompose ? (
-          <PlainCard className="p-6 bg-white/90 backdrop-blur-sm rounded-3xl border-2 border-gray-100 mb-6">
+          <PlainCard className="p-6 mb-6 bg-white/90 backdrop-blur-md border-2 border-gray-100 hover:shadow-lg transition-shadow">
             <button
               onClick={() => setShowCompose(true)}
-              className="w-full text-left flex items-center gap-3 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
             >
               <PlainAvatar className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600">
                 <span className="text-white text-xl">👤</span>
@@ -196,9 +95,9 @@ export default function MenfessPage({ username }) {
             </button>
           </PlainCard>
         ) : (
-          <PlainCard className="p-6 bg-white/90 backdrop-blur-sm rounded-3xl border-2 border-blue-200 mb-6">
+          <PlainCard className="p-6 mb-6 bg-white/90 backdrop-blur-md border-2 border-blue-200 shadow-md">
             <div className="flex items-start gap-3 mb-4">
-              <PlainAvatar className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 flex-shrink-0">
+              <PlainAvatar className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600">
                 <span className="text-white text-xl">👤</span>
               </PlainAvatar>
               <div className="flex-1">
@@ -206,18 +105,14 @@ export default function MenfessPage({ username }) {
                 <PlainBadge className="bg-blue-100 text-blue-700">Anonim</PlainBadge>
               </div>
             </div>
-
             <PlainTextarea
               value={newMenfess}
               onChange={(e) => setNewMenfess(e.target.value)}
-              placeholder="Tulis cerita, perasaan, atau pengalamanmu di sini... Ingat, identitasmu tidak akan terlihat."
+              placeholder="Tulis cerita atau perasaanmu..."
               className="min-h-[120px] rounded-2xl border-2 border-gray-200 focus:border-blue-400 mb-4 resize-none"
             />
-
             <div className="flex items-center justify-between">
-              <p className="text-gray-500 text-sm">
-                {newMenfess.length} karakter
-              </p>
+              <p className="text-gray-500 text-sm">{newMenfess.length} karakter</p>
               <div className="flex gap-2">
                 <PlainButton
                   variant="outline"
@@ -225,105 +120,119 @@ export default function MenfessPage({ username }) {
                     setShowCompose(false);
                     setNewMenfess("");
                   }}
-                  className="rounded-2xl"
+                  className="rounded-2xl px-5 py-2 border-gray-300 text-gray-700 hover:bg-gray-100 transition-all"
                 >
                   Batal
                 </PlainButton>
                 <PlainButton
                   onClick={handlePostMenfess}
                   disabled={!newMenfess.trim()}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-2xl gap-2"
+                  className="rounded-2xl px-5 py-2 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
-                  Publikasikan Anonim
+                  Publikasikan
                 </PlainButton>
               </div>
-            </div>
-
-            <div className="mt-4 p-3 bg-blue-50 rounded-2xl border border-blue-100">
-              <p className="text-blue-800 text-sm">
-                💙 Menfess kamu akan dipublikasikan secara anonim. Identitas kamu terlindungi.
-              </p>
             </div>
           </PlainCard>
         )}
 
-        {/* Menfess Feed */}
-        <div className="space-y-4">
-          {menfessList.map((menfess) => (
-            <PlainCard key={menfess.id} className="p-6 bg-white/90 backdrop-blur-sm rounded-3xl border-2 border-gray-100 hover:border-gray-200 transition-all">
-              {/* Menfess Header */}
-              <div className="flex items-start gap-3 mb-4">
-                <PlainAvatar className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0">
-                  <span className="text-white text-xl">👤</span>
-                </PlainAvatar>
-                <div>
-                  <p className="text-gray-900 font-semibold">{menfess.anonId}</p>
-                  <p className="text-sm text-gray-500">{formatTimeAgo(menfess.timestamp)}</p>
-                </div>
+        {error && (
+          <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-100 p-3 rounded-lg">
+            {error}
+            <button
+              onClick={() => setError(null)}
+              className="ml-3 underline text-xs"
+            >
+              tutup
+            </button>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-gray-100 animate-pulse h-28" />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {menfessList.length === 0 && (
+              <div className="p-6 bg-white/90 backdrop-blur-md rounded-2xl border-2 border-gray-100 text-center text-gray-500">
+                Belum ada menfess — jadilah yang pertama berbagi.
               </div>
+            )}
 
-              {/* Menfess Content */}
-              <p className="text-gray-800 mb-4 whitespace-pre-wrap">
-                {menfess.content}
-              </p>
-
-              {/* Reactions & Comments */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => handleReaction(menfess.id, 'heart')}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all text-sm ${
-                      menfess.userReacted === 'heart'
-                        ? 'bg-red-100 text-red-600'
-                        : 'bg-gray-100 text-gray-600 hover:bg-red-50'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${menfess.userReacted === 'heart' ? 'fill-current' : ''}`} />
-                    <span>{menfess.reactions.heart}</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleReaction(menfess.id, 'pray')}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all text-sm ${
-                      menfess.userReacted === 'pray'
-                        ? 'bg-blue-100 text-blue-600'
-                        : 'bg-gray-100 text-gray-600 hover:bg-blue-50'
-                    }`}
-                  >
-                    <span>🙏</span>
-                    <span>{menfess.reactions.pray}</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleReaction(menfess.id, 'hug')}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all text-sm ${
-                      menfess.userReacted === 'hug'
-                        ? 'bg-purple-100 text-purple-600'
-                        : 'bg-gray-100 text-gray-600 hover:bg-purple-50'
-                    }`}
-                  >
-                    <span>🤗</span>
-                    <span>{menfess.reactions.hug}</span>
-                  </button>
+            {menfessList.map((menfess) => (
+              <PlainCard key={menfess.id} className="p-6 bg-white/90 backdrop-blur-md rounded-2xl border-2 border-gray-100 hover:shadow-lg transition-shadow">
+                <div className="flex items-start gap-3 mb-4">
+                  <PlainAvatar className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400">
+                    <span className="text-white text-xl">👤</span>
+                  </PlainAvatar>
+                  <div>
+                    <p className="text-gray-900 font-semibold">{menfess.creator}</p>
+                    <p className="text-sm text-gray-500">{formatTimeAgo(menfess.created_at)}</p>
+                  </div>
                 </div>
 
-                <button className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-all text-sm">
-                  <MessageCircle className="w-4 h-4" />
-                  <span>{menfess.comments}</span>
-                </button>
-              </div>
-            </PlainCard>
-          ))}
-        </div>
+                <p className="text-gray-800 mb-4 whitespace-pre-wrap">{menfess.content}</p>
 
-        {/* Bottom Info */}
-        <div className="mt-8 p-6 bg-white/80 backdrop-blur-sm rounded-2xl border-2 border-gray-100 text-center">
-          <p className="text-gray-700">
-            💙 Kamu nggak sendiri. Cerita kamu penting. Kami mendengarkan.
-          </p>
-        </div>
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleComments(menfess.id)}
+                        className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-all text-sm"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>{(menfess.comments || []).length}</span>
+                      </button>
+                    </div>
+
+                    <div className="text-sm text-gray-400"></div>
+                  </div>
+
+                  {visibleComments[menfess.id] && (
+                    <div className="mt-3 space-y-2 pl-12">
+                      {loadingReplies[menfess.id] ? (
+                        <div className="text-sm text-gray-400">Memuat komentar...</div>
+                      ) : (menfess.comments || []).length > 0 ? (
+                        [...(menfess.comments || [])].reverse().map((comment) => (
+                          <div key={comment.id ?? JSON.stringify(comment)} className="bg-gray-100 p-3 rounded-lg text-gray-700 text-sm">
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="text-sm font-semibold text-gray-800">{comment.creator ?? "Anonim"}</div>
+                              <div className="text-xs text-gray-400">{formatTimeAgo(comment.created_at)}</div>
+                            </div>
+                            <div className="mt-1 text-gray-700">{comment.content ?? ""}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-400 text-sm">Belum ada komentar.</p>
+                      )}
+
+                      <div className="flex gap-2 mt-2">
+                        <input
+                          type="text"
+                          placeholder="Tulis komentar..."
+                          className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          value={newComments[menfess.id] || ""}
+                          onChange={(e) => setNewComments(prev => ({ ...prev, [menfess.id]: e.target.value }))}
+                          onKeyDown={(e) => e.key === "Enter" && handleAddComment(menfess.id)}
+                        />
+                        <PlainButton onClick={() => handleAddComment(menfess.id)} className="bg-blue-600 text-white hover:bg-blue-700 rounded-lg">
+                          Kirim
+                        </PlainButton>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </PlainCard>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};
+
+export default MenfessPage;
