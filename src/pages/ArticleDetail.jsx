@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios"; 
-import { ArrowLeft, BookOpen, Shield, Calendar, Clock, User, Share2, BookText } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, Clock } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2"; // 1. Import SweetAlert2
 import Navbar from "../components/Navbar";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-// Utility function untuk menggabungkan classNames
-const cn = (...classes) => {
-    return classes.filter(Boolean).join(' ');
-};
+// Utility function (Biarkan sama)
+const cn = (...classes) => classes.filter(Boolean).join(' ');
 
+// Format Content Function (Biarkan sama, saya persingkat di sini agar fokus ke logic error)
 const formatContent = (content) => {
     if (!content) return null;
     const lines = content.split('\n');
@@ -20,7 +20,6 @@ const formatContent = (content) => {
 
     const flushList = (type, items) => {
         if (items.length === 0) return;
-        
         const listElement = type === 'ul' ? (
             <ul key={`list-${elements.length}`} className="list-disc ml-6 md:ml-8 mb-8 space-y-3 text-article-text text-[17px] md:text-[18px] leading-[1.8] marker:text-primary">
                 {items.map((item, i) => <li key={i} dangerouslySetInnerHTML={{__html: item}} />)}
@@ -43,42 +42,25 @@ const formatContent = (content) => {
             if (currentList) flushList(currentList, listItems);
             currentList = null;
             listItems = [];
-
-            const heading = trimmedLine.substring(4);
-            elements.push(
-                <h3 key={`h3-${elements.length}`} className="text-2xl md:text-3xl font-bold mt-12 mb-6 text-article-heading leading-tight tracking-tight">
-                    {heading}
-                </h3>
-            );
-        } 
-        else if (trimmedLine.startsWith('* ')) {
+            elements.push(<h3 key={`h3-${elements.length}`} className="text-2xl md:text-3xl font-bold mt-12 mb-6 text-article-heading leading-tight tracking-tight">{trimmedLine.substring(4)}</h3>);
+        } else if (trimmedLine.startsWith('* ')) {
             if (currentList === 'ol') flushList(currentList, listItems);
-            if (currentList !== 'ul') currentList = 'ul';
+            currentList = 'ul';
             listItems.push(formattedText.substring(2).trim());
-        } 
-        else if (trimmedLine.match(/^\d+\. /)) {
+        } else if (trimmedLine.match(/^\d+\. /)) {
             if (currentList === 'ul') flushList(currentList, listItems);
-            if (currentList !== 'ol') currentList = 'ol';
+            currentList = 'ol';
             listItems.push(formattedText.replace(/^\d+\. /, '').trim());
-        } 
-        else {
+        } else {
             if (currentList) flushList(currentList, listItems);
             currentList = null;
             listItems = [];
-
             if (trimmedLine.length > 0) {
-                elements.push(
-                    <p key={`p-${elements.length}`} 
-                       className="mb-6 text-article-text text-[17px] md:text-[18px] leading-[1.8] tracking-wide" 
-                       dangerouslySetInnerHTML={{__html: formattedText}}>
-                    </p>
-                );
+                elements.push(<p key={`p-${elements.length}`} className="mb-6 text-article-text text-[17px] md:text-[18px] leading-[1.8] tracking-wide" dangerouslySetInnerHTML={{__html: formattedText}}></p>);
             }
         }
     });
-
     if (currentList) flushList(currentList, listItems);
-
     return elements;
 };
 
@@ -92,36 +74,20 @@ const getCategoryColor = (color) => {
     return map[color] || "bg-secondary text-secondary-foreground border-border";
 };
 
+// Component Button (Biarkan sama)
 const Button = ({ onClick, children, className = "", variant = "default", size = "default", ...props }) => {
     const baseClasses = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95";
-    
     const variantClasses = {
         default: "bg-primary text-primary-foreground shadow-soft-md hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground shadow-soft-md hover:bg-destructive/90",
-        outline: "border border-border bg-background shadow-soft hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-soft hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
         article: "bg-primary text-primary-foreground shadow-soft-lg hover:shadow-soft-xl hover:bg-primary/90 rounded-2xl",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
     };
-
     const sizeClasses = {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-lg px-3 text-xs",
         lg: "h-12 rounded-2xl px-8 text-base",
-        icon: "h-10 w-10",
     };
-
-    return (
-        <button 
-            type="button" 
-            onClick={onClick} 
-            className={cn(baseClasses, variantClasses[variant], sizeClasses[size], className)} 
-            {...props}
-        >
-            {children}
-        </button>
-    );
+    return <button type="button" onClick={onClick} className={cn(baseClasses, variantClasses[variant], sizeClasses[size], className)} {...props}>{children}</button>;
 };
 
 export default function ArticleDetail() {
@@ -129,17 +95,27 @@ export default function ArticleDetail() {
     const articleId = parseInt(id); 
     
     const navigate = useNavigate();
-    const handleBack = () => navigate(-1);
+    const handleBack = () => navigate(-1); // Atau ganti ke navigate('/edukasi')
     
     const [articleData, setArticleData] = useState(null); 
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     useEffect(() => {
         setLoading(true);
-        setError(null);
+
+        // 2. Cek Validasi ID di awal
         if (isNaN(articleId)) { 
-            setError("ID Artikel tidak valid."); 
+            Swal.fire({
+                icon: 'error',
+                title: 'Link Tidak Valid',
+                text: 'ID Artikel tidak ditemukan.',
+                confirmButtonText: 'Kembali',
+                confirmButtonColor: '#3b82f6',
+                allowOutsideClick: false,
+                customClass: { popup: 'rounded-2xl font-sans', confirmButton: 'rounded-xl' }
+            }).then(() => {
+                handleBack();
+            });
             setLoading(false); 
             return; 
         }
@@ -150,17 +126,39 @@ export default function ArticleDetail() {
                 const result = response.data?.payload?.datas;
                 
                 if (!result || !result.id) {
-                    setError("Gagal memuat artikel atau artikel tidak ditemukan.");
-                } else {
-                    const joinedContent = result.contents && Array.isArray(result.contents)
-                        ? result.contents.map(item => item.content).join('\n\n') 
-                        : "Konten artikel belum tersedia.";
-
-                    setArticleData({ ...result, content: joinedContent });
+                    throw new Error("Artikel tidak ditemukan");
                 }
+
+                const joinedContent = result.contents && Array.isArray(result.contents)
+                    ? result.contents.map(item => item.content).join('\n\n') 
+                    : "Konten artikel belum tersedia.";
+
+                setArticleData({ ...result, content: joinedContent });
             } catch (err) {
                 console.error("Fetch Article Error:", err);
-                setError("Terjadi kesalahan jaringan saat memuat data.");
+                
+                // 3. Trigger SweetAlert jika fetch error
+                let errorMessage = "Terjadi kesalahan jaringan.";
+                if (err.response?.status === 404 || err.message === "Artikel tidak ditemukan") {
+                    errorMessage = "Artikel yang kamu cari mungkin sudah dihapus atau tidak tersedia.";
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Memuat Artikel',
+                    text: errorMessage,
+                    confirmButtonText: 'Kembali ke Daftar',
+                    confirmButtonColor: '#3b82f6', // Sesuaikan warna brand
+                    allowOutsideClick: false, // User dipaksa klik tombol
+                    customClass: {
+                        popup: 'rounded-2xl font-sans',
+                        confirmButton: 'rounded-xl px-6 py-2.5'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        handleBack(); // Redirect otomatis setelah klik OK
+                    }
+                });
             } finally {
                 setLoading(false);
             }
@@ -170,33 +168,8 @@ export default function ArticleDetail() {
 
     const categoryClass = articleData ? getCategoryColor(articleData.color) : "";
 
-    if (error) {
-        return (
-            <div className="min-h-screen flex flex-col bg-background">
-                <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-                    <div className="max-w-5xl mx-auto px-4 h-16 flex items-center">
-                        <Button onClick={handleBack} variant="ghost" size="sm" className="gap-2">
-                            <ArrowLeft className="w-4 h-4" /> 
-                            <span className="hidden sm:inline">Kembali</span>
-                        </Button>
-                    </div>
-                </nav>
-                <main className="flex-1 flex flex-col items-center justify-center p-4 text-center animate-fade-in">
-                    <div className="bg-card p-8 rounded-3xl shadow-soft-xl max-w-md w-full border border-border">
-                        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
-                            <Shield className="w-8 h-8" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-foreground mb-2">Artikel Tidak Ditemukan</h2>
-                        <p className="text-muted-foreground mb-6">{error}</p>
-                        <Button onClick={handleBack} variant="outline" className="w-full">
-                            Kembali
-                        </Button>
-                    </div>
-                </main>
-            </div>
-        );
-    }
-
+    // 4. Loading State (Skeleton UI)
+    // Kita tetap tampilkan ini saat loading, atau saat error alert sedang muncul (sebagai background)
     if (loading || !articleData) {
         return (
             <div className="min-h-screen bg-background">
@@ -209,25 +182,24 @@ export default function ArticleDetail() {
                     </div>
                 </nav>
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-8 animate-pulse">
-                    <div className="h-8 bg-muted rounded-full w-1/4"></div>
-                    <div className="h-12 bg-muted rounded-xl w-3/4"></div>
-                    <div className="h-64 bg-muted rounded-3xl w-full"></div>
+                    <div className="h-8 bg-gray-200 rounded-full w-1/4"></div>
+                    <div className="h-12 bg-gray-200 rounded-xl w-3/4"></div>
+                    <div className="h-64 bg-gray-200 rounded-3xl w-full"></div>
                     <div className="space-y-4">
-                        <div className="h-4 bg-muted rounded w-full"></div>
-                        <div className="h-4 bg-muted rounded w-5/6"></div>
-                        <div className="h-4 bg-muted rounded w-full"></div>
-                        <div className="h-4 bg-muted rounded w-4/5"></div>
+                        <div className="h-4 bg-gray-200 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                        <div className="h-4 bg-gray-200 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 rounded w-4/5"></div>
                     </div>
                 </div>
             </div>
         );
     }
 
+    // 5. Render Konten Utama (Hanya jika data ada)
     return (
         <div className="min-h-screen bg-article-bg selection:bg-primary/10 selection:text-primary">
-            <Navbar
-                showMenu={false}
-            />
+            <Navbar showMenu={false} />
 
             <main className="max-w-4xl mx-auto px-4 sm:px-6 py-2 md:py-2 animate-fade-in">
                 
@@ -253,12 +225,6 @@ export default function ArticleDetail() {
                     </h1>
 
                     <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-article-meta">
-                        {/* <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
-                                <User size={14} className="text-accent-foreground" />
-                            </div>
-                            <span className="font-medium">{articleData.author?.name || "Tim SpeakUp"}</span>
-                        </div> */}
                         <div className="flex items-center gap-2">
                             <Clock size={16} className="text-primary/60" />
                             <span>{articleData.timeRead ? `${articleData.timeRead} menit baca` : '3 menit baca'}</span>

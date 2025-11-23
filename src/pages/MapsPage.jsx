@@ -1,13 +1,15 @@
-import React from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import React, { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import { Phone, MessageCircle, Navigation, MapPin } from "lucide-react";
+import { Phone, MessageCircle, Navigation, MapPin, Crosshair } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2"; // Import SweetAlert
+
 import Navbar from "../components/Navbar";
 import useMaps from "../hooks/useMaps";
 import { PinIcon } from "../lib/mapUtils";
 
-
+// Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -15,10 +17,12 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
+// --- UI COMPONENTS ---
 const PlainButton = ({ children, className = "", onClick, variant = "default", ...props }) => {
-  let base = "flex items-center justify-center font-medium transition-colors";
-  if (variant === "ghost") base += " text-gray-700 hover:bg-gray-100 p-2";
-  else base += " text-white px-4 py-2 shadow-md";
+  let base = "flex items-center justify-center font-medium transition-all active:scale-95";
+  if (variant === "ghost") base += " text-gray-600 hover:bg-gray-100 p-2 rounded-lg";
+  else if (variant === "fab") base += " shadow-lg rounded-full";
+  else base += " text-white px-4 py-2 shadow-sm rounded-xl";
   return (
     <button className={`${base} ${className}`} onClick={onClick} {...props}>
       {children}
@@ -26,17 +30,67 @@ const PlainButton = ({ children, className = "", onClick, variant = "default", .
   );
 };
 
-const PlainCard = ({ children, className = "", onClick }) => (
-  <div className={`bg-white border rounded-2xl shadow-sm ${className}`} onClick={onClick}>
+const PlainCard = ({ children, className = "", onClick, isActive }) => (
+  <div 
+    className={`bg-white border rounded-2xl p-4 cursor-pointer transition-all duration-300 ${
+      isActive 
+        ? "border-purple-500 ring-1 ring-purple-500 shadow-md bg-purple-50/30" 
+        : "border-gray-100 hover:border-gray-300 hover:shadow-sm"
+    } ${className}`} 
+    onClick={onClick}
+  >
     {children}
   </div>
 );
 
 const PlainBadge = ({ children, className = "" }) => (
-  <div className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${className}`}>
+  <div className={`inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full ${className}`}>
     {children}
   </div>
 );
+
+// --- MAP HELPER COMPONENTS ---
+
+// Komponen untuk mengontrol pergerakan peta saat lokasi dipilih
+const MapController = ({ center, selectedLocation }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (selectedLocation) {
+      map.flyTo([selectedLocation.latitude, selectedLocation.longitude], 16, {
+        animate: true,
+        duration: 1.5
+      });
+    } else if (center) {
+      // Optional: Jangan selalu recenter ke user kalau user sedang browsing, 
+      // tapi ini bagus untuk inisialisasi
+      // map.flyTo(center, 14); 
+    }
+  }, [center, selectedLocation, map]);
+
+  return null;
+};
+
+// Marker khusus untuk User (Titik Biru Berdenyut)
+const UserLocationMarker = ({ position }) => {
+  const userIcon = L.divIcon({
+    className: "css-icon",
+    html: '<div class="gps_ring"></div>', // Butuh CSS tambahan (lihat bawah) atau ganti icon biasa
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+  });
+
+  // Fallback jika tidak pakai CSS custom, pakai icon default bulat biru
+  return (
+    <Marker position={position}>
+      <Popup>
+        <div className="text-center">
+          <span className="font-bold text-gray-800">Lokasi Anda</span>
+        </div>
+      </Popup>
+    </Marker>
+  );
+};
 
 export default function MapsPage() {
   const navigate = useNavigate();
@@ -51,167 +105,253 @@ export default function MapsPage() {
     setSelectedLocation 
   } = useMaps();
 
+  // --- SWEETALERT INTEGRATION ---
+  
+  // Alert untuk Permission Error
+  useEffect(() => {
+    if (!loadingLoc && !showMap && !userPos) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Akses Lokasi Ditolak',
+        text: 'Mohon izinkan akses lokasi di browser Anda agar kami dapat menampilkan peta bantuan terdekat.',
+        confirmButtonColor: '#9333ea',
+        confirmButtonText: 'Mengerti'
+      });
+    }
+  }, [loadingLoc, showMap, userPos]);
+
+  // Alert ketika navigasi dimulai (Opsional UX enhancement)
+  const handleNavigate = (lat, lng) => {
+    Swal.fire({
+      title: 'Buka Google Maps?',
+      text: "Anda akan diarahkan ke aplikasi Google Maps untuk navigasi.",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#2563eb',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Ya, Buka Navigasi',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Format URL Google Maps yang benar untuk Directions API
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, "_blank");
+      }
+    });
+  };
+
+  const handleCall = (phone) => {
+    if (!phone) return;
+    // Langsung buka dialer, tapi bisa juga di alert dulu
+    window.open(`tel:${phone}`);
+  };
+
+  // Reset view ke lokasi user
+  const handleRecenter = () => {
+    if(userPos) {
+      setSelectedLocation(null); // Hapus seleksi agar map controller bisa fokus ke user (opsional logic)
+      // Karena map controller memantau state, kita perlu cara manual mengakses map instance
+      // atau cukup biarkan user scroll manual. 
+      // *Disini kita akan handle via state selectedLocation = null dan logic di MapController diperbaiki sedikit jika perlu*
+      // Tapi cara termudah di react-leaflet tanpa ref rumit adalah memaksa re-render atau membiarkan user zoom manual.
+      // Opsi: Kita set selectedLocation ke 'user' fake object sementara atau biarkan.
+      
+      // Simple hack: trigger re-render map center
+      const map = document.querySelector('.leaflet-container')?._leaflet_map;
+      if(map) map.flyTo(userPos, 15);
+    } else {
+      Swal.fire({
+        icon: 'info',
+        text: 'Sedang mencari lokasi Anda...',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen w-full flex flex-col bg-gray-50 overflow-hidden">
       <Navbar backButton={true} title="Peta Bantuan" />
 
-      {/* FLOATING ACTIONS */}
-      <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-[999]">
-        <button
-          onClick={() => navigate('/chat')}
-          className="bg-purple-600 hover:bg-purple-700 text-white w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl shadow-purple-400/40 active:scale-95 transition"
-        >
-          <MessageCircle className="w-7 h-7" />
-        </button>
-
-        <button
-          onClick={() => window.open("tel:110")}
-          className="bg-red-600 hover:bg-red-700 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-xl shadow-red-400/40 active:scale-95 transition"
-        >
-          <Phone className="w-7 h-7" />
-        </button>
-      </div>
-
-      <div className="flex-1 grid lg:grid-cols-[1fr,400px]">
-        <div className="relative">
-          {/* STATE: Denied / Error */}
-          {!showMap && !loadingLoc && (
-            <div className="w-full h-[400px] lg:h-full flex items-center justify-center text-gray-500 text-sm">
-              Lokasi tidak diizinkan — peta tidak dapat ditampilkan.
-            </div>
-          )}
-
-          {/* STATE: Loading Loc */}
+      <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
+        
+        {/* --- MAP AREA (Left/Top) --- */}
+        <div className="relative flex-1 h-[50vh] lg:h-full order-1 lg:order-1 z-0">
+          
+          {/* Loading State Visual */}
           {loadingLoc && (
-            <div className="w-full h-[400px] lg:h-full flex items-center justify-center text-gray-500 text-sm">
-              Menentukan lokasi...
+            <div className="absolute inset-0 bg-gray-100/80 z-50 flex flex-col items-center justify-center animate-pulse">
+              <MapPin className="w-10 h-10 text-purple-500 mb-2 animate-bounce" />
+              <p className="text-gray-500 font-medium">Mencari titik lokasi...</p>
             </div>
           )}
 
-          {/* STATE: Show Map */}
-          {showMap && userPos && (
-            <MapContainer center={userPos} zoom={14} className="w-full h-[400px] lg:h-full" scrollWheelZoom>
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          {showMap && userPos ? (
+            <MapContainer center={userPos} zoom={15} className="w-full h-full" zoomControl={false}>
+              {/* 1. Menggunakan CartoDB Voyager (Lebih bersih & mudah dibaca dibanding OSM standar) */}
+              <TileLayer 
+                attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              />
 
-              {/* User Marker */}
-              <Marker position={userPos}>
-                <Popup>Lokasi Anda</Popup>
-              </Marker>
+              <MapController center={userPos} selectedLocation={selectedLocation} />
+
+              <UserLocationMarker position={userPos} />
 
               {locations.map((loc) => (
-                
                 <Marker
-                    key={String(loc.id)}
-                    position={[loc.latitude, loc.longitude]}
-                    icon={PinIcon(pinColor, 40)} 
-                    eventHandlers={{ click: () => setSelectedLocation(loc) }}
+                  key={String(loc.id)}
+                  position={[loc.latitude, loc.longitude]}
+                  // Pastikan pinColor didefinisikan atau handle fallback
+                  icon={PinIcon ? PinIcon(loc.category === 'police' ? '#2563eb' : '#dc2626', 35) : undefined}
+                  eventHandlers={{ 
+                    click: () => setSelectedLocation(loc) 
+                  }}
                 >
-                  <Popup>
-                    <div className="text-sm">
-                      <strong>{loc.name}</strong>
-                      {loc.address ? <div className="text-gray-600">{loc.address}</div> : null}
-                      {loc.distance ? <div className="text-xs text-gray-500 mt-1">{loc.distance}</div> : null}
+                  {/* Popup Minimalis */}
+                  <Popup className="custom-popup"> 
+                    <div className="text-sm font-sans">
+                      <strong className="block text-gray-800 mb-1">{loc.name}</strong>
+                      <span className="text-xs text-gray-500">{loc.distance}</span>
                     </div>
                   </Popup>
                 </Marker>
               ))}
             </MapContainer>
+          ) : (
+            // Fallback jika map gagal load
+            !loadingLoc && (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 text-gray-500">
+                <MapPin className="w-12 h-12 mb-2 opacity-20" />
+                <p>Peta tidak dapat dimuat</p>
+              </div>
+            )
           )}
+
+          {/* FLOATING CONTROLS ON MAP */}
+          <div className="absolute bottom-6 right-4 z-[400] flex flex-col gap-3">
+             {/* Recenter Button */}
+             <PlainButton 
+              variant="fab" 
+              className="bg-white text-gray-700 hover:bg-gray-50 w-12 h-12 shadow-xl border border-gray-100"
+              onClick={handleRecenter}
+              title="Lokasi Saya"
+            >
+              <Crosshair className="w-6 h-6 text-purple-600" />
+            </PlainButton>
+          </div>
         </div>
 
-        {/* SIDEBAR */}
-        <div className="bg-white border-l border-gray-200 overflow-y-auto h-[50vh] lg:h-auto">
-          <div className="p-4 border-b bg-white sticky top-0 z-10">
-            <h3 className="text-lg font-semibold">Lokasi Bantuan Terdekat</h3>
-
-            {loadingLoc && <p className="text-sm text-gray-600">Menentukan lokasi...</p>}
-            {!loadingLoc && showMap && loadingBackend && <p className="text-sm text-gray-600">Memuat lokasi...</p>}
-            {!loadingLoc && !showMap && <p className="text-sm text-gray-600">Peta tidak tersedia</p>}
-            {!loadingLoc && showMap && !loadingBackend && <p className="text-sm text-gray-600">{locations.length} lokasi ditemukan</p>}
+        {/* --- SIDEBAR LIST (Right/Bottom) --- */}
+        <div className="w-full lg:w-[400px] h-[50vh] lg:h-full bg-white border-l border-gray-200 flex flex-col order-2 lg:order-2 shadow-2xl lg:shadow-none z-10 rounded-t-3xl lg:rounded-none mt-[-20px] lg:mt-0">
+          
+          {/* Header Sidebar */}
+          <div className="p-5 border-b bg-white sticky top-0 z-20 rounded-t-3xl lg:rounded-none">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-bold text-gray-800">Lokasi Terdekat</h3>
+              <span className="text-xs font-semibold bg-purple-100 text-purple-700 px-2 py-1 rounded-md">
+                {locations.length} Ditemukan
+              </span>
+            </div>
+            <p className="text-xs text-gray-500">
+              Pilih lokasi dari daftar untuk melihat detail di peta.
+            </p>
           </div>
 
-          <div className="p-4 space-y-3">
-            {/* No Data */}
-            {showMap && !loadingBackend && locations.length === 0 && (
-              <p className="text-sm text-gray-500">Tidak ada lokasi bantuan ditemukan di sekitar Anda.</p>
-            )}
-
-            {/* List Locations */}
-            {locations.map((location) => (
-              <PlainCard
-                key={location.id}
-                onClick={() => setSelectedLocation(location)}
-                className={`p-4 cursor-pointer transition-all ${
-                  selectedLocation?.id === location.id ? "border-2 border-blue-400 shadow-lg" : "border-2 border-gray-100 hover:border-gray-200"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
-                    <span className="text-2xl">
+          {/* Scrollable List */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar pb-24 lg:pb-4">
+            {loadingBackend ? (
+              <div className="text-center py-10 text-gray-400 text-sm">Memuat data bantuan...</div>
+            ) : locations.length === 0 ? (
+              <div className="text-center py-10 px-6">
+                <div className="bg-gray-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                  <MapPin className="w-6 h-6 text-gray-300" />
+                </div>
+                <p className="text-gray-500 text-sm">Tidak ada lokasi bantuan ditemukan dalam radius Anda.</p>
+              </div>
+            ) : (
+              locations.map((location) => (
+                <PlainCard
+                  key={location.id}
+                  isActive={selectedLocation?.id === location.id}
+                  onClick={() => setSelectedLocation(location)}
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Icon Category */}
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${
+                      location.category === "police" ? "bg-blue-50" : "bg-red-50"
+                    }`}>
                       {location.category === "police" ? "🚓" : location.category === "hospital" ? "🏥" : "📍"}
-                    </span>
-                  </div>
+                    </div>
 
-                  <div className="flex-1">
-                    <PlainBadge className={`mb-2 ${location.category === "police" ? "bg-blue-100 text-blue-700" : location.category === "hospital" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"}`}>
-                      {location.name}
-                    </PlainBadge>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <h4 className="text-sm font-bold text-gray-900 truncate pr-2">{location.name}</h4>
+                        {location.distance && (
+                           <span className="text-[10px] font-medium bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                             {location.distance}
+                           </span>
+                        )}
+                      </div>
+                      
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
+                        {location.address || "Alamat tidak tersedia"}
+                      </p>
 
-                    <h4 className="text-base font-semibold">{location.name}</h4>
-                    {location.address ? <p className="text-sm text-gray-600">{location.address}</p> : null}
+                      {/* Action Buttons (Only Visible when Active) */}
+                      {selectedLocation?.id === location.id && (
+                        <div className="mt-3 pt-3 border-t border-gray-100 flex gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                          <PlainButton
+                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-xs h-9 rounded-lg gap-1.5"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleNavigate(location.latitude, location.longitude);
+                            }}
+                          >
+                            <Navigation className="w-3.5 h-3.5" />
+                            Rute
+                          </PlainButton>
 
-                    <div className="flex items-center gap-4 text-gray-500 text-sm mt-2">
-                      {location.distance ? (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {location.distance}
-                        </span>
-                      ) : null}
-
-                      {location.phone ? (
-                        <span className="flex items-center gap-1">
-                          <Phone className="w-4 h-4" />
-                          {location.phone}
-                        </span>
-                      ) : null}
+                          {location.phone && (
+                            <PlainButton
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-xs h-9 rounded-lg gap-1.5"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCall(location.phone);
+                              }}
+                            >
+                              <Phone className="w-3.5 h-3.5" />
+                              Telpon
+                            </PlainButton>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-
-                {selectedLocation?.id === location.id && (
-                  <div className="mt-4 pt-4 border-t flex gap-2">
-                    <PlainButton
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 rounded-xl gap-2 h-10 text-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const lat = location.latitude;
-                        const lng = location.longitude;
-                        // Fix: Menggunakan URL standar Google Maps untuk navigasi
-                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, "_blank");
-                      }}
-                    >
-                      <Navigation className="w-4 h-4" />
-                      Navigasi
-                    </PlainButton>
-
-                    {location.phone ? (
-                      <PlainButton
-                        className="flex-1 bg-green-600 hover:bg-green-700 rounded-xl gap-2 h-10 text-sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(`tel:${location.phone}`);
-                        }}
-                      >
-                        <Phone className="w-4 h-4" />
-                        Hubungi
-                      </PlainButton>
-                    ) : null}
-                  </div>
-                )}
-              </PlainCard>
-            ))}
+                </PlainCard>
+              ))
+            )}
           </div>
         </div>
+
+        {/* EMERGENCY FLOATING BUTTONS (Fixed Position) */}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 lg:left-auto lg:translate-x-0 lg:right-8 lg:bottom-8 z-[999] flex lg:flex-col gap-4">
+          <button
+            onClick={() => navigate('/chat')}
+            className="bg-white text-purple-600 hover:bg-gray-50 w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-purple-900/10 border border-purple-100 transition-transform active:scale-90"
+            title="Chat Bantuan"
+          >
+            <MessageCircle className="w-6 h-6" />
+          </button>
+
+          <button
+            onClick={() => window.open("tel:110")}
+            className="bg-red-500 hover:bg-red-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-red-500/30 ring-4 ring-red-100 transition-transform active:scale-90 animate-pulse"
+            title="Panggilan Darurat"
+          >
+            <Phone className="w-6 h-6" />
+          </button>
+        </div>
+
       </div>
     </div>
   );

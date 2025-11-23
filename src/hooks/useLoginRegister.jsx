@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+// Service untuk menangani request API
 const AuthService = {
     request: async (endpoint, method, data) => {
         try {
@@ -17,10 +19,20 @@ const AuthService = {
             return response.data; 
         } catch (error) {
             if (error.response) {
-                const message = error.response.data?.message || error.response.data?.error || `Terjadi kesalahan (${error.response.status})`;
+                // --- PERBAIKAN DISINI: MENANGKAP PESAN BACKEND ---
+                const responseData = error.response.data;
+                
+                // Cek prioritas pesan error dari berbagai format response backend
+                const message = 
+                    responseData?.message ||               // Format standar { message: "..." }
+                    responseData?.payload?.message ||      // Format API SpeakUp { payload: { message: "..." } }
+                    responseData?.error ||                 // Format alternatif { error: "..." }
+                    (typeof responseData === 'string' ? responseData : null) || // Jika respon string langsung
+                    `Gagal (${error.response.status}): ${error.response.statusText}`; // Fallback jika tidak ada pesan
+
                 throw new Error(message);
             } else if (error.request) {
-                throw new Error("Tidak dapat terhubung ke server.");
+                throw new Error("Tidak dapat terhubung ke server. Cek koneksi internetmu.");
             } else {
                 throw new Error(error.message);
             }
@@ -40,7 +52,6 @@ const AuthService = {
             email: payload.email,
             password: payload.password,
             address: payload.address,
-            // location: payload.location 
         });
     },
 
@@ -83,6 +94,7 @@ const useLoginRegister = (onAuthSuccess) => {
     const navigate = useNavigate();
     const { pathname } = useLocation();
     const isRegister = pathname === "/register";
+    
     const [name, setName] = useState("");
     const [address, setAddress] = useState("");
     const [email, setEmail] = useState("");
@@ -90,10 +102,12 @@ const useLoginRegister = (onAuthSuccess) => {
     const [locationData, setLocationData] = useState("");
     const [password, setPassword] = useState("");
     const [retypePassword, setRetypePassword] = useState("");
+    
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [googleLoaded, setGoogleLoaded] = useState(false);
     const [showGoogleFallback, setShowGoogleFallback] = useState(false);
+    
     const debounceRef = useRef(false);
     const googleButtonRef = useRef(null);
     const googleInitialized = useRef(false);
@@ -216,28 +230,35 @@ const useLoginRegister = (onAuthSuccess) => {
 
     // 5. Process Auth Response (Common Logic)
     const processAuthResponse = (response) => {
+        // Cek token di berbagai kemungkinan lokasi response
         const token = response?.payload?.datas?.token || 
                       response?.data?.token || 
                       response?.token;
 
         if (!token) {
-            if (isRegister && !token) {
-                alert("Registrasi berhasil! Silakan login.");
+            // Jika registrasi sukses tapi backend tidak langsung kasih token (minta login manual)
+            if (isRegister && (response?.status === 200 || response?.status === 201 || response?.message === "User created successfully")) {
+                alert("Registrasi berhasil! Silakan login."); // Fallback alert biasa
                 navigate("/login");
-            } else {
-                setError("Login sukses, tapi format token tidak dikenali frontend.");
+                setLoading(false);
+                return;
             }
+            
+            setError("Login sukses, namun token tidak ditemukan. Hubungi admin.");
             setLoading(false);
             return;
         }
 
         try {
             localStorage.setItem("token", token);
-            const userData = response?.payload?.datas?.user;
+            
+            // Cek data user
+            const userData = response?.payload?.datas?.user || response?.user;
             if (userData) {
                 localStorage.setItem("user", JSON.stringify(userData));
                 localStorage.setItem("userRole", userData.role || "user");
             } else {
+                // Decode dari token jika data user tidak ada di body response
                 const decodedPayload = jwtDecode(token);
                 localStorage.setItem("userRole", decodedPayload.role || "user");
             }
@@ -250,7 +271,7 @@ const useLoginRegister = (onAuthSuccess) => {
             
         } catch (err) {
             console.error("Error processing token:", err);
-            setError("Gagal memproses sesi login.");
+            setError("Gagal memproses data sesi login.");
         } finally {
             setLoading(false);
         }
@@ -269,7 +290,7 @@ const useLoginRegister = (onAuthSuccess) => {
         try {
             if (isRegister) {
                 if (!name.trim() || !email.trim() || !password || !retypePassword) throw new Error("Semua kolom wajib diisi.");
-                if (password !== retypePassword) throw new Error("Password tidak sama!");
+                if (password !== retypePassword) throw new Error("Konfirmasi password tidak cocok!");
                 if (password.length < 6) throw new Error("Password minimal 6 karakter.");
             } else {
                 if (!email.trim() || !password) throw new Error("Email dan Password wajib diisi.");
@@ -291,7 +312,9 @@ const useLoginRegister = (onAuthSuccess) => {
 
         } catch (err) {
             console.error("Auth Error:", err);
-            setError(err.message || 'Terjadi kesalahan server.');
+            // Error yang dilempar di sini sudah di-handle oleh AuthService (pesan dari backend)
+            // atau validasi frontend di atas.
+            setError(err.message || 'Terjadi kesalahan sistem.');
             setLoading(false);
         }
     };
@@ -307,7 +330,6 @@ const useLoginRegister = (onAuthSuccess) => {
     }, [isRegister]);
 
     return {
-        // States
         name, setName,
         email, setEmail,
         password, setPassword,
