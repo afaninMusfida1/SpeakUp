@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios"; 
-import { ArrowLeft, BookText, Shield, Loader2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Shield, Calendar, Clock, User, Share2, BookText } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL; 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+// Utility function untuk menggabungkan classNames
+const cn = (...classes) => {
+    return classes.filter(Boolean).join(' ');
+};
 
 const formatContent = (content) => {
     if (!content) return null;
@@ -17,12 +22,12 @@ const formatContent = (content) => {
         if (items.length === 0) return;
         
         const listElement = type === 'ul' ? (
-            <ul key={`list-${elements.length}`} className="list-disc ml-8 mb-4 space-y-2 text-gray-700">
-                {items.map((item, i) => <li key={i}>{item}</li>)}
+            <ul key={`list-${elements.length}`} className="list-disc ml-6 md:ml-8 mb-8 space-y-3 text-article-text text-[17px] md:text-[18px] leading-[1.8] marker:text-primary">
+                {items.map((item, i) => <li key={i} dangerouslySetInnerHTML={{__html: item}} />)}
             </ul>
         ) : (
-            <ol key={`list-${elements.length}`} className="list-decimal ml-8 mb-4 space-y-2 text-gray-700">
-                {items.map((item, i) => <li key={i}>{item}</li>)}
+            <ol key={`list-${elements.length}`} className="list-decimal ml-6 md:ml-8 mb-8 space-y-3 text-article-text text-[17px] md:text-[18px] leading-[1.8] marker:text-primary marker:font-semibold">
+                {items.map((item, i) => <li key={i} dangerouslySetInnerHTML={{__html: item}} />)}
             </ol>
         );
         elements.push(listElement);
@@ -31,8 +36,8 @@ const formatContent = (content) => {
     lines.forEach((line) => {
         const trimmedLine = line.trim();
         const formattedText = trimmedLine
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>');
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-article-heading">$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
 
         if (trimmedLine.startsWith('### ')) {
             if (currentList) flushList(currentList, listItems);
@@ -40,7 +45,11 @@ const formatContent = (content) => {
             listItems = [];
 
             const heading = trimmedLine.substring(4);
-            elements.push(<h3 key={`h3-${elements.length}`} className="text-2xl font-extrabold mt-8 mb-4 text-purple-700 border-b border-gray-100 pb-2">{heading}</h3>);
+            elements.push(
+                <h3 key={`h3-${elements.length}`} className="text-2xl md:text-3xl font-bold mt-12 mb-6 text-article-heading leading-tight tracking-tight">
+                    {heading}
+                </h3>
+            );
         } 
         else if (trimmedLine.startsWith('* ')) {
             if (currentList === 'ol') flushList(currentList, listItems);
@@ -58,7 +67,12 @@ const formatContent = (content) => {
             listItems = [];
 
             if (trimmedLine.length > 0) {
-                elements.push(<div key={`p-${elements.length}`} className="mb-4 text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{__html: formattedText}}></div>);
+                elements.push(
+                    <p key={`p-${elements.length}`} 
+                       className="mb-6 text-article-text text-[17px] md:text-[18px] leading-[1.8] tracking-wide" 
+                       dangerouslySetInnerHTML={{__html: formattedText}}>
+                    </p>
+                );
             }
         }
     });
@@ -70,24 +84,41 @@ const formatContent = (content) => {
 
 const getCategoryColor = (color) => {
     const map = {
-        blue: "bg-blue-100 text-blue-700 border border-blue-200",
-        purple: "bg-purple-100 text-purple-700 border border-purple-200",
-        pink: "bg-pink-100 text-pink-700 border border-pink-200",
-        red: "bg-red-100 text-red-700 border border-red-200",
+        blue: "bg-blue-50 text-blue-700 border-blue-100",
+        purple: "bg-purple-50 text-purple-700 border-purple-100",
+        pink: "bg-pink-50 text-pink-700 border-pink-100",
+        red: "bg-red-50 text-red-700 border-red-100",
     };
-    return map[color] || "bg-gray-100 text-gray-700 border border-gray-200";
+    return map[color] || "bg-secondary text-secondary-foreground border-border";
 };
 
-const Button = ({ onClick, children, className = "", variant }) => {
-    let base =
-        "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors h-10 px-4 py-2";
-    if (variant === "ghost") base = "hover:bg-gray-100 hover:text-gray-900";
-    if (variant === "outline")
-        base = "border border-gray-300 bg-white hover:bg-gray-100";
-    if (variant === "default") base = "bg-purple-600 text-white hover:bg-purple-700";
+const Button = ({ onClick, children, className = "", variant = "default", size = "default", ...props }) => {
+    const baseClasses = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95";
+    
+    const variantClasses = {
+        default: "bg-primary text-primary-foreground shadow-soft-md hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground shadow-soft-md hover:bg-destructive/90",
+        outline: "border border-border bg-background shadow-soft hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground shadow-soft hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+        article: "bg-primary text-primary-foreground shadow-soft-lg hover:shadow-soft-xl hover:bg-primary/90 rounded-2xl",
+    };
+
+    const sizeClasses = {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-lg px-3 text-xs",
+        lg: "h-12 rounded-2xl px-8 text-base",
+        icon: "h-10 w-10",
+    };
 
     return (
-        <button type="button" onClick={onClick} className={`${base} ${className}`}>
+        <button 
+            type="button" 
+            onClick={onClick} 
+            className={cn(baseClasses, variantClasses[variant], sizeClasses[size], className)} 
+            {...props}
+        >
             {children}
         </button>
     );
@@ -107,31 +138,25 @@ export default function ArticleDetail() {
     useEffect(() => {
         setLoading(true);
         setError(null);
-
-        if (isNaN(articleId)) {
-            setError("ID Artikel tidak valid.");
-            setLoading(false);
-            return;
+        if (isNaN(articleId)) { 
+            setError("ID Artikel tidak valid."); 
+            setLoading(false); 
+            return; 
         }
 
         const fetchArticle = async () => {
             try {
-                console.log(articleId)
                 const response = await axios.get(`${API_BASE_URL}/article/${articleId}/content`);
+                const result = response.data?.payload?.datas;
                 
-                const result = response.data;
-                console.log(articleId)
-                console.log(result)
-
-                if (result.code !== 200 || !result.data) {
-                    setError(result.message || "Gagal memuat artikel atau artikel tidak ditemukan.");
+                if (!result || !result.id) {
+                    setError("Gagal memuat artikel atau artikel tidak ditemukan.");
                 } else {
-                    setArticleData({
-                        ...result.data,
-                        content: result.data.content && result.data.content.length > 0 
-                                 ? result.data.content[0].content 
-                                 : "Konten artikel belum tersedia."
-                    });
+                    const joinedContent = result.contents && Array.isArray(result.contents)
+                        ? result.contents.map(item => item.content).join('\n\n') 
+                        : "Konten artikel belum tersedia.";
+
+                    setArticleData({ ...result, content: joinedContent });
                 }
             } catch (err) {
                 console.error("Fetch Article Error:", err);
@@ -140,105 +165,157 @@ export default function ArticleDetail() {
                 setLoading(false);
             }
         };
-
         fetchArticle();
     }, [articleId]);
 
-    const categoryClass = articleData ? getCategoryColor(articleData.color) : "bg-gray-100 text-gray-700";
-    const titleColor = articleData?.color === 'blue' ? 'text-blue-700' : 
-                       articleData?.color === 'purple' ? 'text-purple-700' : 'text-gray-900';
+    const categoryClass = articleData ? getCategoryColor(articleData.color) : "";
 
     if (error) {
         return (
-            <div className="min-h-screen flex flex-col bg-gray-50">
-                <Navbar
-                    leftElement={<Button onClick={handleBack} variant="ghost" className="rounded-none w-10 h-10 p-0 hover:bg-gray-200"><ArrowLeft className="w-5 h-5 text-gray-700" /></Button>}
-                    showMenu={false}
-                />
-                <main className="max-w-4xl mx-auto px-4 py-20 text-center">
-                    <h2 className="text-3xl font-bold text-red-500 mb-4">404 Tidak Ditemukan</h2>
-                    <p className="text-gray-600">{error}</p>
-                    <Button onClick={handleBack} className="mt-6 bg-red-500 text-white rounded-md hover:bg-red-600" variant="default">Kembali</Button>
+            <div className="min-h-screen flex flex-col bg-background">
+                <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+                    <div className="max-w-5xl mx-auto px-4 h-16 flex items-center">
+                        <Button onClick={handleBack} variant="ghost" size="sm" className="gap-2">
+                            <ArrowLeft className="w-4 h-4" /> 
+                            <span className="hidden sm:inline">Kembali</span>
+                        </Button>
+                    </div>
+                </nav>
+                <main className="flex-1 flex flex-col items-center justify-center p-4 text-center animate-fade-in">
+                    <div className="bg-card p-8 rounded-3xl shadow-soft-xl max-w-md w-full border border-border">
+                        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                            <Shield className="w-8 h-8" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-foreground mb-2">Artikel Tidak Ditemukan</h2>
+                        <p className="text-muted-foreground mb-6">{error}</p>
+                        <Button onClick={handleBack} variant="outline" className="w-full">
+                            Kembali
+                        </Button>
+                    </div>
                 </main>
             </div>
         );
     }
 
+    if (loading || !articleData) {
+        return (
+            <div className="min-h-screen bg-background">
+                <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+                    <div className="max-w-5xl mx-auto px-4 h-16 flex items-center">
+                        <Button onClick={handleBack} variant="ghost" size="sm" className="gap-2">
+                            <ArrowLeft className="w-4 h-4" /> 
+                            <span className="hidden sm:inline">Kembali</span>
+                        </Button>
+                    </div>
+                </nav>
+                <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-8 animate-pulse">
+                    <div className="h-8 bg-muted rounded-full w-1/4"></div>
+                    <div className="h-12 bg-muted rounded-xl w-3/4"></div>
+                    <div className="h-64 bg-muted rounded-3xl w-full"></div>
+                    <div className="space-y-4">
+                        <div className="h-4 bg-muted rounded w-full"></div>
+                        <div className="h-4 bg-muted rounded w-5/6"></div>
+                        <div className="h-4 bg-muted rounded w-full"></div>
+                        <div className="h-4 bg-muted rounded w-4/5"></div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-article-bg selection:bg-primary/10 selection:text-primary">
             <Navbar
-                leftElement={
-                    <Button onClick={handleBack} variant="ghost" className="rounded-none w-10 h-10 p-0 hover:bg-gray-200">
-                        <ArrowLeft className="w-5 h-5 text-gray-700" />
-                    </Button>
-                }
-                centerElement={
-                    <h1 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
-                        <BookText className="w-6 h-6 text-purple-600" /> Baca Artikel
-                    </h1>
-                }
                 showMenu={false}
             />
 
-            <main className="max-w-7xl mx-auto">
-                {loading || !articleData ? (
-                    <div className="text-center p-20 flex flex-col items-center">
-                        <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-3" />
-                        <p className="text-gray-600">Memuat konten artikel...</p>
-                    </div>
-                ) : (
-                    <div className="flex flex-col md:flex-row shadow-lg bg-gray-50/50">
-                        
-                        {/* 1. Header Gambar */}
-                        <div className="w-full md:w-1/2 aspect-[16/9] md:aspect-[3/2] overflow-hidden">
-                            <img 
-                                src={articleData.imageUrl || "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80"} 
-                                alt={`Sampul ${articleData.title}`} 
-                                className="w-full h-full object-cover shadow-xl transition-transform duration-500 hover:scale-[1.03]"
-                                loading="lazy"
-                            />
-                        </div>
-                        
-                        {/* 2. Konten Utama */}
-                        <div className="w-full md:w-1/2 bg-white p-8 lg:p-12 shadow-inner">
-                            {/* Metadata */}
-                            <header className="mb-8 border-b pb-4 border-gray-100">
-                                <span className={`px-4 py-1 text-xs font-bold rounded-md ${categoryClass} inline-block mb-3`}>
-                                    {articleData.category} 
-                                </span>
-                                
-                                <h2 className={`text-3xl lg:text-4xl font-extrabold ${titleColor} mb-3 leading-tight`}>
-                                    {articleData.title}
-                                </h2>
-                                
-                                <div className="text-gray-500 text-sm flex items-center gap-4 mt-2">
-                                    <span className="flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                        {articleData.timeRead ? `${articleData.timeRead} menit` : '...'} 
-                                    </span>
-                                </div>
-                            </header>
+            <main className="max-w-4xl mx-auto px-4 sm:px-6 py-2 md:py-2 animate-fade-in">
+                
+                <button
+                    onClick={handleBack}
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 group"
+                >
+                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    <span className="font-medium">Kembali</span>
+                </button>
 
-                            {/* Konten Artikel */}
-                            <div className="text-base lg:text-lg h-96 overflow-y-auto pr-4">
-                                {formatContent(articleData.content)} 
+                {/* Article Header */}
+                <header className="text-center max-w-3xl mx-auto mb-12">
+                    <span className={cn(
+                        "inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold border mb-6 transition-transform hover:scale-105 cursor-default uppercase tracking-wide",
+                        categoryClass
+                    )}>
+                        {articleData.category?.name || "Edukasi"}
+                    </span>
+
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-article-heading leading-[1.2] mb-8 tracking-tight text-balance">
+                        {articleData.title}
+                    </h1>
+
+                    <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-article-meta">
+                        {/* <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                                <User size={14} className="text-accent-foreground" />
                             </div>
-                            
-                            {/* CTA */}
-                            <footer className="mt-8 pt-6 border-t border-gray-200">
-                                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-md flex items-center justify-between border border-blue-100">
-                                    <div className="flex items-center gap-3">
-                                        <Shield className="w-6 h-6 text-purple-600 flex-shrink-0" />
-                                        <p className="text-sm font-medium text-gray-700">Butuh bantuan segera?</p>
-                                    </div>
-                                    <Button onClick={() => navigate("/chat")} className="bg-purple-600 text-white rounded-md px-4 py-2 hover:bg-purple-700 transition duration-300 shadow-md" variant="default">
-                                        Chat Anonim
-                                    </Button>
-                                </div>
-                            </footer>
+                            <span className="font-medium">{articleData.author?.name || "Tim SpeakUp"}</span>
+                        </div> */}
+                        <div className="flex items-center gap-2">
+                            <Clock size={16} className="text-primary/60" />
+                            <span>{articleData.timeRead ? `${articleData.timeRead} menit baca` : '3 menit baca'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Calendar size={16} className="text-primary/60" />
+                            <span>{new Date(articleData.createdAt || Date.now()).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                         </div>
                     </div>
-                )}
+                </header>
+
+                {/* Featured Image */}
+                <div className="relative w-full aspect-video md:aspect-[2.4/1] rounded-3xl overflow-hidden shadow-soft-xl mb-12 group border border-article-border">
+                    <img 
+                        src={articleData.imageUrl || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80"} 
+                        alt={articleData.title}
+                        className="w-full h-full object-cover transform group-hover:scale-[1.02] transition-transform duration-700"
+                    />
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
+                </div>
+
+                {/* Article Content */}
+                <article className="max-w-2xl mx-auto">
+                    {articleData.summary && (
+                        <div className="text-[19px] md:text-[21px] text-article-meta leading-[1.7] italic border-l-4 border-primary pl-6 md:pl-8 mb-12 py-2">
+                            {articleData.summary}
+                        </div>
+                    )}
+
+                    <div className="article-body space-y-6">
+                        {formatContent(articleData.content)}
+                    </div>
+                </article>
+
+                {/* CTA Section */}
+                <div className="max-w-3xl mx-auto mt-20 pt-12 border-t border-article-border">
+                    <div className="bg-gradient-to-br from-accent via-accent/50 to-background rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 border border-article-border shadow-soft-lg">
+                        <div className="flex-1 text-center md:text-left space-y-4">
+                            <div className="inline-flex items-center justify-center w-14 h-14 bg-primary/10 text-primary rounded-2xl mb-2">
+                                <BookOpen size={28} strokeWidth={2} />
+                            </div>
+                            <h3 className="text-xl md:text-2xl font-bold text-article-heading">Butuh Teman Cerita?</h3>
+                            <p className="text-article-text text-[16px] leading-relaxed max-w-md">
+                                Artikel ini hanya langkah awal. Jika kamu butuh bantuan atau sekadar ingin didengar, Satgas kami siap 24/7.
+                            </p>
+                        </div>
+                        <Button 
+                            onClick={() => navigate("/chat")} 
+                            variant="article" 
+                            size="lg"
+                            className="w-full md:w-auto px-10 shadow-soft-xl hover:shadow-soft-xl text-white"
+                        >
+                            Mulai Chat Anonim
+                        </Button>
+                    </div>
+                </div>
+
             </main>
         </div>
     );

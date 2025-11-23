@@ -158,8 +158,8 @@ export default function Dashboard() {
                                     </div>
                                     <div className="p-5">
                                         <div className="flex items-center gap-3 mb-3">
-                                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getCategoryColor(a.category)}`}>
-                                                {a.category}
+                                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getCategoryColor(a.category.name)}`}>
+                                                {a.category.name}
                                             </span>
                                             <span className="text-gray-500 text-sm">⏱️ {a.readTime}</span>
                                         </div>

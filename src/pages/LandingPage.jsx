@@ -61,7 +61,7 @@ const LandingPage = () => {
               </motion.h1>
 
               <motion.p variants={fadeInUp} className="text-base text-gray-600 leading-relaxed">
-                SpeakUp adalah platform yang memberikan ruang aman untuk edukasi seksual, berbagi cerita secara anonim, dan mendapatkan bantuan darurat. Kamu nggak sendiri, kami di sini untuk mendengarkan.
+                SpeakUp adalah sebuah platform yang berkomitmen dalam upaya pencegahan kekerasan seksual dengan menyediakan edukasi seksual yang inklusif. Selain itu, sebagai ruang berbagi cerita, memberikan akses bantuan, dan dukungan kepada setiap individu yang membutuhkan.
               </motion.p>
 
               <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -71,13 +71,7 @@ const LandingPage = () => {
                 >
                   Masuk
                 </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={onLearnMore}
-                  className="border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-200"
-                >
-                  📚 Pelajari Selengkapnya
-                </Button>
+                
               </motion.div>
             </motion.div>
 

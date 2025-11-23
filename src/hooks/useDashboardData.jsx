@@ -25,7 +25,7 @@ const useDashboardData = () => {
         const fetchArticles = async () => {
             setLoadingArticles(true);
             try {
-                const response = await axios.get(`${API_BASE_URL}/article`);
+                const response = await axios.get(`${API_BASE_URL}/article?limit=4`);
                 const result = response.data; 
 
                 if (result.payload && Array.isArray(result.payload.datas)) {
@@ -74,7 +74,7 @@ const useDashboardData = () => {
     }, []);
 
     const getCategoryColor = (category) => {
-        const categoryLower = category?.toLowerCase() || "";
+        const categoryLower = category?.name?.toLowerCase() || "";
         if (categoryLower.includes("hukum") || categoryLower.includes("legal")) return "bg-pink-100 text-pink-700";
         if (categoryLower.includes("kesehatan") || categoryLower.includes("mental")) return "bg-purple-100 text-purple-700";
         if (categoryLower.includes("darurat")) return "bg-red-100 text-red-700";
