@@ -116,9 +116,12 @@ export default function ArticleDetail() {
 
         const fetchArticle = async () => {
             try {
+                console.log(articleId)
                 const response = await axios.get(`${API_BASE_URL}/article/${articleId}/content`);
                 
                 const result = response.data;
+                console.log(articleId)
+                console.log(result)
 
                 if (result.code !== 200 || !result.data) {
                     setError(result.message || "Gagal memuat artikel atau artikel tidak ditemukan.");

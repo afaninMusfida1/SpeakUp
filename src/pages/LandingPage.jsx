@@ -273,7 +273,7 @@ const LandingPage = () => {
                               <div className="p-6">
                                   <div className="flex items-center gap-3 mb-3">
                                       <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getCategoryColor(article.color)}`}>
-                                          {article.category}
+                                          {article.category.name}
                                       </span>
                                       <span className="text-gray-500 text-sm">⏱️ {article.timeRead ? `${article.timeRead} menit` : '...'}</span> 
                                   </div>
