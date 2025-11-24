@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios"; 
 import { ArrowLeft, BookText, Search, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2"; // Import SweetAlert2
 import Navbar from "../components/Navbar";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL; 
@@ -32,7 +33,7 @@ const Button = ({ onClick, children, className = "", variant }) => {
     );
 };
 
-// Komponen Card (TETAP SAMA)
+// Komponen Card
 const Card = ({ onClick, children, className = "" }) => (
     <div
         onClick={onClick}
@@ -52,10 +53,10 @@ export default function ArticlePage() {
     const navigate = useNavigate();
     const handleBack = () => navigate(-1);
     
-    // State untuk data dari API
+    // State
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    // Kita tidak butuh state 'error' lagi untuk render UI
 
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("Semua Kategori");
@@ -66,19 +67,41 @@ export default function ArticlePage() {
             setLoading(true);
             try {
                 const response = await axios.get(`${API_BASE_URL}/article`);
-                
                 const result = response.data;
 
                 if (result.payload && Array.isArray(result.payload.datas)) {
                     setArticles(result.payload.datas);
-                    setError(null);
                 } else {
-                    setError(result.payload?.message || "Struktur data dari server tidak valid.");
-                    setArticles([]);
+                    throw new Error(result.payload?.message || "Struktur data tidak valid");
                 }
             } catch (err) {
                 console.error("Fetch Articles Error:", err);
-                setError("Terjadi kesalahan jaringan saat memuat artikel.");
+                
+                // Logic SweetAlert Error Handling
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Memuat Data',
+                    text: 'Terjadi kesalahan saat mengambil daftar artikel. Cek koneksi internetmu.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Muat Ulang',
+                    cancelButtonText: 'Kembali',
+                    confirmButtonColor: '#9333ea', // Purple-600
+                    cancelButtonColor: '#9ca3af', // Gray-400
+                    reverseButtons: true,
+                    customClass: {
+                        popup: 'rounded-2xl font-sans',
+                        confirmButton: 'rounded-xl px-4 py-2',
+                        cancelButton: 'rounded-xl px-4 py-2'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.reload(); // Reload halaman
+                    } else if (result.dismiss === Swal.DismissReason.cancel) {
+                        handleBack(); // Kembali ke menu sebelumnya
+                    }
+                });
+                
+                setArticles([]);
             } finally {
                 setLoading(false);
             }
@@ -87,7 +110,7 @@ export default function ArticlePage() {
         fetchArticles();
     }, []);
 
-    // Daftar kategori yang tersedia berdasarkan data yang dimuat dari API
+    // Filter Logic
     const ALL_CATEGORIES = useMemo(() => {
         const categories = articles.map(a => a.category.name); 
         return ["Semua Kategori", ...new Set(categories)];
@@ -107,22 +130,6 @@ export default function ArticlePage() {
     const handleReadArticle = (id) => {
         navigate(`/article/${id}`); 
     };
-
-    if (error) {
-         return (
-            <div className="min-h-screen flex flex-col bg-gray-50">
-                <Navbar
-                    leftElement={<Button onClick={handleBack} variant="ghost" className="rounded-none w-10 h-10 p-0 hover:bg-gray-200"><ArrowLeft className="w-5 h-5 text-gray-700" /></Button>}
-                    showMenu={false}
-                />
-                <main className="max-w-4xl mx-auto px-4 py-20 text-center">
-                    <h2 className="text-3xl font-bold text-red-500 mb-4">Gagal Memuat</h2>
-                    <p className="text-gray-600">{error}</p>
-                    <Button onClick={handleBack} className="mt-6 bg-red-500 text-white rounded-md hover:bg-red-600" variant="default">Kembali</Button>
-                </main>
-            </div>
-        );
-    }
     
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50/70 via-purple-50/70 to-pink-50/70">
@@ -142,6 +149,14 @@ export default function ArticlePage() {
 
             <main className="max-w-6xl mx-auto px-4 py-10">
                 
+                <button
+                    onClick={handleBack}
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 group"
+                >
+                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    <span className="font-medium">Kembali</span>
+                </button>
+
                 {/* Header dan Filter */}
                 <section className="mb-10 p-6 bg-white rounded-2xl shadow-xl border border-gray-100">
                     <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Baca Artikel</h2>
@@ -162,11 +177,14 @@ export default function ArticlePage() {
                     {/* Category Filter Buttons */}
                     <div className="flex flex-wrap gap-3">
                         {loading && articles.length === 0 ? (
-                            <Loader2 className="w-5 h-5 text-purple-500 animate-spin" />
+                            // Skeleton Loading untuk Kategori
+                             [1,2,3,4].map(i => (
+                                <div key={i} className="h-8 w-24 bg-gray-200 rounded-full animate-pulse"></div>
+                             ))
                         ) : (
                             ALL_CATEGORIES.map(category => (
                                 <Button
-                                    key={category.name}
+                                    key={category}
                                     onClick={() => setSelectedCategory(category)}
                                     variant={selectedCategory === category ? "default" : "outline"}
                                     className={`rounded-full px-5 py-1.5 text-sm font-semibold transition-all duration-200 ${

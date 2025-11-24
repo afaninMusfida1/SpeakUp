@@ -11,6 +11,7 @@ import { SituationPage } from "../pages/SituationPage";
 import ProfilPage from "../pages/ProfilPage";
 import ArticlePage from "../pages/ArticlePage"; 
 import ArticleDetail from "../pages/ArticleDetail";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 
 // 1. Helper untuk cek autentikasi
 const isAuthenticated = () => {
@@ -67,7 +68,9 @@ export default function AppRoute() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginRegistPage />} />
             <Route path="/register" element={<LoginRegistPage />} />
-            <Route path="/situation" element={<SituationPage />} />
+            <Route path="/situation" element={<SituationPage />} />            
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+             <Route path="/maps" element={<MapsPage />} />
 
             {/* Protected Routes */}
             <Route 
@@ -107,14 +110,6 @@ export default function AppRoute() {
                 } 
             />
 
-            <Route 
-                path="/maps" 
-                element={
-                    <PrivateRoute>
-                        <MapsPage />
-                    </PrivateRoute>
-                } 
-            />
             <Route 
                 path="/menfess" 
                 element={

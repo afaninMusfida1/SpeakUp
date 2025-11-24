@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom"; // Tambahkan useParams & useLocation
+import { useNavigate, useParams, useLocation } from "react-router-dom"; 
 import { ArrowLeft, Send, Camera, MapPin } from "lucide-react";
 import Navbar from "../components/Navbar";
+import Swal from "sweetalert2";
 
 const PlainButton = ({ onClick, children, className = "", variant, disabled, ...props }) => {
     let baseClasses =
@@ -128,23 +129,67 @@ const CurrentChat = () => {
     };
  
     const handleShareLocation = () => {
-        if (!navigator.geolocation) return alert("Perangkat kamu tidak mendukung lokasi.");
+    // Cek dukungan browser
+    if (!navigator.geolocation) {
+        return Swal.fire({
+            icon: 'error',
+            title: 'Tidak Didukung',
+            text: 'Perangkat kamu tidak mendukung fitur lokasi.',
+            customClass: {
+                popup: 'rounded-2xl font-sans',
+                confirmButton: 'rounded-xl px-4 py-2'
+            }
+        });
+    }
 
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const { latitude, longitude } = pos.coords;
-                const newMessage = {
-                    id: messages.length + 1,
-                    location: { lat: latitude, lng: longitude },
-                    sender: mySenderRole,
-                    timestamp: new Date(),
-                };
-                setMessages([...messages, newMessage]);
-                scrollToBottom();
-            },
-            () => alert("Gagal mengambil lokasi. Pastikan izin lokasi aktif.")
-        );
-    };
+    let loadingAlert; 
+    Swal.fire({
+        title: 'Mencari Lokasi...',
+        html: 'Sedang mengambil koordinat GPS kamu.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+        customClass: {
+            popup: 'rounded-2xl font-sans'
+        }
+    });
+
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            Swal.close(); 
+
+            const { latitude, longitude } = pos.coords;
+            const newMessage = {
+                id: messages.length + 1,
+                location: { lat: latitude, lng: longitude },
+                sender: mySenderRole,
+                timestamp: new Date(),
+            };
+            
+            setMessages((prev) => [...prev, newMessage]);
+            scrollToBottom();
+        },
+        (error) => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Mengambil Lokasi',
+                text: 'Pastikan izin lokasi (GPS) di browser sudah aktif.',
+                confirmButtonText: 'Oke, Paham',
+                confirmButtonColor: '#3b82f6', 
+                customClass: {
+                    popup: 'rounded-2xl font-sans',
+                    confirmButton: 'rounded-xl px-6 py-2.5 font-medium'
+                }
+            });
+        },
+        { 
+            enableHighAccuracy: true, 
+            timeout: 10000, 
+            maximumAge: 0 
+        }
+    );
+};
 
     const formatTime = (date) => date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 

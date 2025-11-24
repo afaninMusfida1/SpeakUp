@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:2007";
 
+// Helper Hitung Jarak (Haversine)
 const haversineKm = (lat1, lon1, lat2, lon2) => {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
   const toRad = (v) => (v * Math.PI) / 180;
   const R = 6371; 
   const dLat = toRad(lat2 - lat1);
@@ -16,147 +18,100 @@ const haversineKm = (lat1, lon1, lat2, lon2) => {
 };
 
 const useMaps = () => {
-  const [userPos, setUserPos] = useState(null); 
+  const [userPos, setUserPos] = useState(null);
   const [showMap, setShowMap] = useState(false);
-  const [loadingLoc, setLoadingLoc] = useState(true); 
+  const [loadingLoc, setLoadingLoc] = useState(true);
   const [loadingBackend, setLoadingBackend] = useState(false);
-  const [locations, setLocations] = useState([]); 
+  const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const mounted = useRef(true);
 
-  // 1. Get Geolocation saat mount
+  // 1. Ambil GPS Browser (Hanya untuk visualisasi titik biru di peta)
   useEffect(() => {
     mounted.current = true;
-
     if (!navigator.geolocation) {
-      if(mounted.current) {
-        setUserPos(null);
-        setShowMap(false);
-        setLoadingLoc(false);
-      }
+      if (mounted.current) { setUserPos(null); setShowMap(false); setLoadingLoc(false); }
       return;
     }
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        if(mounted.current) {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          setUserPos([lat, lng]);
-          setShowMap(true);
-          setLoadingLoc(false);
+        if (mounted.current) {
+          setUserPos([pos.coords.latitude, pos.coords.longitude]);
+          setShowMap(true); setLoadingLoc(false);
         }
       },
       (err) => {
-        console.warn("Geolocation error / denied:", err);
-        if(mounted.current) {
-          setUserPos(null);
-          setShowMap(false);
-          setLoadingLoc(false);
-        }
+        console.warn("Geolocation denied:", err);
+        if (mounted.current) { setUserPos(null); setShowMap(false); setLoadingLoc(false); }
       },
-      { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000 }
     );
-
     return () => { mounted.current = false; };
   }, []);
 
-  // 2. Fetch Nearby Locations dari Backend saat userPos tersedia
+  // 2. Fetch Satgas (Mengandalkan Data di Database)
   useEffect(() => {
-    if (!userPos) return;
-
-    const fetchNearby = async () => {
+    const fetchSatgas = async () => {
       setLoadingBackend(true);
       try {
-        const url = `${API_BASE_URL}/nearby`;
-        const response = await axios.get(url, {
-            params: {
-                lat: userPos[0],
-                lng: userPos[1]
-            }
+        const token = localStorage.getItem("token");
+        if (!token) {
+             if(mounted.current) setLoadingBackend(false);
+             return;
+        }
+
+        // KEMBALI KE GET BIASA
+        // Kita tidak kirim lat/lng karena asumsinya DB sudah ada isinya
+        const response = await axios.get(`${API_BASE_URL}/satgas/nearest`, {
+          params: {
+            limit: 5
+          },
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         });
 
-        const data = response.data;
+        const rawData = response.data?.payload?.datas || [];
 
-        // Parsing Logic (Support OSM Feature & Prisma Record)
-        const parsed = (Array.isArray(data) ? data : data.features || [])
-          .map((item) => {
-            // A. Format OSM Feature
-            if (item?.type === "Feature" && item?.properties) {
-              const props = item.properties;
-              const coords = item.geometry?.coordinates || [];
-              const lat = coords[1];
-              const lng = coords[0];
-              const name = props.name || props["alt_name"] || props["operator"] || "Tanpa Nama";
-              
-              const addressParts = [];
-              if (props["addr:street"]) addressParts.push(props["addr:street"]);
-              if (props["addr:housenumber"]) addressParts.push(props["addr:housenumber"]);
-              if (props["addr:postcode"]) addressParts.push(props["addr:postcode"]);
-              const address = addressParts.join(" ").trim() || props.operator || "";
+        const parsedLocations = rawData.map((item) => {
+          const lat = parseFloat(item.latitude);
+          const lng = parseFloat(item.longitude);
+          
+          // Hitung jarak real-time dari posisi user sekarang ke lokasi satgas
+          let displayDistance = item.distance;
+          if (userPos && lat && lng) {
+             const dist = haversineKm(userPos[0], userPos[1], lat, lng);
+             displayDistance = (Math.round(dist * 10) / 10) + " km";
+          }
 
-              return {
-                id: item.id || `${lat}-${lng}`,
-                name,
-                address,
-                phone: props.phone || props.phone_number || null,
-                category: props.amenity || props.type || null,
-                latitude: lat,
-                longitude: lng,
-                distance:
-                  typeof props.distance !== "undefined" && props.distance !== null
-                    ? props.distance
-                    : (typeof lat === "number" && typeof lng === "number"
-                        ? (Math.round(haversineKm(userPos[0], userPos[1], lat, lng) * 10) / 10) + " km"
-                        : null),
-              };
-            }
+          return {
+            id: item.id,
+            name: item.nama || item.name || "Pos Satgas",
+            address: item.alamat || item.address || "Alamat tidak tersedia",
+            phone: item.telepon || item.phone || null,
+            category: "police",
+            latitude: lat,
+            longitude: lng,
+            distance: displayDistance
+          };
+        });
 
-            // B. Format Prisma / Backend Database
-            if (item && item.nama_kantor && typeof item.latitude === "number" && typeof item.longitude === "number") {
-              const lat = item.latitude;
-              const lng = item.longitude;
-              return {
-                id: item.id,
-                name: item.nama_kantor,
-                address: item.alamat || "",
-                phone: item.phone || item.telp || null,
-                category: item.category || null,
-                latitude: lat,
-                longitude: lng,
-                distance:
-                  typeof item.distance !== "undefined" && item.distance !== null
-                    ? item.distance
-                    : (Math.round(haversineKm(userPos[0], userPos[1], lat, lng) * 10) / 10) + " km",
-              };
-            }
+        if (mounted.current) setLocations(parsedLocations);
 
-            return null;
-          })
-          .filter(Boolean);
-
-        if (mounted.current) setLocations(parsed);
-
-      } catch (err) {
-        console.error("Gagal fetch lokasi terdekat:", err);
+      } catch (error) {
+        console.error("Gagal Fetch Data:", error);
+        // Kalau server mati (Connection Refused), set array kosong
         if (mounted.current) setLocations([]);
       } finally {
         if (mounted.current) setLoadingBackend(false);
       }
     };
 
-    fetchNearby();
-  }, [userPos]);
+    fetchSatgas();
 
-  return {
-    userPos,
-    showMap,
-    loadingLoc,
-    loadingBackend,
-    locations,
-    selectedLocation,
-    setSelectedLocation
-  };
+  }, [userPos]); 
+
+  return { userPos, showMap, loadingLoc, loadingBackend, locations, selectedLocation, setSelectedLocation };
 };
 
 export default useMaps;

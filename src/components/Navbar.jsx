@@ -40,7 +40,7 @@ const Navbar = ({
   const onGetStarted = () => navigate("/situation");
 
   return (
-    <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-99">
+    <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-[9999]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         
         <div className="flex items-center justify-between">
