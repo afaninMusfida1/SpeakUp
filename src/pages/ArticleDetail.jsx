@@ -120,9 +120,9 @@ export default function ArticleDetail() {
                 const response = await axios.get(`${API_BASE_URL}/article/${articleId}/content`);
                 
                 const result = response.data.payload.datas;
-                console.log(result)
+                console.log(response.data)
 
-                if (result.code !== 200 || !result.data) {
+                if (!result.data) {
                     setError(result.message || "Gagal memuat artikel atau artikel tidak ditemukan.");
                 } else {
                     setArticleData({
@@ -131,6 +131,7 @@ export default function ArticleDetail() {
                                  ? result.content[0].content 
                                  : "Konten artikel belum tersedia."
                     });
+                    setError(null)
                 }
             } catch (err) {
                 console.error("Fetch Article Error:", err);
@@ -147,7 +148,8 @@ export default function ArticleDetail() {
     const titleColor = articleData?.color === 'blue' ? 'text-blue-700' : 
                        articleData?.color === 'purple' ? 'text-purple-700' : 'text-gray-900';
 
-    if (error) {
+    if (error !== null) {
+        console.log(error)
         return (
             <div className="min-h-screen flex flex-col bg-gray-50">
                 <Navbar
