@@ -162,6 +162,7 @@ export default function Dashboard() {
                                                 {a.category.name}
                                             </span>
                                             <span className="text-gray-500 text-sm">⏱️ {a.readTime}</span>
+                                            <span className="text-gray-500 text-sm">⭐ {a.requiredXp} xp</span>
                                         </div>
                                         <h4 className="text-lg font-semibold mb-2 line-clamp-2">{a.title}</h4>
                                         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{a.description}</p>

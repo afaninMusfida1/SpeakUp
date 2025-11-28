@@ -395,7 +395,7 @@ const LandingPage = () => {
                    Status: WASPADA
                 </div>
               </div>
-<div className="relative z-10 h-16 md:h-24 lg:h-32"></div>
+            <div className="relative z-10 h-16 md:h-24 lg:h-32"></div>
             </div>
           </div>
         </div>

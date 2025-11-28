@@ -93,6 +93,7 @@ const Button = ({ onClick, children, className = "", variant = "default", size =
 export default function ArticleDetail() {
     const { id } = useParams();
     const articleId = parseInt(id); 
+    const token = localStorage.getItem("token");
     
     const navigate = useNavigate();
     const handleBack = () => navigate(-1); // Atau ganti ke navigate('/edukasi')
@@ -122,7 +123,11 @@ export default function ArticleDetail() {
 
         const fetchArticle = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/article/${articleId}/content`);
+                const response = await axios.get(`${API_BASE_URL}/article/${articleId}/content`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + token 
+                    }
+                });
                 const result = response.data?.payload?.datas;
                 
                 if (!result || !result.id) {
@@ -141,6 +146,10 @@ export default function ArticleDetail() {
                 let errorMessage = "Terjadi kesalahan jaringan.";
                 if (err.response?.status === 404 || err.message === "Artikel tidak ditemukan") {
                     errorMessage = "Artikel yang kamu cari mungkin sudah dihapus atau tidak tersedia.";
+                } else if (err.response?.status === 403){
+                    errorMessage = "Kamu tidak memiliki izin untuk mengakses artikel ini.";
+                } else if(err.response?.status === 401){
+                    errorMessage = "Sesi kamu telah habis. Silakan login kembali.";
                 }
 
                 Swal.fire({

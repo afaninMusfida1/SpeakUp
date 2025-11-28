@@ -36,7 +36,8 @@ const useDashboardData = () => {
                         category: item.category || "Umum",
                         readTime: item.timeRead ? `${item.timeRead} menit` : "5 menit",
                         image: item.imageUrl || null, 
-                        color: "blue"
+                        color: "blue",
+                        requiredXp: item.requiredXp || 0,
                     }));
 
                     setArticles(latestArticles);
