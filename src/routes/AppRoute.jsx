@@ -65,7 +65,8 @@ export default function AppRoute() {
     return (
         <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<LandingPage />} />            
+            <Route path="*" element={<LandingPage />} />
             <Route path="/login" element={<LoginRegistPage />} />
             <Route path="/register" element={<LoginRegistPage />} />
             <Route path="/situation" element={<SituationPage />} />            
