@@ -239,6 +239,7 @@ export default function ArticlePage() {
                                                     {a.timeRead ? `${a.timeRead} menit` : '...'}
                                                 </span>
                                             </div>
+                                            <p>⭐ {a.requiredXp}xp</p>
                                             <h4 className="text-xl font-bold mb-2 text-gray-900 line-clamp-2">{a.title}</h4>
                                             <p className="text-gray-600 text-sm mb-4 line-clamp-3">{a.summary}</p> 
                                             <div className="inline-flex items-center gap-1 text-blue-600 font-semibold hover:text-blue-800">

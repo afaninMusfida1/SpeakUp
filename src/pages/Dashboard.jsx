@@ -45,6 +45,7 @@ export default function Dashboard() {
     
     // Panggil Hook
     const {
+        userXp,
         isSatgas,
         unreadChatCount,
         mapCenter,
@@ -85,6 +86,8 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </section>
+
+                <p>{userXp} xp</p>
 
                 {/* Action Cards (Chat & Menfess) - TETAP SAMA */}
                 <section className="grid md:grid-cols-2 gap-6 mb-10">

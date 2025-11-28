@@ -8,6 +8,7 @@ const useDashboardData = () => {
     const navigate = useNavigate();
     
     const [role] = useState(localStorage.getItem("userRole")?.toLowerCase() || "user");
+    const [userXp, setUserXp] = useState(parseInt(localStorage.getItem("userXp")) || 0);
     const isSatgas = role === "satgas";
     const [unreadChatCount, setUnreadChatCount] = useState(0); 
     const [mapCenter, setMapCenter] = useState(null);
@@ -94,6 +95,7 @@ const useDashboardData = () => {
 
     return {
         role,
+        userXp,
         isSatgas,
         unreadChatCount,
         mapCenter,

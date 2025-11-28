@@ -253,15 +253,11 @@ const useLoginRegister = (onAuthSuccess) => {
             localStorage.setItem("token", token);
             
             // Cek data user
-            const userData = response?.payload?.datas?.user || response?.user;
+            const userData = response?.payload?.datas 
             if (userData) {
-                localStorage.setItem("user", JSON.stringify(userData));
                 localStorage.setItem("userRole", userData.role || "user");
-            } else {
-                // Decode dari token jika data user tidak ada di body response
-                const decodedPayload = jwtDecode(token);
-                localStorage.setItem("userRole", decodedPayload.role || "user");
-            }
+                localStorage.setItem("userXp", userData.userXp || 0);
+            } 
 
             if (onAuthSuccess) onAuthSuccess();
             

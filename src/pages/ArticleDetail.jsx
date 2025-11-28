@@ -101,6 +101,35 @@ export default function ArticleDetail() {
     const [articleData, setArticleData] = useState(null); 
     const [loading, setLoading] = useState(true);
 
+    const joinedArticleContent = (result) => {
+        const joinedContent = result.contents && Array.isArray(result.contents)
+                ? result.contents.map(item => item.content).join('\n\n') 
+                : "Konten artikel belum tersedia.";
+
+        setArticleData({ ...result, content: joinedContent });
+    }
+
+    const purchaseArticleWithXP = async(articleId) => {
+        try {
+            const response = await axios.post(`${API_BASE_URL}/article/${articleId}/purchase`, null, {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+
+            const result = response.data?.payload?.datas;
+                
+            if (!result || !result.id) {
+                throw new Error("Artikel tidak ditemukan");
+            }
+
+            joinedArticleContent(result);
+        } catch (error) {
+            console.error("Purchase Article Error:", error);
+        }
+        console.log("Purchasing article with XP:", articleId);
+    }
+
     useEffect(() => {
         setLoading(true);
 
@@ -134,38 +163,65 @@ export default function ArticleDetail() {
                     throw new Error("Artikel tidak ditemukan");
                 }
 
-                const joinedContent = result.contents && Array.isArray(result.contents)
-                    ? result.contents.map(item => item.content).join('\n\n') 
-                    : "Konten artikel belum tersedia.";
-
-                setArticleData({ ...result, content: joinedContent });
+                joinedArticleContent(result);
             } catch (err) {
                 console.error("Fetch Article Error:", err);
                 
                 // 3. Trigger SweetAlert jika fetch error
+                let status = err.response?.status;
                 let errorMessage = "Terjadi kesalahan jaringan.";
-                if (err.response?.status === 404 || err.message === "Artikel tidak ditemukan") {
+                let showSecondBtn = false;
+                let secondBtnText = "";
+
+                if (status === 404 || err.message === "Artikel tidak ditemukan") {
                     errorMessage = "Artikel yang kamu cari mungkin sudah dihapus atau tidak tersedia.";
-                } else if (err.response?.status === 403){
-                    errorMessage = "Kamu tidak memiliki izin untuk mengakses artikel ini.";
-                } else if(err.response?.status === 401){
+                } else if (status === 403) {
+                    errorMessage = "Akses belum tersedia — mau pakai XP untuk buka?";
+                    showSecondBtn = true;
+                    secondBtnText = "Dapatkan Akses";
+                } else if (status === 401) {
                     errorMessage = "Sesi kamu telah habis. Silakan login kembali.";
                 }
 
+                // ALERT PERTAMA
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal Memuat Artikel',
                     text: errorMessage,
-                    confirmButtonText: 'Kembali ke Daftar',
-                    confirmButtonColor: '#3b82f6', // Sesuaikan warna brand
-                    allowOutsideClick: false, // User dipaksa klik tombol
+                    showCancelButton: status === 403,
+                    confirmButtonText: "Kembali ke Daftar",
+                    cancelButtonText: secondBtnText,
+                    allowOutsideClick: false,
+                    confirmButtonColor: "#3b82f6",
+                    cancelButtonColor: "#10b981",
                     customClass: {
-                        popup: 'rounded-2xl font-sans',
-                        confirmButton: 'rounded-xl px-6 py-2.5'
+                        popup: "rounded-2xl font-sans",
+                        confirmButton: "rounded-xl px-6 py-2.5",
+                        cancelButton: "rounded-xl px-6 py-2.5"
                     }
                 }).then((result) => {
+                    if (status === 401) {
+                        // ALERT KEDUA KHUSUS 401 → baru ajak login
+                        Swal.fire({
+                            icon: "info",
+                            title: "Login Diperlukan",
+                            text: "Silakan login untuk melanjutkan.",
+                            confirmButtonText: "Login",
+                            allowOutsideClick: false,
+                            confirmButtonColor: "#3b82f6",
+                            customClass: {
+                                popup: "rounded-2xl font-sans",
+                                confirmButton: "rounded-xl px-6 py-2.5"
+                            }
+                        }).then(() => {
+                            navigate("/login");
+                        });
+                    }
+
                     if (result.isConfirmed) {
-                        handleBack(); // Redirect otomatis setelah klik OK
+                        handleBack();
+                    } else if (result.dismiss === Swal.DismissReason.cancel) {
+                        purchaseArticleWithXP(articleId);
                     }
                 });
             } finally {
