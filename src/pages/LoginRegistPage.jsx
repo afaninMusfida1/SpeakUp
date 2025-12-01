@@ -62,7 +62,7 @@ export default function LoginRegisterPage({ onAuthSuccess = () => {} }) {
                 {/* LEFT INFO */}
                 <div className="hidden md:block space-y-6">
                     <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-gray-100 shadow-xl">
-                        <Shield className="w-16 h-16 text-blue-600 mb-4" />
+                        <img src="https://res.cloudinary.com/dj2gwflqs/image/upload/v1764211938/Group_1_gryebt.png" alt="Logo Gugah" className="w-10 h-10 object-contain drop-shadow-sm" />
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">
                             Privasimu Terjaga 
                         </h2>
@@ -89,8 +89,8 @@ export default function LoginRegisterPage({ onAuthSuccess = () => {} }) {
                     </button>
 
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4 shadow-lg">
-                            <Shield className="w-8 h-8 text-white" />
+                        <div className="inline-flex items-center justify-center w-16 h-16  rounded-2xl mb-4 ">
+                            <img src="https://res.cloudinary.com/dj2gwflqs/image/upload/v1764211938/Group_1_gryebt.png" alt="Logo Gugah" className="w-10 h-10 object-contain drop-shadow-sm" />
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">
                             {isRegister ? "Daftar ke SpeakUp" : "Masuk ke SpeakUp"}

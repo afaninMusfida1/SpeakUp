@@ -26,7 +26,7 @@ const useMaps = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const mounted = useRef(true);
 
-  // 1. Ambil GPS Browser (Hanya untuk visualisasi titik biru di peta)
+  // 1. Ambil GPS Browser
   useEffect(() => {
     mounted.current = true;
     if (!navigator.geolocation) {
@@ -49,7 +49,7 @@ const useMaps = () => {
     return () => { mounted.current = false; };
   }, []);
 
-  // 2. Fetch Satgas (Mengandalkan Data di Database)
+  // 2. Fetch Satgas
   useEffect(() => {
     const fetchSatgas = async () => {
       setLoadingBackend(true);
@@ -60,25 +60,44 @@ const useMaps = () => {
              return;
         }
 
-        // KEMBALI KE GET BIASA
-        // Kita tidak kirim lat/lng karena asumsinya DB sudah ada isinya
         const response = await axios.get(`${API_BASE_URL}/satgas/nearest`, {
-          params: {
-            limit: 5
-          },
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          params: { limit: 5 },
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         const rawData = response.data?.payload?.datas || [];
+        
+        // Debugging di console biar yakin
+        if(rawData.length > 0) console.log("🔍 Data Pertama:", rawData[0]);
 
         const parsedLocations = rawData.map((item) => {
           const lat = parseFloat(item.latitude);
           const lng = parseFloat(item.longitude);
           
-          // Hitung jarak real-time dari posisi user sekarang ke lokasi satgas
-          let displayDistance = item.distance;
+          // --- UPDATE DISINI: Tambah 'nama_kantor' ---
+          const realName = item.nama_kantor || item.nama || item.name || "Lokasi Satgas";
+          
+          // Logika Kategori (Auto Detect icon)
+          let detectedCategory = "police"; // Default Polisi
+          const lowerName = realName.toLowerCase();
+          
+          if (
+              lowerName.includes("rs ") || 
+              lowerName.includes("sakit") || 
+              lowerName.includes("hospital") || 
+              lowerName.includes("medis") || 
+              lowerName.includes("puskesmas") ||
+              lowerName.includes("klinik")
+          ) {
+              detectedCategory = "hospital";
+          }
+          
+          // Hitung jarak real-time dari posisi user
+          let displayDistance = item.distance_meters 
+                ? (parseFloat(item.distance_meters) / 1000).toFixed(1) + " km" // Kalau ada distance_meters dari BE
+                : item.distance; 
+
+          // Fallback hitung manual jika BE tidak kasih jarak
           if (userPos && lat && lng) {
              const dist = haversineKm(userPos[0], userPos[1], lat, lng);
              displayDistance = (Math.round(dist * 10) / 10) + " km";
@@ -86,10 +105,10 @@ const useMaps = () => {
 
           return {
             id: item.id,
-            name: item.nama || item.name || "Pos Satgas",
+            name: realName, 
             address: item.alamat || item.address || "Alamat tidak tersedia",
             phone: item.telepon || item.phone || null,
-            category: "police",
+            category: detectedCategory, 
             latitude: lat,
             longitude: lng,
             distance: displayDistance
@@ -100,7 +119,6 @@ const useMaps = () => {
 
       } catch (error) {
         console.error("Gagal Fetch Data:", error);
-        // Kalau server mati (Connection Refused), set array kosong
         if (mounted.current) setLocations([]);
       } finally {
         if (mounted.current) setLoadingBackend(false);

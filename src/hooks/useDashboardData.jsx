@@ -8,6 +8,7 @@ const useDashboardData = () => {
     const navigate = useNavigate();
     
     const [role] = useState(localStorage.getItem("userRole")?.toLowerCase() || "user");
+    const [userXp, setUserXp] = useState(parseInt(localStorage.getItem("userXp")) || 0);
     const isSatgas = role === "satgas";
     const [unreadChatCount, setUnreadChatCount] = useState(0); 
     const [mapCenter, setMapCenter] = useState(null);
@@ -36,7 +37,8 @@ const useDashboardData = () => {
                         category: item.category || "Umum",
                         readTime: item.timeRead ? `${item.timeRead} menit` : "5 menit",
                         image: item.imageUrl || null, 
-                        color: "blue"
+                        color: "blue",
+                        requiredXp: item.requiredXp || 0,
                     }));
 
                     setArticles(latestArticles);
@@ -93,6 +95,7 @@ const useDashboardData = () => {
 
     return {
         role,
+        userXp,
         isSatgas,
         unreadChatCount,
         mapCenter,

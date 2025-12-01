@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Menu, X, ArrowLeft, LogIn, ChevronDown, LogOut } from "lucide-react";
+import { Menu, X, ArrowLeft, LogIn, ChevronDown, LogOut, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
@@ -44,22 +44,18 @@ const Navbar = ({
   const [activeRole, setActiveRole] = useState("guest");
   const [articleCategories, setArticleCategories] = useState([]);
 
-  // --- 1. AUTO DETECT ROLE (PRIORITAS SATGAS) ---
+  // --- 1. AUTO DETECT ROLE ---
   useEffect(() => {
     const checkRole = () => {
         const token = localStorage.getItem("token");
         const userString = localStorage.getItem("user");
-        const directRole = localStorage.getItem("userRole"); // Key dari screenshotmu ("Satgas")
+        const directRole = localStorage.getItem("userRole");
 
         if (token) {
-            // Default ke user dulu
             let detectedRole = "user";
-
-            // Cek 1: Langsung dari key 'userRole' (Prioritas Utama)
             if (directRole && directRole.toLowerCase() === "satgas") {
                 detectedRole = "satgas";
             } 
-            // Cek 2: Dari dalam object user (Backup)
             else if (userString) {
                 try {
                     const user = JSON.parse(userString);
@@ -70,7 +66,6 @@ const Navbar = ({
                     console.error("Error parsing user data", e);
                 }
             }
-            
             setActiveRole(detectedRole);
         } else {
             setActiveRole("guest");
@@ -79,11 +74,10 @@ const Navbar = ({
     checkRole();
   }, []);
 
-  // --- 2. FETCH KATEGORI (KHUSUS USER) ---
+  // --- 2. FETCH KATEGORI (USER & GUEST) ---
   useEffect(() => {
     const fetchCategories = async () => {
-      // Satgas tidak butuh dropdown artikel di navbar
-      if (activeRole === "user") {
+      if (activeRole === "user" || activeRole === "guest") {
         try {
           const response = await axios.get(`${API_BASE_URL}/article`);
           const result = response.data;
@@ -108,40 +102,56 @@ const Navbar = ({
 
   // --- 3. KONFIGURASI MENU DINAMIS ---
   const navLinks = useMemo(() => {
+    
+    const articleDropdown = articleCategories.length > 0 
+      ? articleCategories.map(cat => ({ 
+          name: cat, 
+          path: `/articles?category=${encodeURIComponent(cat)}`
+        }))
+      : [{ name: "Semua Artikel", path: "/articles" }];
+
+    const servicesDropdown = [
+      { name: "Chat Satgas", path: "/chat", restricted: true },
+      { name: "Menfess", path: "/menfess", restricted: true },
+      { name: "Peta Darurat", path: "/maps", restricted: true },
+    ];
+
     const config = {
+      // MENU GUEST
       guest: [
-        { name: "Beranda", path: "/#hero" },
-        { name: "Fitur", path: "/#fitur" },
-        { name: "Tentang Kami", path: "/#about" },
-        { name: "Kontak", path: "/#contact" },
+        { name: "Beranda", path: "/" },
+        { name: "Game", path: "/game", restricted: true },
+        { 
+          name: "Artikel", 
+          path: "/articles",
+          dropdown: articleDropdown 
+        },
+        { 
+          name: "Layanan", 
+          path: "#layanan",
+          dropdown: servicesDropdown 
+        },
+        { name: "Komunitas", path: "/community", restricted: true },
       ],
+
+      // MENU USER
       user: [
         { name: "Dashboard", path: "/dashboard" },
         { name: "Game", path: "/game" },
         { 
           name: "Artikel", 
           path: "/articles",
-          dropdown: articleCategories.length > 0 
-            ? articleCategories.map(cat => ({ 
-                name: cat, 
-                path: `/articles?category=${encodeURIComponent(cat)}`
-              }))
-            : [
-                { name: "Semua Artikel", path: "/articles" }
-              ]
+          dropdown: articleDropdown
         },
         { 
           name: "Layanan", 
           path: "#layanan",
-          dropdown: [
-            { name: "Chat Satgas", path: "/chat" },
-            { name: "Menfess", path: "/menfess" },
-            { name: "Peta Darurat", path: "/maps" },
-          ]
+          dropdown: servicesDropdown.map(s => ({...s, restricted: false}))
         },
         { name: "Komunitas", path: "/community" },
       ],
-      // Menu Khusus Satgas (Simple & To the Point)
+
+      // MENU SATGAS
       satgas: [
         { name: "Dashboard", path: "/dashboard" },
         { name: "Inbox Chat", path: "/chat" }, 
@@ -153,6 +163,7 @@ const Navbar = ({
     return config[activeRole] || config.guest;
   }, [activeRole, articleCategories]);
 
+  // --- HELPER NAVIGASI ---
   const handleDefaultLogout = () => {
     Swal.fire({
       title: 'Keluar?',
@@ -171,12 +182,35 @@ const Navbar = ({
     });
   };
 
-  const handleNavigation = (path) => {
+  // --- CEK AKSES & NAVIGASI ---
+  const handleNavigation = (path, isRestricted = false) => {
     setIsOpen(false);
+
+    // Jika Restricted dan User adalah Guest -> Munculkan Alert Login
+    if (isRestricted && activeRole === 'guest') {
+      Swal.fire({
+        title: 'Akses Terbatas',
+        text: 'Anda harus login terlebih dahulu untuk mengakses fitur ini.', // UPDATE TEKS ALERT
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Login Sekarang',
+        cancelButtonText: 'Nanti Saja',
+        confirmButtonColor: '#2563eb'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/login');
+        }
+      });
+      return; 
+    }
+
     if (path.startsWith("#")) {
-      const element = document.querySelector(path);
-      if (element) element.scrollIntoView({ behavior: "smooth" });
-      else navigate("/" + path);
+      if (window.location.pathname === '/' || window.location.pathname === '/dashboard') {
+         const element = document.querySelector(path);
+         if (element) element.scrollIntoView({ behavior: "smooth" });
+      } else {
+         navigate("/" + path);
+      }
     } else {
       navigate(path);
     }
@@ -192,10 +226,9 @@ const Navbar = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between">
 
-          {/* === LEFT SIDE === */}
+          {/* === LEFT SIDE (LOGO) === */}
           <div className="flex items-center gap-4">
             {backButton ? (
-               /* MODE MINIMALIS */
                <div className="flex items-center gap-4">
                   <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition">
                     <ArrowLeft className="w-5 h-5" />
@@ -204,14 +237,12 @@ const Navbar = ({
                   {title && <span className="text-lg font-bold text-gray-800">{title}</span>}
                </div>
             ) : (
-               /* MODE FULL */
-               <div onClick={() => activeRole === 'guest' ? handleNavigation("/#hero") : handleNavigation("/dashboard")} className="flex items-center gap-2 cursor-pointer group">
+               <div onClick={() => handleNavigation("/")} className="flex items-center gap-2 cursor-pointer group">
                  <div className="transition-all duration-300 group-hover:scale-105">
                   <img src="https://res.cloudinary.com/dj2gwflqs/image/upload/v1764211938/Group_1_gryebt.png" alt="Logo Gugah" className="w-10 h-10 object-contain drop-shadow-sm" />
                 </div>
                 <span className="text-blue-900 font-extrabold text-3xl tracking-tight transition-colors group-hover:text-blue-700">Gugah</span>
                 
-                {/* Badge Satgas jika terdeteksi */}
                 {activeRole === 'satgas' && (
                     <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 border border-red-200">
                         SATGAS
@@ -221,7 +252,7 @@ const Navbar = ({
             )}
           </div>
 
-          {/* === RIGHT SIDE === */}
+          {/* === RIGHT SIDE (MENU) === */}
           {!backButton ? (
               <div className="flex items-center gap-3">
                 <div className="hidden md:flex items-center gap-1">
@@ -230,16 +261,28 @@ const Navbar = ({
                       <div className="flex items-center gap-1 mr-4">
                         {navLinks.map((link) => (
                           <div key={link.name} className="relative group">
-                            <button onClick={() => !link.dropdown && handleNavigation(link.path)} className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-1">
+                            {/* Main Menu Item */}
+                            <button 
+                              onClick={() => !link.dropdown && handleNavigation(link.path, link.restricted)} 
+                              className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-1"
+                            >
                               {link.name}
+                              {link.restricted && activeRole === 'guest' && <Lock size={12} className="text-gray-400" />}
                               {link.dropdown && <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300"/>}
                             </button>
+
+                            {/* Dropdown Menu */}
                             {link.dropdown && (
-                              <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50 overflow-hidden">
+                              <div className="absolute top-full left-0 mt-1 w-52 bg-white border border-gray-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50 overflow-hidden">
                                 <div className="p-1">
                                   {link.dropdown.map((subItem) => (
-                                    <button key={subItem.name} onClick={() => handleNavigation(subItem.path)} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
+                                    <button 
+                                      key={subItem.name} 
+                                      onClick={() => handleNavigation(subItem.path, subItem.restricted)} 
+                                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors flex items-center justify-between"
+                                    >
                                       {subItem.name}
+                                      {subItem.restricted && activeRole === 'guest' && <Lock size={12} className="text-gray-400" />}
                                     </button>
                                   ))}
                                 </div>
@@ -274,15 +317,27 @@ const Navbar = ({
         <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-xl py-4 px-4 flex flex-col gap-2 h-[calc(100vh-64px)] overflow-y-auto">
            {navLinks.map((link) => (
                 <div key={link.name}>
-                    <button onClick={() => link.dropdown ? toggleMobileSubmenu(link.name) : handleNavigation(link.path)} className="w-full text-left px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 rounded-xl active:bg-blue-50 active:text-blue-600 transition-colors flex justify-between items-center">
-                        {link.name}
+                    <button 
+                      onClick={() => link.dropdown ? toggleMobileSubmenu(link.name) : handleNavigation(link.path, link.restricted)} 
+                      className="w-full text-left px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 rounded-xl active:bg-blue-50 active:text-blue-600 transition-colors flex justify-between items-center"
+                    >
+                        <div className="flex items-center gap-2">
+                          {link.name}
+                          {link.restricted && activeRole === 'guest' && <Lock size={14} className="text-gray-400" />}
+                        </div>
                         {link.dropdown && <ChevronDown size={16} className={`transition-transform duration-300 ${mobileSubmenu === link.name ? 'rotate-180' : ''}`} />}
                     </button>
+                    
                     {link.dropdown && mobileSubmenu === link.name && (
                       <div className="pl-6 pr-2 py-1 space-y-1 bg-gray-50/50 rounded-lg mx-2">
                           {link.dropdown.map((subItem) => (
-                           <button key={subItem.name} onClick={() => handleNavigation(subItem.path)} className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-blue-600 rounded-lg">
+                           <button 
+                              key={subItem.name} 
+                              onClick={() => handleNavigation(subItem.path, subItem.restricted)} 
+                              className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-blue-600 rounded-lg flex items-center justify-between"
+                           >
                              {subItem.name}
+                             {subItem.restricted && activeRole === 'guest' && <Lock size={12} className="text-gray-400" />}
                            </button>
                           ))}
                       </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react"; 
-import { AlertTriangle, Users, Home, Heart, MessageCircle, MapPin, Shield, Lock, ArrowRight, ArrowUp, Play, Gamepad2, Activity, CheckCircle, ArrowDown } from "lucide-react";
+import { AlertTriangle, Users, Home, Heart, MessageCircle, MapPin, Shield, Lock, ArrowRight, ArrowUp, Play, Gamepad2, Activity, CheckCircle, ArrowDown, BookOpen } from "lucide-react";
 import Swal from "sweetalert2"; 
 import { HERO_IMAGE_URL } from '../lib/landingPageUtils'; 
 import Navbar from "../components/Navbar";
@@ -184,7 +184,9 @@ const LandingPage = () => {
 
       {/* Main content */}
       <main id="main-content" tabIndex="-1">
-      <section id="home" className="relative overflow-hidden py-12 md:py-16 scroll-mt-20">
+     {/* ================= SECTION 1: HERO ================= */}
+      <section id="home" className="relative overflow-hidden py-15 md:py-16 -mt-10">
+        {/* Background Blobs */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full z-0 pointer-events-none">
           <div className="absolute top-20 left-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" aria-hidden="true" />
           <div className="absolute top-20 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" aria-hidden="true" />
@@ -201,23 +203,31 @@ const LandingPage = () => {
                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                      <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                    </span>
-                  <span className="flex text-sm font-medium text-blue-700">Ruang Aman</span>
+                  <span className="flex text-sm font-medium text-blue-700">Pendidikan & Pencegahan</span>
                 </div>
               </SimpleFadeIn>
 
               <SimpleFadeIn delay={100}>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-snug">
-                    Ruang Aman untuk Bicara, Belajar, dan <br className="hidden lg:block" />
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
-                    Mendapatkan Dukungan
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                      GUGAH
+                    </span>
+                    <span> Kesadaran,</span> 
+                    <br className="hidden lg:block" />
+                    <span>
+                      Cegah Kekerasan Seksual
                     </span>
                 </h1>
               </SimpleFadeIn>
 
               <SimpleFadeIn delay={200}>
-                <p className="text-base text-gray-600 leading-relaxed">
-                    SpeakUp adalah sebuah platform yang berkomitmen dalam upaya pencegahan kekerasan seksual dengan menyediakan edukasi seksual yang inklusif. Selain itu, sebagai ruang berbagi cerita, memberikan akses bantuan, dan dukungan kepada setiap individu yang membutuhkan.
-                </p>
+                {/* --- TEKS BARU (Updated) --- */}
+                <div className="space-y-4">
+                    <p className="text-base text-gray-700 leading-relaxed font-medium">
+                        Gugah adalah platform edukasi yang berfokus pada pendidikan seksual komprehensif dan upaya pencegahan kekerasan seksual.
+                    </p>
+                </div>
+                {/* -------------------------------- */}
               </SimpleFadeIn>
 
               <SimpleFadeIn delay={300}>
@@ -228,7 +238,7 @@ const LandingPage = () => {
                         className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-full shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         aria-label="Masuk ke akun Anda"
                       >
-                        Masuk <ArrowRight size={18} aria-hidden="true" />
+                        Mulai Belajar <ArrowRight size={18} aria-hidden="true" />
                       </button>
                       <button
                         onClick={() => document.getElementById('layanan').scrollIntoView({ behavior: 'smooth' })}
@@ -247,7 +257,7 @@ const LandingPage = () => {
                 <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-xl border-4 border-white transform rotate-2 hover:rotate-0 transition-transform duration-500">
                     <ImageWithFallback 
                         src={HERO_IMAGE_URL} 
-                        alt="Ilustrasi ruang aman untuk berbagi cerita" 
+                        alt="Ilustrasi edukasi seksual" 
                         className="w-full h-full object-cover bg-gray-100"
                         loading="lazy"
                         width={600}
@@ -261,28 +271,26 @@ const LandingPage = () => {
                    className="absolute -bottom-4 -left-2 md:-bottom-4 md:-left-6 bg-white/90 backdrop-blur-md p-3 rounded-xl shadow-lg border border-white/50 max-w-[150px] hidden sm:block animate-bounce"
                    style={{ animationDuration: '3s' }}
                    role="note"
-                   aria-label="Keamanan data Anda terjamin dengan enkripsi end-to-end"
                  >
                     <div className="flex items-center gap-2 mb-1">
                       <div className="bg-green-100 p-1.5 rounded-full text-green-600">
                         <Shield size={16} />
                       </div>
-                      <span className="font-bold text-gray-800 text-xs">Privasi Dijamin</span>
+                      <span className="font-bold text-gray-800 text-xs">Edukasi</span>
                     </div>
-                    <p className="text-[10px] text-gray-500 leading-tight">Enkripsi end-to-end.</p>
+                    <p className="text-[10px] text-gray-500 leading-tight">Materi terpercaya.</p>
                  </div>
 
                  <div 
                    className="absolute top-4 -right-2 md:top-8 md:-right-4 bg-white/90 backdrop-blur-md p-2 rounded-xl shadow-lg border border-white/50 items-center gap-2 animate-pulse hidden sm:flex"
                    role="note"
-                   aria-label="Setiap suara didengarkan"
                  >
-                     <div className="bg-red-100 p-1.5 rounded-full text-red-600">
-                        <Heart size={14} fill="currentColor" />
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-bold text-gray-800">Didengar</p>
-                     </div>
+                      <div className="bg-blue-100 p-1.5 rounded-full text-blue-600">
+                        <BookOpen size={14} fill="currentColor" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-800">Cegah KS</p>
+                      </div>
                  </div>
               </div>
             </SimpleFadeIn>
@@ -395,285 +403,420 @@ const LandingPage = () => {
                    Status: WASPADA
                 </div>
               </div>
-<div className="relative z-10 h-16 md:h-24 lg:h-32"></div>
+            <div className="relative z-10 h-16 md:h-24 lg:h-32"></div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ================= SECTION 3: CORE VALUES (LAYOUT & WARNA BARU) ================= */}
-      <section className="relative py-20 md:py-28 lg:py-36 bg-slate-100 z-30">
-        
-        {/* WAVE TETAP SESUAI REQUEST (TIDAK DIUBAH) */}
-        <SectionTopWave color="fill-slate-100" />
-        
-        {/* Tambahan Pattern Halus di Background supaya tidak 'sepi' */}
-        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)', backgroundSize: '40px 40px', opacity: 0.1 }}></div>
+      {/* ================= SECTION 3: CORE VALUES (FIXED FINAL) ================= */}
+{/* 1. PENYEBAB UTAMA: Gue apus 'overflow-hidden' dari class section ini biar Wavenya bisa nongol ke atas */}
+<section className="relative py-20 md:py-28 lg:py-36 bg-slate-100 z-30">
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
-          
-          {/* Layout Header Baru: Kiri Teks, Kanan Kosong (Asimetris Modern) */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-             <div className="max-w-2xl">
-                <SimpleFadeIn>
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="h-px w-8 bg-blue-600"></span>
-                    <span className="text-blue-600 font-bold tracking-widest uppercase text-xs">Value Kami</span>
-                  </div>
-                  <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
-                    Kenapa Harus <br/>
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">GUGAH?</span>
-                  </h2>
-                </SimpleFadeIn>
-             </div>
-             <div className="max-w-md">
-               <SimpleFadeIn delay={100}>
-                 <p className="text-slate-600 text-lg leading-relaxed">
-                   Kami menggabungkan pendekatan psikologis yang empatik dengan teknologi keamanan tinggi.
-                 </p>
-               </SimpleFadeIn>
-             </div>
-          </div>
+  {/* 2. WAVE: Warna harus sama dengan SECTION INI (slate-100).
+      Dia akan naik ke atas nutupin section hitam karena component SectionTopWave lu udah ada -translate-y nya. */}
+  <SectionTopWave color="fill-slate-100" />
 
-          {/* Grid Layout Baru */}
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-            {[
-              { 
-                title: "100% Anonim", 
-                desc: "Identitasmu aman. Sistem kami mengenkripsi data sehingga kamu bisa bercerita tanpa takut dihakimi.", 
-                icon: Lock, 
-                color: "blue",
-                accent: "bg-blue-500"
-              },
-              { 
-                title: "Profesional", 
-                desc: "Bukan sekadar bot. Kamu didukung oleh psikolog klinis dan satgas yang terlatih menangani trauma.", 
-                icon: Heart, 
-                color: "pink",
-                accent: "bg-pink-500"
-              },
-              { 
-                title: "Akses 24/7", 
-                desc: "Trauma tidak mengenal jam kerja. Fitur bantuan darurat dan Menfess kami aktif kapanpun kamu butuh.", 
-                icon: Activity, 
-                color: "indigo",
-                accent: "bg-indigo-500"
-              },
-            ].map((item, idx) => (
-              <SimpleFadeIn key={idx} delay={idx * 150}>
-                {/* CARD DESIGN BARU: Minimalis dengan Accent Color di atas */}
-                <div className="group h-full bg-white rounded-2xl p-8 shadow-sm hover:shadow-2xl hover:shadow-blue-100 transition-all duration-300 border border-slate-200 relative overflow-hidden hover:-translate-y-2">
-                  
-                  {/* Garis Warna Aksen di Atas Card */}
-                  <div className={`absolute top-0 left-0 w-full h-1.5 ${item.accent} origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500`}></div>
-                  
-                  {/* Icon dengan Background Circle */}
-                  <div className={`w-14 h-14 rounded-full bg-${item.color}-50 flex items-center justify-center text-${item.color}-600 mb-6 group-hover:scale-110 group-hover:bg-${item.color}-600 group-hover:text-white transition-all duration-300`}>
-                    <item.icon size={28} strokeWidth={2} />
-                  </div>
+  {/* 3. BACKGROUND WRAPPER: Karena section utama ga boleh overflow-hidden (demi wave),
+      kita bungkus Blobs & Grid di sini pakai overflow-hidden biar ga bocor ke mana-mana. */}
+  <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+      {/* Blob Biru Kiri */}
+      <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+      {/* Blob Ungu Kanan */}
+      <div className="absolute bottom-0 -right-20 w-[500px] h-[500px] bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+      {/* Grid Pattern Halus */}
+      <div className="absolute inset-0 opacity-[0.3]" style={{ backgroundImage: 'linear-gradient(#cbd5e1 1px, transparent 1px), linear-gradient(to right, #cbd5e1 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+  </div>
 
-                  <h3 className="text-2xl font-bold text-slate-800 mb-3 group-hover:text-blue-700 transition-colors">
-                    {item.title}
-                  </h3>
-                  
-                  <p className="text-slate-500 leading-relaxed group-hover:text-slate-600">
-                    {item.desc}
-                  </p>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
 
-                  {/* Icon Panah Kecil di Bawah (Pemanis) */}
-                  <div className="mt-6 flex items-center text-sm font-bold text-slate-300 group-hover:text-blue-600 transition-colors gap-2">
-                    <span>Selengkapnya</span>
-                    <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform"/>
-                  </div>
-                </div>
-              </SimpleFadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ================= SECTION 4: LAYANAN ================= */}
-      <section id="layanan" className="relative py-20 md:py-28 lg:py-36 bg-slate-50 z-40">
-        <SectionTopWave color="fill-slate-50" />
-        {/* Decorative Wrapper */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-white via-white to-blue-50/30"></div>
-          <div className="absolute top-[20%] left-[-10%] w-[600px] h-[600px] bg-blue-300/40 rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-[20%] right-[-10%] w-[600px] h-[600px] bg-purple-100/40 rounded-full blur-[120px]"></div>
-          <div className="absolute top-0 left-0 w-full h-full hidden md:block z-0 opacity-50">
-            <svg className="w-full h-full" viewBox="0 0 1440 1600" fill="none" preserveAspectRatio="none">
-              <path d="M720 0 L720 150 C720 300 300 300 300 500 C300 700 1140 700 1140 900 C1140 1100 720 1100 720 1300 L720 1600" 
-                stroke="#F1F5F9" strokeWidth="80" strokeLinecap="round" />
-              <path d="M720 0 L720 150 C720 300 300 300 300 500 C300 700 1140 700 1140 900 C1140 1100 720 1100 720 1300 L720 1600" 
-                stroke="#CBD5E1" strokeWidth="2" strokeDasharray="12 12" />
-            </svg>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
-          {/* Header */}
-          <div className="text-center max-w-3xl mx-auto mb-24">
-            <SimpleFadeIn>
-              <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">
-                Langkah <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Pemulihanmu</span>
-              </h2>
-              <p className="text-xl text-slate-600">
-                Kami menemani setiap langkah perjalananmu menuju rasa aman.
-              </p>
-            </SimpleFadeIn>
-            <div className="flex justify-center mt-8 animate-bounce text-blue-300">
-              <ArrowDown size={32} />
-            </div>
-          </div>
-          {/* Timeline Items */}
-          <div className="space-y-24 md:space-y-0 relative">
-            {/* Items timeline code remains same... */}
-            <div className="relative md:flex md:items-center md:justify-between group">
-              <SimpleFadeIn direction="right" className="md:w-[45%] md:text-right md:pr-16 mb-8 md:mb-0 order-1">
-                <div className="p-8 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-purple-100 shadow-xl shadow-purple-100/30 hover:shadow-purple-200/50 transition-all duration-300">
-                  <div className="inline-flex p-3 bg-purple-100 text-purple-600 rounded-xl mb-4">
-                    <MessageCircle size={28} />
-                  </div>
-                  <h3 className="text-3xl font-black text-slate-800 mb-3">Suarakan <span className="text-purple-600">Isi Hati</span></h3>
-                  <p className="text-lg text-slate-600 mb-6">Ruang aman untuk melepas beban tanpa identitas. Validasi perasaanmu adalah langkah awal.</p>
-                  <button className="text-purple-600 font-bold hover:gap-3 transition-all flex items-center md:justify-end gap-2">
-                    Mulai Menulis <ArrowRight size={18} />
-                  </button>
-                </div>
-              </SimpleFadeIn>
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-purple-600 rounded-full border-4 border-white shadow-lg z-20"></div>
-              <div className="md:w-[45%] order-2"></div>
-            </div>
-            {/* ITEM 2: GAME */}
-            <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
-              <div className="md:w-[45%] order-1"></div>
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-blue-600 rounded-full border-4 border-white shadow-lg z-20"></div>
-              <SimpleFadeIn direction="left" className="md:w-[45%] md:pl-16 order-2">
-                <div className="p-8 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-blue-100 shadow-xl shadow-blue-100/30 hover:shadow-blue-200/50 transition-all duration-300">
-                  <div className="inline-flex p-3 bg-blue-300 text-blue-600 rounded-xl mb-4">
-                    <Gamepad2 size={28} />
-                  </div>
-                  <h3 className="text-3xl font-black text-slate-800 mb-3">Pahami <span className="text-blue-600">Batasanmu</span></h3>
-                  <p className="text-lg text-slate-600 mb-6">Belajar tentang consent dan hak tubuh lewat simulasi interaktif yang tidak membosankan.</p>
-                  <button className="text-blue-600 font-bold hover:gap-3 transition-all flex items-center gap-2">
-                    Mainkan Game <ArrowRight size={18} />
-                  </button>
-                </div>
-              </SimpleFadeIn>
-            </div>
-            {/* ITEM 3: SATGAS */}
-            <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
-              <SimpleFadeIn direction="right" className="md:w-[45%] md:text-right md:pr-16 mb-8 md:mb-0 order-1">
-                <div className="p-8 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-indigo-100 shadow-xl shadow-indigo-100/30 hover:shadow-indigo-200/50 transition-all duration-300">
-                  <div className="inline-flex p-3 bg-indigo-100 text-indigo-600 rounded-xl mb-4">
-                    <Shield size={28} />
-                  </div>
-                  <h3 className="text-3xl font-black text-slate-800 mb-3">Dukungan <span className="text-indigo-600">Profesional</span></h3>
-                  <p className="text-lg text-slate-600 mb-6">Satgas PPKS siap mendampingi, memberikan bantuan hukum, dan konseling psikologis.</p>
-                  <button onClick={handleLogin} className="text-indigo-600 font-bold hover:gap-3 transition-all flex items-center md:justify-end gap-2">
-                    Hubungi Satgas <ArrowRight size={18} />
-                  </button>
-                </div>
-              </SimpleFadeIn>
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-indigo-600 rounded-full border-4 border-white shadow-lg z-20"></div>
-              <div className="md:w-[45%] order-2"></div>
-            </div>
-            {/* ITEM 4: MAPS */}
-            <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
-              <div className="md:w-[45%] order-1"></div>
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-red-600 rounded-full border-4 border-white shadow-lg z-20 animate-ping"></div>
-              <SimpleFadeIn direction="left" className="md:w-[45%] md:pl-16 order-2">
-                <div className="p-8 bg-red-50/70 backdrop-blur-xl rounded-[2rem] border border-red-100 shadow-xl shadow-red-100/30 hover:shadow-red-200/50 transition-all duration-300">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="inline-flex p-3 bg-red-100 text-red-600 rounded-xl">
-                      <MapPin size={28} />
-                    </div>
-                    <span className="px-3 py-1 bg-red-100 text-red-600 text-xs font-bold rounded-full animate-pulse">URGENT</span>
-                  </div>
-                  <h3 className="text-3xl font-black text-slate-800 mb-3">Zona <span className="text-red-500">Aman Darurat</span></h3>
-                  <p className="text-lg text-slate-600 mb-6">Temukan Rumah Aman, Kantor Polisi, atau RS terdekat dengan satu klik dalam situasi bahaya.</p>
-                  <button onClick={handleMapNavigation} className="px-6 py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg shadow-red-200 hover:bg-red-700 transition-all flex items-center gap-2">
-                    Cari Lokasi <ArrowRight size={18} />
-                  </button>
-                </div>
-              </SimpleFadeIn>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= SECTION 5: VIDEO / ABOUT ================= */}
-      <section className="relative py-20 md:py-28 lg:pt-36 lg:pb-48 bg-blue-50 z-30">
-        <SectionTopWave color="fill-blue-50" />
-        {/* Decorative Wrapper */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0"></div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
-          <div className="bg-white rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-blue-100 border border-blue-100 overflow-hidden relative">
-            <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
-              <div>
-                <span className="text-blue-600 font-bold tracking-wider uppercase text-xs mb-3 block">Tentang Kami</span>
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-6">Mengenal GUGAH Lebih Dekat</h2>
-                <p className="text-slate-600 text-lg mb-6 leading-relaxed">
-                  Kami percaya bahwa setiap orang berhak atas ruang yang aman. GUGAH hadir untuk memutus rantai kekerasan seksual melalui teknologi yang berempati.
-                </p>
-                <ul className="space-y-4 mb-8">
-                  <li className="flex items-start gap-3">
-                    <div className="mt-1 bg-green-100 p-1 rounded-full text-green-600"><CheckCircle size={16}/></div>
-                    <span className="text-slate-700 font-medium">Kurikulum edukasi tervalidasi ahli.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="mt-1 bg-green-100 p-1 rounded-full text-green-600"><CheckCircle size={16}/></div>
-                    <span className="text-slate-700 font-medium">Sistem pelaporan terintegrasi & aman.</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Video Placeholder */}
-              <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 group cursor-pointer shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300">
-                <ImageWithFallback 
-                  src={HERO_IMAGE_URL} 
-                  alt="Video Thumbnail" 
-                  className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" 
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-md border border-white/50 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <Play className="w-6 h-6 md:w-8 md:h-8 text-white ml-1" fill="currentColor" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* Decor inside card */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-300 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 -z-0"></div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= SECTION 6: QUOTE & FOOTER CONNECTOR ================= */}
-      <section className="relative py-16 md:py-20 lg:py-24 bg-blue-700 z-40">
-        
-        <SectionTopWave color="fill-blue-700" />
-
-        <div className="max-w-4xl mx-auto px-6 relative z-30 py-12 md:py-16 text-center">
-          <SimpleFadeIn>
-            <div className="mb-8 mx-auto w-20 h-1.5 bg-blue-400 rounded-full"></div>
-            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-relaxed mb-8 font-serif italic text-white opacity-95">
-              "Lukamu valid, perasaanmu nyata. Masa depanmu masih suci dan layak diperjuangkan."
-            </h2>
-            <p className="font-bold tracking-[0.2em] text-blue-200">TIM GUGAH</p>
-          </SimpleFadeIn>
-         
-
-        </div>
-        {/* UPDATE: Taruh SectionBottomWave DISINI, bukan di dalam Footer component div */}
-        {/* Gunakan warna fill-slate-950 (warna footer) agar menyatu */}
-        <SectionBottomWave color="fill-slate-950" />
-      </section>
-
-      {/* Footer Component Wrapper */}
-      <div className="bg-slate-800 relative z-50 -mt-36">
-        <Footer className="bg-slate-800" />
+    {/* HEADER SECTION */}
+    <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 mb-16 items-center">
+      <div className="relative">
+        <SimpleFadeIn>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-[1.15]">
+            Kenapa Harus <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700">GUGAH?</span>
+          </h2>
+        </SimpleFadeIn>
       </div>
+
+      <div className="relative">
+        <SimpleFadeIn delay={100}>
+          {/* Garis vertikal aksen biru */}
+          <div className="hidden lg:block absolute -left-8 top-2 w-1.5 h-full max-h-32 bg-blue-500 rounded-full"></div>
+
+          <p className="text-slate-700 text-base md:text-lg leading-relaxed font-semibold">
+            Kami hadir untuk mengisi celah pengetahuan kritis yang seringkali tidak diajarkan baik di sekolah maupun dalam lingkungan masyarakat luas.
+          </p>
+          <p className="mt-4 text-slate-600 text-base leading-relaxed">
+            Melalui Gugah, masyarakat dapat mempelajari tentang kesehatan reproduksi, <span className="text-blue-700 font-bold italic">consent</span> (persetujuan), hingga cara mengenali, mencegah, dan melaporkan tindakan kekerasan seksual.
+          </p>
+        </SimpleFadeIn>
+      </div>
+    </div>
+
+    {/* CARDS GRID */}
+    <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+      {[
+        {
+          title: "100% Anonim",
+          desc: "Identitasmu aman. Sistem kami mengenkripsi data sehingga kamu bisa bercerita tanpa takut dihakimi.",
+          icon: Lock,
+          bgIcon: "bg-blue-100",
+          textIcon: "text-blue-600"
+        },
+        {
+          title: "Profesional",
+          desc: "Bukan sekadar bot. Kamu didukung oleh psikolog klinis dan satgas yang terlatih menangani trauma.",
+          icon: Heart,
+          bgIcon: "bg-rose-100",
+          textIcon: "text-rose-600"
+        },
+        {
+          title: "Akses 24/7",
+          desc: "Trauma tidak mengenal jam kerja. Fitur bantuan darurat dan Menfess kami aktif kapanpun kamu butuh.",
+          icon: Activity,
+          bgIcon: "bg-indigo-100",
+          textIcon: "text-indigo-600"
+        },
+      ].map((item, idx) => (
+        <SimpleFadeIn key={idx} delay={idx * 150}>
+          
+          <div className="h-full bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+            
+            <div className="flex flex-col items-start gap-5 mb-5">
+              <div className={`w-14 h-14 rounded-2xl ${item.bgIcon} flex items-center justify-center ${item.textIcon} shadow-sm`}>
+                <item.icon size={26} strokeWidth={2} />
+              </div>
+              
+              <h3 className="text-xl md:text-2xl font-bold text-slate-800">
+                {item.title}
+              </h3>
+            </div>
+
+            <div className="h-px w-full bg-slate-100 mb-5"></div>
+
+            <p className="text-slate-600 text-sm md:text-base leading-relaxed mb-6 flex-grow">
+              {item.desc}
+            </p>
+
+            <div className="flex items-center gap-2 text-slate-800 font-bold text-sm cursor-pointer group hover:text-blue-600 transition-colors">
+               <span>Pelajari Selengkapnya</span>
+               <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </div>
+
+          </div>
+        </SimpleFadeIn>
+      ))}
+    </div>
+  </div>
+</section>
+
+      {/* ================= SECTION 4: LAYANAN (DARK MODE) ================= */}
+{/* 1. BACKGROUND: Ganti bg-slate-50 jadi bg-slate-900 (Gelap) */}
+<section id="layanan" className="relative py-20 md:py-28 lg:py-36 bg-slate-900 z-40">
+
+  {/* WAVE FIX: Tetap fill-slate-100 (Ikut Section ATASNYA yang Terang) */}
+  <div className="absolute top-0 left-0 w-full -translate-y-[98%] z-10 leading-[0]">
+    <SectionTopWave color="fill-slate-900" />
+  </div>
+
+  {/* Decorative Background */}
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    {/* 2. GRADIENT: Ganti dari White jadi Slate-900 biar nyatu sama bg */}
+    <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-900 to-blue-900/30"></div>
+    
+    <div className="absolute top-[20%] left-[-10%] w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px]"></div>
+    <div className="absolute bottom-[20%] right-[-10%] w-[600px] h-[600px] bg-fuchsia-500/10 rounded-full blur-[120px]"></div>
+    
+    <div className="absolute top-0 left-0 w-full h-full hidden md:block z-0 opacity-100">
+      <svg className="w-full h-full" viewBox="0 0 1440 1600" fill="none" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="roadGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.15" /> 
+            <stop offset="50%" stopColor="#a855f7" stopOpacity="0.15" /> 
+            <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.15" /> 
+          </linearGradient>
+        </defs>
+        <path d="M720 0 L720 150 C720 300 300 300 300 500 C300 700 1140 700 1140 900 C1140 1100 720 1100 720 1300 L720 1600" 
+          stroke="url(#roadGrad)" strokeWidth="100" strokeLinecap="round" />
+        
+        {/* Marka Jalan: Opacity diturunin dikit biar enak di mata gelap */}
+        <path d="M720 0 L720 150 C720 300 300 300 300 500 C300 700 1140 700 1140 900 C1140 1100 720 1100 720 1300 L720 1600" 
+          stroke="white" strokeWidth="4" strokeDasharray="20 20" className="opacity-30" />
+      </svg>
+    </div>
+  </div>
+
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
+    {/* Header */}
+    <div className="text-center max-w-3xl mx-auto mb-24">
+      <SimpleFadeIn>
+        {/* 3. TEXT: Ganti jadi White biar kebaca */}
+        <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight">
+          Eksplor <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">Fitur Kami</span>
+        </h2>
+        {/* TEXT: Ganti jadi Slate-400 */}
+        <p className="text-l text-slate-400 font-medium max-w-2xl mx-auto">
+          Dari simulasi interaktif, curhat anonim, hingga akses darurat, semua dirancang untuk keamananmu.
+        </p>
+      </SimpleFadeIn>
+    </div>
+    
+    {/* Timeline Items */}
+    <div className="space-y-24 md:space-y-0 relative">
+      
+      {/* === ITEM 1: MENFESS === */}
+      <div className="relative md:flex md:items-center md:justify-between group">
+        <SimpleFadeIn direction="right" className="md:w-[45%] md:pr-16 mb-8 md:mb-0 order-1">
+          <div className="p-8 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[2rem] shadow-xl shadow-fuchsia-900/30 hover:shadow-fuchsia-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-end text-right text-white">
+            <div className="inline-flex p-3 bg-white/20 backdrop-blur-md text-white rounded-xl mb-4 shadow-inner border border-white/20">
+              <MessageCircle size={26} />
+            </div>
+            <h3 className="text-2xl md:text-3xl font-bold mb-2">Menfess <span className="text-fuchsia-200">Anonim</span></h3>
+            <p className="text-base text-violet-50 mb-8 leading-relaxed font-medium">
+              Curhat tanpa identitas. Cerita lo aman di sini, lega tanpa takut dihakimi.
+            </p>
+            <button className="group/btn flex items-center gap-2 bg-white text-fuchsia-700 text-sm font-bold px-5 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all">
+              Mulai Nulis <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform"/>
+            </button>
+          </div>
+        </SimpleFadeIn>
+        
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-fuchsia-600 rounded-full border-4 border-slate-900 shadow-lg z-20"></div>
+        
+        {/* === TEKS PENJELASAN (KANAN) === */}
+        <div className="md:w-[45%] order-2 pl-8 md:pl-16 hidden md:block">
+           <SimpleFadeIn delay={200} direction="left">
+             {/* TEXT: Ganti jadi Blue-400 & Slate-300 */}
+             <h4 className="text-blue-400 font-bold uppercase tracking-widest text-sm mb-3">Tanpa Penghakiman</h4>
+             <p className="text-2xl font-serif text-slate-300 leading-relaxed italic">
+               "Terkadang, yang paling kita butuhkan hanyalah didengar. Lepaskan bebanmu di sini, tanpa rasa takut."
+             </p>
+           </SimpleFadeIn>
+        </div>
+      </div>
+      
+      {/* === ITEM 2: GAME === */}
+      <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
+        
+        {/* === TEKS PENJELASAN (KIRI) === */}
+        <div className="md:w-[45%] order-1 pr-8 md:pr-16 text-right hidden md:block">
+           <SimpleFadeIn delay={200} direction="right">
+             <h4 className="text-cyan-400 font-bold uppercase tracking-widest text-sm mb-3">Belajar Seru</h4>
+             <p className="text-2xl font-serif text-slate-300 leading-relaxed italic">
+               "Pahami batasan dan hak tubuhmu lewat simulasi nyata. Karena teori saja tidak cukup."
+             </p>
+           </SimpleFadeIn>
+        </div>
+
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-cyan-500 rounded-full border-4 border-slate-900 shadow-lg z-20"></div>
+        
+        <SimpleFadeIn direction="left" className="md:w-[45%] md:pl-16 order-2">
+          <div className="p-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-[2rem] shadow-xl shadow-cyan-900/30 hover:shadow-cyan-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-start text-left text-white">
+            <div className="inline-flex p-3 bg-white/20 backdrop-blur-md text-white rounded-xl mb-4 shadow-inner border border-white/20">
+              <Gamepad2 size={26} />
+            </div>
+            <h3 className="text-2xl md:text-3xl font-bold mb-2">Game <span className="text-cyan-100">Edukasi</span></h3>
+            <p className="text-base text-blue-50 mb-8 leading-relaxed font-medium">
+              Simulasi interaktif. Belajar soal <i>consent</i> & <i>red flag</i> dengan cara yang asik.
+            </p>
+            <button className="group/btn flex items-center gap-2 bg-white text-cyan-700 text-sm font-bold px-5 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all">
+              Main Game <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform"/>
+            </button>
+          </div>
+        </SimpleFadeIn>
+      </div>
+
+      {/* === ITEM 3: SATGAS === */}
+      <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
+        <SimpleFadeIn direction="right" className="md:w-[45%] md:pr-16 mb-8 md:mb-0 order-1">
+          <div className="p-8 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-[2rem] shadow-xl shadow-indigo-900/30 hover:shadow-indigo-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-end text-right text-white">
+            <div className="inline-flex p-3 bg-white/20 backdrop-blur-md text-white rounded-xl mb-4 shadow-inner border border-white/20">
+              <Shield size={26} />
+            </div>
+            <h3 className="text-2xl md:text-3xl font-bold mb-2">Chat <span className="text-indigo-200">Satgas</span></h3>
+            <p className="text-base text-indigo-50 mb-8 leading-relaxed font-medium">
+              Butuh bantuan hukum atau psikolog? Langsung chat Satgas PPKS di sini.
+            </p>
+            <button onClick={handleLogin} className="group/btn flex items-center gap-2 bg-white text-indigo-700 text-sm font-bold px-5 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all">
+              Hubungi Kami <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform"/>
+            </button>
+          </div>
+        </SimpleFadeIn>
+        
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-indigo-600 rounded-full border-4 border-slate-900 shadow-lg z-20"></div>
+        
+        {/* === TEKS PENJELASAN (KANAN) === */}
+        <div className="md:w-[45%] order-2 pl-8 md:pl-16 hidden md:block">
+           <SimpleFadeIn delay={200} direction="left">
+             <h4 className="text-indigo-400 font-bold uppercase tracking-widest text-sm mb-3">Pendampingan</h4>
+             <p className="text-2xl font-serif text-slate-300 leading-relaxed italic">
+               "Kamu tidak sendirian. Tim profesional kami siap merangkul, melindungi, dan memulihkan."
+             </p>
+           </SimpleFadeIn>
+        </div>
+      </div>
+      
+      {/* === ITEM 4: MAPS === */}
+      <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
+        
+        {/* === TEKS PENJELASAN (KIRI) === */}
+        <div className="md:w-[45%] order-1 pr-8 md:pr-16 text-right hidden md:block">
+           <SimpleFadeIn delay={200} direction="right">
+             <h4 className="text-red-400 font-bold uppercase tracking-widest text-sm mb-3">Respons Cepat</h4>
+             <p className="text-2xl font-serif text-slate-300 leading-relaxed italic">
+               "Dalam situasi darurat, setiap detik berharga. Temukan perlindungan terdekat dalam satu klik."
+             </p>
+           </SimpleFadeIn>
+        </div>
+
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-orange-500 rounded-full border-4 border-slate-900 shadow-lg z-20 animate-ping"></div>
+        
+        <SimpleFadeIn direction="left" className="md:w-[45%] md:pl-16 order-2">
+          <div className="p-8 bg-gradient-to-br from-red-600 to-orange-500 rounded-[2rem] shadow-xl shadow-orange-900/30 hover:shadow-orange-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-start text-left text-white">
+            <div className="w-full flex items-center justify-between mb-4">
+              <div className="inline-flex p-3 bg-white/20 backdrop-blur-md text-white rounded-xl shadow-inner border border-white/20">
+                <MapPin size={26} />
+              </div>
+              <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-red-600 text-xs font-bold rounded-full animate-pulse shadow-sm">DARURAT</span>
+            </div>
+            <h3 className="text-2xl md:text-3xl font-bold mb-2">Zona <span className="text-orange-200">Aman</span></h3>
+            <p className="text-base text-red-50 mb-8 leading-relaxed font-medium">
+              Cari Rumah Aman, Polisi, atau RS terdekat dalam satu kali klik.
+            </p>
+            <button onClick={handleMapNavigation} className="bg-white text-orange-600 text-sm font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl hover:bg-orange-50 transition-all flex items-center gap-2">
+              Cari Lokasi <ArrowRight size={16} />
+            </button>
+          </div>
+        </SimpleFadeIn>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+      {/* ================= SECTION 5: VIDEO DEMO ================= */}
+<section className="relative py-20 md:py-28 lg:pt-36 lg:pb-48 bg-blue-50 z-50">
+  
+  <div className="absolute top-0 left-0 w-full -translate-y-[98%] z-10 leading-[0]">
+    <SectionTopWave color="fill-blue-50" />
+  </div>
+
+  {/* Decorative Wrapper */}
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0"></div>
+
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
+    <div className="bg-white rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-blue-100 border border-blue-100 overflow-hidden relative">
+      <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
+        
+        {/* TEKS PENJELASAN DEMO */}
+        <div>
+          <span className="text-blue-600 font-bold tracking-wider uppercase text-xs mb-3 block">
+            Video Demo
+          </span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-6">
+            Intip Cara Kerja <br/>
+            <span className="text-blue-600">Aplikasi GUGAH</span>
+          </h2>
+          <p className="text-slate-600 text-lg mb-6 leading-relaxed">
+            Penasaran gimana cara curhat tanpa ketahuan atau main game simulasi? Simak video singkat ini untuk melihat antarmuka (UI) dan alur penggunaan fitur kami secara langsung.
+          </p>
+          
+          <ul className="space-y-4 mb-8">
+            <li className="flex items-start gap-3">
+              <div className="mt-1 bg-blue-100 p-1 rounded-full text-blue-600">
+                <CheckCircle size={16}/>
+              </div>
+              <span className="text-slate-700 font-medium">
+                Tampilan simpel, navigasi mudah & cepat.
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <div className="mt-1 bg-blue-100 p-1 rounded-full text-blue-600">
+                <CheckCircle size={16}/>
+              </div>
+              <span className="text-slate-700 font-medium">
+                Preview fitur Menfess & Game Edukasi.
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Video Placeholder */}
+        <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 group cursor-pointer shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 border-4 border-slate-100">
+          <ImageWithFallback 
+            src={HERO_IMAGE_URL} 
+            alt="Thumbnail Video Demo Aplikasi" 
+            className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity" 
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            {/* Tombol Play dengan efek Pulse */}
+            <div className="relative">
+               <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-75"></div>
+               <div className="relative w-16 h-16 md:w-20 md:h-20 bg-white/90 backdrop-blur-md border border-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                 <Play className="w-6 h-6 md:w-8 md:h-8 text-blue-600 ml-1" fill="currentColor" />
+               </div>
+            </div>
+          </div>
+          
+          {/* Label Durasi di Pojok */}
+          <div className="absolute bottom-4 right-4 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-md backdrop-blur-sm">
+            01:45
+          </div>
+        </div>
+
+      </div>
+      
+      {/* Decor inside card */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-300 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 -z-0"></div>
+    </div>
+  </div>
+</section>
+
+      {/* ================= SECTION 6: SLOGAN & FOOTER CONNECTOR (FINAL) ================= */}
+{/* Background dibuat gradient dari Blue-700 (atas) ke Slate-950 (bawah) biar nyambung mulus ke footer */}
+<section className="relative py-20 md:py-24 lg:py-32 bg-gradient-to-b from-blue-700 to-slate-950 z-40 rounded-[3rem]">
+
+  <div className="max-w-4xl mx-auto px-6 relative z-30 text-center">
+    <SimpleFadeIn>
+      
+      {/* Dekorasi Garis Kecil */}
+      <div className="flex justify-center items-center gap-2 mb-6 opacity-60">
+        <span className="h-px w-8 bg-blue-200"></span>
+        <span className="text-blue-200 text-xs font-bold tracking-widest uppercase">Gugah</span>
+        <span className="h-px w-8 bg-blue-200"></span>
+      </div>
+
+      {/* SLOGAN UTAMA (Ganti Quote Galau) */}
+      <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-8 tracking-tight leading-tight drop-shadow-lg">
+        "Diam Bukan Pilihan. <br/>
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-300">
+          Saatnya Kita Bicara.
+        </span>"
+      </h2>
+
+      <p className="text-lg md:text-xl text-blue-100/90 font-medium max-w-2xl mx-auto leading-relaxed">
+        Kekerasan seksual bisa dihentikan jika kita berhenti memalingkan wajah. 
+        Jadilah bagian dari perubahan, mulai dari dirimu sendiri.
+      </p>
+
+    </SimpleFadeIn>
+  </div>
+
+  {/* WAVE BAWAH: Warnanya fill-slate-950 biar nyatu sama Footer */}
+  {/* Kita posisikan absolute bottom biar rapi */}
+  <div className="absolute bottom-0 left-0 w-full z-20 leading-[0]">
+    <SectionBottomWave color="fill-slate-950" />
+  </div>
+
+</section>
+
+{/* Footer Wrapper */}
+<div className="bg-slate-950 relative z-50">
+  <Footer />
+</div>
       </main>
     </div>
   );
