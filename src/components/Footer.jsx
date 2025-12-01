@@ -25,7 +25,7 @@ export default function Footer() {
           </div>
 
           <div className="relative z-10">
-            <button className="bg-white text-blue-800 hover:bg-blue-50 transition-all duration-300 px-8 py-4 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 group">
+            <button className="bg-blue-800 text-white hover:bg-blue-500 transition-all duration-300 px-8 py-4 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 group">
               Mulai Sekarang
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </button>
