@@ -120,13 +120,13 @@ export default function Dashboard() {
                 setRealUser(finalUser);
 
                 // 2. LOGIC XP (SINKRONISASI GAME)
-                const localGameXP = localStorage.getItem("userXP");
+                const localGameXP = localStorage.getItem("userXp");
                 
                 if (localGameXP) {
                     setCurrentXP(parseInt(localGameXP));
                 } else if (finalUser?.xp) {
                     setCurrentXP(finalUser.xp);
-                    localStorage.setItem("userXP", finalUser.xp.toString());
+                    localStorage.setItem("userXp", finalUser.xp.toString());
                 } else {
                     setCurrentXP(0);
                 }

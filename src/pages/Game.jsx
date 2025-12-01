@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import axios from "axios"; 
 import { 
     ArrowRight, 
     CheckCircle, 
@@ -6,48 +7,61 @@ import {
     Zap, 
     Star, 
     Play,
-    Trophy
+    Trophy,
+    Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar"; 
 import useDashboardData from "../hooks/useDashboardData";
 
-// --- DATA DUMMY (DIPERBANYAK BIAR ACAKNYA BERASA) ---
-const QUESTION_POOL = [
-  { id: 1, text: "Pasangan minta password HP kamu buat 'cek kesetiaan'.", type: "red", feedback: "Privasi itu HAK! Percaya gak butuh password.", subtext: "Digital Privacy" },
-  { id: 2, text: "Dia support hobimu walau dia gak terlalu paham.", type: "green", feedback: "Ini tanda pasangan yang dewasa & suportif.", subtext: "Support System" },
-  { id: 3, text: "Tiba-tiba ngambek & diem berhari-hari (Silent Treatment).", type: "red", feedback: "Manipulasi emosi biar kamu ngerasa bersalah.", subtext: "Emotional Abuse" },
-  { id: 4, text: "Selalu diskusi dulu sebelum bikin keputusan besar berdua.", type: "green", feedback: "Komunikasi sehat adalah kunci!", subtext: "Healthy Communication" },
-  { id: 5, text: "Nglarang kamu main sama temen-temenmu.", type: "red", feedback: "Isolasi sosial itu tanda bahaya besar!", subtext: "Possessive" },
-  { id: 6, text: "Dia ngancem putus tiap kali kalian berantem kecil.", type: "red", feedback: "Ini bentuk manipulasi biar kamu nurut.", subtext: "Threats" },
-  { id: 7, text: "Mau mengakui kesalahan dan minta maaf duluan.", type: "green", feedback: "Tanda kedewasaan emosional.", subtext: "Accountability" },
-  { id: 8, text: "Sering ngeremehin pencapaian/pekerjaan kamu.", type: "red", feedback: "Pasangan harusnya bangga, bukan iri/ngeremehin.", subtext: "Verbal Abuse" },
-  { id: 9, text: "Menghormati kata 'TIDAK' dari kamu tanpa maksa.", type: "green", feedback: "Consent adalah pondasi hubungan sehat.", subtext: "Consent" },
-  { id: 10, text: "Cemburu buta sama sepupu atau saudara kandungmu.", type: "red", feedback: "Cemburu irasional itu red flag parah.", subtext: "Jealousy" },
-];
+// Ganti URL ini sesuai backend kamu
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-// ACAK DAN AMBIL 3 SOAL
-const fetchQuestions = () => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            // Algoritma Fisher-Yates Shuffle sederhana
-            const shuffled = [...QUESTION_POOL].sort(() => 0.5 - Math.random());
-            resolve(shuffled.slice(0, 3)); 
-        }, 500); 
-    });
+// --- FUNGSI FETCH DATA ---
+const fetchQuestions = async () => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/question/options`, {
+            params: { count: 3 }
+        });
+
+        // Akses ke payload.datas
+        const apiData = response.data?.payload?.datas || [];
+
+        if (apiData.length === 0) {
+            console.warn("Data soal kosong!");
+        }
+
+        const formattedQuestions = apiData.map((item, index) => {
+            const opts = item.options || [];
+            const correctOption = opts.find(opt => opt.type === item.correctAnswer);
+            const explanation = correctOption ? correctOption.explanation : "Jawaban kamu benar/salah.";
+
+            return {
+                id: item.id || index,
+                text: item.question,
+                type: item.correctAnswer, 
+                feedback: explanation
+                // Subtext/Kategori SUDAHDIHAPUS
+            };
+        });
+
+        return formattedQuestions;
+
+    } catch (error) {
+        console.error("Gagal mengambil soal dari API:", error);
+        return []; 
+    }
 };
 
 const Game = () => {
-  const { handleGoToProfile } = useDashboardData();
   const navigate = useNavigate();
 
   // --- STATE ---
-  const [gamePhase, setGamePhase] = useState('intro'); // intro, playing, finished
+  const [gamePhase, setGamePhase] = useState('intro'); 
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   
-  // XP GLOBAL (LOCAL STORAGE)
+  // XP STATE
   const [currentXP, setCurrentXP] = useState(0);
 
   // DRAG STATE
@@ -64,14 +78,17 @@ const Game = () => {
 
   // Load awal
   useEffect(() => {
-    const savedXP = localStorage.getItem('userXP');
-    if (savedXP) setCurrentXP(parseInt(savedXP));
+    const savedXP = localStorage.getItem('userXp');
+    if (savedXP) {
+        setCurrentXP(parseInt(savedXP));
+    } else {
+        setCurrentXP(0);
+    }
     
-    // Load soal pertama kali
+    // Load soal
     loadNewGameData();
   }, []);
 
-  // Fungsi khusus Load Data
   const loadNewGameData = async () => {
     setIsLoading(true);
     const data = await fetchQuestions();
@@ -79,36 +96,36 @@ const Game = () => {
     setIsLoading(false);
   };
 
-  // Logic Start Game (Masuk Phase Playing)
   const startGame = () => {
-    setGamePhase('playing');
-    setSessionXP(0);
-    setCorrectCount(0);
-    setCurrentIndex(0);
+    // Cek apakah data sudah ada sebelum mulai
+    if (questions.length > 0) {
+        setGamePhase('playing');
+        setSessionXP(0);
+        setCorrectCount(0);
+        setCurrentIndex(0);
+    } else {
+        // Retry load jika kosong
+        loadNewGameData();
+    }
   };
 
-  // Logic Restart / Main Lagi
   const handleRestart = async () => {
-    // 1. Balikin ke fase Intro atau Loading dulu
     setGamePhase('intro'); 
-    setFeedback(null); // Reset feedback nyangkut
-    setDragPos({ x: 0, y: 0 }); // Reset posisi kartu
+    setFeedback(null); 
+    setDragPos({ x: 0, y: 0 }); 
 
-    // 2. Ambil soal baru
     await loadNewGameData(); 
 
-    // 3. Reset Score Sesi (XP Global jangan direset)
     setSessionXP(0);
     setCorrectCount(0);
     setCurrentIndex(0);
   };
 
-  // Update XP Global saat Finish
   useEffect(() => {
     if (gamePhase === 'finished') {
         const newTotalXP = currentXP + sessionXP;
         setCurrentXP(newTotalXP);
-        localStorage.setItem('userXP', newTotalXP.toString());
+        localStorage.setItem('userXp', newTotalXP.toString());
     }
   }, [gamePhase]);
 
@@ -138,6 +155,7 @@ const Game = () => {
   const handleSwipe = (direction) => {
     const currentCard = questions[currentIndex];
     const isRedFlag = currentCard.type === 'red';
+    
     let isCorrect = (direction === 'left' && isRedFlag) || (direction === 'right' && !isRedFlag);
 
     if (isCorrect) {
@@ -178,7 +196,7 @@ const Game = () => {
   }, [isDragging]);
 
   const rotation = dragPos.x * 0.05;
-  const progressPercent = ((currentIndex) / questions.length) * 100;
+  const progressPercent = questions.length > 0 ? ((currentIndex) / questions.length) * 100 : 0;
 
   return (
     <div className="min-h-screen font-sans bg-slate-900 flex flex-col text-white overflow-hidden">
@@ -201,7 +219,6 @@ const Game = () => {
 
       <main className="flex-1 flex flex-col items-center justify-center relative px-4 w-full max-w-md mx-auto">
         
-        {/* Background Glow */}
         <div className="absolute top-1/4 left-0 w-64 h-64 bg-purple-600/30 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute bottom-1/4 right-0 w-64 h-64 bg-blue-600/30 rounded-full blur-[100px] pointer-events-none" />
 
@@ -215,9 +232,24 @@ const Game = () => {
                 <p className="text-slate-400 mb-8 max-w-xs mx-auto text-sm leading-relaxed">
                    3 Soal Cepat.<br/>Tebak Red Flag atau Green Flag.
                 </p>
-                <button onClick={startGame} className="w-full py-4 bg-white text-slate-900 font-black text-lg rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center justify-center gap-2">
-                    <Play fill="black" size={20} /> GAS MULAI!
-                </button>
+                
+                {questions.length > 0 ? (
+                    <button onClick={startGame} className="w-full py-4 bg-white text-slate-900 font-black text-lg rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center justify-center gap-2">
+                        <Play fill="black" size={20} /> GAS MULAI!
+                    </button>
+                ) : (
+                    <button disabled className="w-full py-4 bg-slate-700 text-slate-400 font-bold text-lg rounded-2xl cursor-not-allowed">
+                        Soal Belum Siap...
+                    </button>
+                )}
+            </div>
+        )}
+        
+        {/* --- LOADING --- */}
+        {isLoading && (
+            <div className="flex flex-col items-center justify-center z-10">
+                <Loader2 className="w-10 h-10 animate-spin text-blue-500 mb-2" />
+                <p className="text-slate-400 text-sm">Mengambil soal...</p>
             </div>
         )}
 
@@ -225,7 +257,6 @@ const Game = () => {
         {!isLoading && gamePhase === 'playing' && (
             <div className="w-full h-full flex flex-col justify-center">
                 
-                {/* Progress */}
                 <div className="mb-8">
                     <div className="flex justify-between text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">
                         <span>Progress</span>
@@ -236,7 +267,6 @@ const Game = () => {
                     </div>
                 </div>
 
-                {/* CARD AREA */}
                 <div className="relative w-full h-[420px] mb-8">
                     {/* Feedback Overlay */}
                     {feedback && (
@@ -264,17 +294,12 @@ const Game = () => {
                             onMouseDown={handleStart}
                             onTouchStart={handleStart}
                         >
-                            <div className="bg-slate-700/50 px-4 py-1.5 rounded-full border border-white/10 mb-6">
-                                <span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest">
-                                    {questions[currentIndex].subtext}
-                                </span>
-                            </div>
+                            {/* BAGIAN BADGE KATEGORI SUDAH DIHAPUS DI SINI */}
 
-                            <h3 className="text-2xl font-bold leading-relaxed mb-auto mt-4 text-white drop-shadow-sm select-none">
+                            <h3 className="text-2xl font-bold leading-relaxed mb-auto mt-12 text-white drop-shadow-sm select-none">
                                 "{questions[currentIndex].text}"
                             </h3>
 
-                            {/* --- BUTTONS INSIDE CARD --- */}
                             <div className="w-full flex justify-between items-center mt-8 border-t border-white/5 pt-6">
                                 <button 
                                     onMouseDown={(e) => e.stopPropagation()} 
@@ -293,7 +318,6 @@ const Game = () => {
                                 </button>
                             </div>
 
-                            {/* Overlay Indikator */}
                             <div className="absolute top-6 right-6 border-4 border-red-500 text-red-500 font-black text-xl px-2 rounded rotate-12 opacity-0 pointer-events-none" style={{ opacity: Math.abs(Math.min(0, dragPos.x)) / 100 }}>RED FLAG</div>
                             <div className="absolute top-6 left-6 border-4 border-green-500 text-green-500 font-black text-xl px-2 rounded -rotate-12 opacity-0 pointer-events-none" style={{ opacity: Math.max(0, dragPos.x) / 100 }}>GREEN FLAG</div>
                         </div>
@@ -314,7 +338,6 @@ const Game = () => {
                     <p className="text-2xl font-bold text-yellow-400">{currentXP} XP</p>
                 </div>
                 
-                {/* BUTTON RESET BENERAN */}
                 <button onClick={handleRestart} className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl mb-3 hover:bg-blue-500 transition-colors">
                     Main Lagi
                 </button>
