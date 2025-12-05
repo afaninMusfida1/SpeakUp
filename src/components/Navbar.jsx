@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Menu, X, ArrowLeft, LogIn, ChevronDown, LogOut, Lock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Menu, X, ArrowLeft, LogIn, ChevronDown, LogOut, Lock, Bot } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
 
@@ -39,6 +39,7 @@ const Navbar = ({
   rightElement = null, 
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [mobileSubmenu, setMobileSubmenu] = useState(null);
   const [activeRole, setActiveRole] = useState("guest");
@@ -103,6 +104,7 @@ const Navbar = ({
   // --- 3. KONFIGURASI MENU DINAMIS ---
   const navLinks = useMemo(() => {
     
+    // Dropdown Artikel
     const articleDropdown = articleCategories.length > 0 
       ? articleCategories.map(cat => ({ 
           name: cat, 
@@ -110,16 +112,17 @@ const Navbar = ({
         }))
       : [{ name: "Semua Artikel", path: "/articles" }];
 
-    const servicesDropdown = [
-      { name: "Chat Satgas", path: "/chat", restricted: true },
-      { name: "Menfess", path: "/menfess", restricted: true },
-      { name: "Peta Darurat", path: "/maps", restricted: true },
+    // Dropdown Layanan
+    const servicesDropdown = [      
+      { name: "Chat Satgas", path: "/chat", restricted: true }, 
+      { name: "Pusat Informasi", path: "#layanan", restricted: false }, 
+      { name: "Peta Darurat", path: "/maps", restricted: false }, 
     ];
 
     const config = {
-      // MENU GUEST
+      // MENU GUEST (BELUM LOGIN) -> TIDAK ADA BERANDA
       guest: [
-        { name: "Beranda", path: "/" },
+        // { name: "Beranda", path: "/" }, <--- INI DIHAPUS
         { name: "Game", path: "/game", restricted: true },
         { 
           name: "Artikel", 
@@ -131,11 +134,12 @@ const Navbar = ({
           path: "#layanan",
           dropdown: servicesDropdown 
         },
-        { name: "Komunitas", path: "/community", restricted: true },
+        { name: "AI Assistant", path: "#chatbot", restricted: false, icon: Bot }, 
       ],
 
-      // MENU USER
+      // MENU USER (SUDAH LOGIN) -> ADA BERANDA
       user: [
+        { name: "Beranda", path: "/" }, // <--- MUNCUL DISINI
         { name: "Dashboard", path: "/dashboard" },
         { name: "Game", path: "/game" },
         { 
@@ -146,13 +150,14 @@ const Navbar = ({
         { 
           name: "Layanan", 
           path: "#layanan",
-          dropdown: servicesDropdown.map(s => ({...s, restricted: false}))
+          dropdown: servicesDropdown 
         },
-        { name: "Komunitas", path: "/community" },
+        { name: "AI Assistant", path: "#chatbot" },
       ],
 
-      // MENU SATGAS
+      // MENU SATGAS (SUDAH LOGIN) -> ADA BERANDA
       satgas: [
+        { name: "Beranda", path: "/" }, // <--- MUNCUL DISINI
         { name: "Dashboard", path: "/dashboard" },
         { name: "Inbox Chat", path: "/chat" }, 
         { name: "Laporan Menfess", path: "/menfess" }, 
@@ -190,7 +195,7 @@ const Navbar = ({
     if (isRestricted && activeRole === 'guest') {
       Swal.fire({
         title: 'Akses Terbatas',
-        text: 'Anda harus login terlebih dahulu untuk mengakses fitur ini.', // UPDATE TEKS ALERT
+        text: 'Anda harus login terlebih dahulu untuk mengakses fitur ini.',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Login Sekarang',
@@ -204,12 +209,21 @@ const Navbar = ({
       return; 
     }
 
+    // Handle Anchor Link (#)
     if (path.startsWith("#")) {
-      if (window.location.pathname === '/' || window.location.pathname === '/dashboard') {
-         const element = document.querySelector(path);
-         if (element) element.scrollIntoView({ behavior: "smooth" });
+      // Jika user belum di dashboard dan klik link hash (kecuali dari landing page ke landing section)
+      // Kita arahkan ke dashboard dulu baru scroll
+      if (location.pathname !== '/dashboard' && location.pathname !== '/') {
+         navigate('/dashboard' + path); // Arahkan ke dashboard dengan hash
       } else {
-         navigate("/" + path);
+         // Jika sudah di page yang benar, scroll
+         const element = document.querySelector(path);
+         if (element) {
+            element.scrollIntoView({ behavior: "smooth" });
+         } else {
+            // Fallback jika elemen tidak ditemukan di halaman saat ini (misal di Home tapi klik #chatbot yang ada di Dashboard)
+            navigate('/dashboard' + path);
+         }
       }
     } else {
       navigate(path);
@@ -266,6 +280,7 @@ const Navbar = ({
                               onClick={() => !link.dropdown && handleNavigation(link.path, link.restricted)} 
                               className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-1"
                             >
+                              {link.icon && <link.icon size={16} className="text-blue-500"/>}
                               {link.name}
                               {link.restricted && activeRole === 'guest' && <Lock size={12} className="text-gray-400" />}
                               {link.dropdown && <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300"/>}
@@ -322,6 +337,7 @@ const Navbar = ({
                       className="w-full text-left px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 rounded-xl active:bg-blue-50 active:text-blue-600 transition-colors flex justify-between items-center"
                     >
                         <div className="flex items-center gap-2">
+                          {link.icon && <link.icon size={18} className="text-blue-500"/>}
                           {link.name}
                           {link.restricted && activeRole === 'guest' && <Lock size={14} className="text-gray-400" />}
                         </div>

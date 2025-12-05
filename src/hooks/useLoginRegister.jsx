@@ -239,7 +239,7 @@ const useLoginRegister = (onAuthSuccess) => {
             // --- PENTING: BACA DARI REF (locationRef.current), BUKAN STATE ---
             // Ini menjamin kita mengambil nilai TERBARU, bukan nilai saat tombol dirender.
             const currentLoc = locationRef.current;
-            console.log("📍 Google Login Location:", currentLoc); // Debugging
+            // console.log("📍 Google Login Location:", currentLoc); // Debugging
 
             let payload = { 
                 email: googleEmail,
@@ -279,7 +279,7 @@ const useLoginRegister = (onAuthSuccess) => {
             if (googleButtonRef.current) {
                 window.google.accounts.id.renderButton(
                     googleButtonRef.current,
-                    { theme: "outline", size: "large", type: "standard", shape: "rectangular", text: isRegister ? "signup_with" : "signin_with", width: "100%" }
+                    { theme: "outline", size: "large", type: "standard", shape: "rectangular", text: isRegister ? "continue_with" : "continue_with", width: "100%" }
                 );
             }
             googleInitialized.current = true;

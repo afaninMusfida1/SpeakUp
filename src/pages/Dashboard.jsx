@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { 
     MessageSquare, 
-    HeartHandshake, 
     Shield, 
     MapPinCheck, 
     User, 
     Loader2, 
     Gamepad2, 
-    Users, 
     Star, 
     ArrowRight,
     Inbox,
     FileText,
-    Activity
+    Activity,
+    Send,
+    Bot,
+    Sparkles,
+    Calendar,
+    Download,
+    ExternalLink
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import { useNavigate } from "react-router-dom"; 
@@ -51,6 +55,7 @@ const Button = ({ onClick, children, className = "", variant }) => {
     if (variant === "ghost") base += " hover:bg-gray-100 hover:text-blue-600 text-gray-600";
     else if (variant === "outline") base += " border border-gray-300 bg-white text-gray-700 hover:bg-gray-50";
     else if (variant === "white") base += " bg-white text-blue-700 hover:bg-blue-50 shadow-md"; 
+    else if (variant === "black") base += " bg-slate-900 text-white hover:bg-slate-800 shadow-lg"; // Variant baru untuk AI
     else base += " bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200 shadow-sm"; 
     
     return <button type="button" onClick={onClick} className={`${base} ${className}`}>{children}</button>;
@@ -94,12 +99,24 @@ export default function Dashboard() {
         loadingArticles,   
         getCategoryColor,
         handleStartChat,
-        handleGoToMenfess,
+        // handleGoToMenfess, // Tidak dipakai lagi di UI utama
         handleGoToMaps,
         handleGoToAllArticles,
         handleArticleDetail,
         handleGoToProfile,
     } = useDashboardData();
+
+    // --- FUNCTION HANDLE BARU ---
+    const handleOpenPDF = () => {
+        window.open("https://merdekakekerasanseksual.kemdikbud.go.id/peraturan", "_blank");
+    };
+
+    const handleOpenChatBot = () => {
+        // Logika untuk membuka chatbot n8n
+        // Bisa redirect ke halaman khusus atau trigger modal widget
+        alert("Membuka AI Assistant (n8n Integration)...");
+        // navigate('/ai-chat'); // Contoh jika ada rute khusus
+    };
 
     // --- EFFECT: FETCH DATA USER & XP ---
     useEffect(() => {
@@ -119,7 +136,7 @@ export default function Dashboard() {
                 }
                 setRealUser(finalUser);
 
-                // 2. LOGIC XP (SINKRONISASI GAME)
+                // 2. LOGIC XP
                 const localGameXP = localStorage.getItem("userXp");
                 
                 if (localGameXP) {
@@ -176,7 +193,6 @@ export default function Dashboard() {
                 showMenu={true}
                 rightElement={
                     <div className="flex items-center gap-3">
-                        {/* XP BADGE (Tanpa Level) */}
                         {!isSatgas && (
                             <div className="hidden sm:flex items-center gap-2 bg-white border border-yellow-200 px-3 py-1.5 rounded-full shadow-sm">
                                 <div className="bg-yellow-100 p-1 rounded-full">
@@ -224,7 +240,7 @@ export default function Dashboard() {
                 </section>
 
                 {isSatgas ? (
-                    /* === PANEL SATGAS === */
+                    /* === PANEL SATGAS (TIDAK BERUBAH) === */
                     <section id="satgas-panel">
                         <SectionHeader 
                             icon={Activity}
@@ -255,23 +271,6 @@ export default function Dashboard() {
                                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 mt-auto">
                                     <div className="text-blue-600 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
                                         Buka Inbox <ArrowRight size={16}/>
-                                    </div>
-                                </div>
-                            </Card>
-
-                            <Card onClick={handleGoToMenfess} className="relative overflow-hidden group h-full flex flex-col justify-between p-0">
-                                <div className="p-6">
-                                    <div className="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center mb-4">
-                                        <FileText className="w-5 h-5" />
-                                    </div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-1">Laporan Masuk</h3>
-                                    <p className="text-sm text-gray-500">
-                                        Validasi cerita masuk dan tinjau laporan kekerasan terbaru untuk ditindaklanjuti.
-                                    </p>
-                                </div>
-                                <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 mt-auto">
-                                    <div className="text-purple-600 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
-                                        Tinjau Laporan <ArrowRight size={16}/>
                                     </div>
                                 </div>
                             </Card>
@@ -314,7 +313,7 @@ export default function Dashboard() {
                         </div>
                     </section>
                 ) : (
-                    /* === PANEL USER === */
+                    /* === PANEL USER (UPDATED) === */
                     <>
                         {/* ARTIKEL */}
                         <section id="artikel">
@@ -395,16 +394,16 @@ export default function Dashboard() {
                             </div>
                         </section>
 
-                        {/* LAYANAN USER */}
+                        {/* LAYANAN USER (UPDATED) */}
                         <section id="layanan">
                             <SectionHeader 
                                 icon={Shield}
-                                title="Layanan Bantuan" 
-                                subtitle="Kami siap membantu."
+                                title="Layanan & Informasi" 
+                                subtitle="Akses bantuan dan dokumen penting."
                             />
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* 1. CHAT SATGAS - Deskripsi Diperjelas */}
+                                {/* 1. CHAT SATGAS */}
                                 <Card onClick={handleStartChat} className="p-6 hover:border-blue-400 group h-full flex flex-col justify-between">
                                     <div>
                                         <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
@@ -420,23 +419,55 @@ export default function Dashboard() {
                                     </span>
                                 </Card>
 
-                                {/* 2. MENFESS - Deskripsi Diperjelas */}
-                                <Card onClick={handleGoToMenfess} className="p-6 hover:border-purple-400 group h-full flex flex-col justify-between">
-                                    <div>
-                                        <div className="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center mb-4">
-                                            <HeartHandshake className="w-5 h-5" />
+                                {/* 2. PUSAT INFORMASI (REPLACING MENFESS) */}
+                                <Card className="p-6 hover:border-indigo-400 group h-full flex flex-col">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                            <FileText className="w-5 h-5" />
                                         </div>
-                                        <h3 className="text-lg font-bold text-gray-900 mb-1">Menfess</h3>
-                                        <p className="text-sm text-gray-500 mb-4">
-                                            Ingin bercerita tapi malu? Tulis pesan anonim di sini, identitasmu tetap rahasia.
-                                        </p>
+                                        <h3 className="text-lg font-bold text-gray-900">Pusat Informasi</h3>
                                     </div>
-                                    <span className="text-purple-600 text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
-                                        Kirim Menfess <ArrowRight size={16}/>
-                                    </span>
+                                    
+                                    <div className="space-y-3 flex-1">
+                                        {/* Item 1: PDF */}
+                                        <div onClick={handleOpenPDF} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 cursor-pointer transition-colors border border-gray-100">
+                                            <div className="bg-white p-2 rounded-lg shadow-sm text-red-500">
+                                                <FileText size={16} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-sm font-bold text-gray-800">Permendikbud No. 30</p>
+                                                <p className="text-xs text-gray-500">Unduh Dokumen PDF</p>
+                                            </div>
+                                            <Download size={14} className="text-gray-400" />
+                                        </div>
+
+                                        {/* Item 2: Event */}
+                                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 cursor-pointer transition-colors border border-gray-100">
+                                            <div className="bg-white p-2 rounded-lg shadow-sm text-orange-500">
+                                                <Calendar size={16} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-sm font-bold text-gray-800">Webinar & Event</p>
+                                                <p className="text-xs text-gray-500">Cek jadwal terdekat</p>
+                                            </div>
+                                            <ArrowRight size={14} className="text-gray-400" />
+                                        </div>
+
+                                        {/* Item 3: Komunitas Mitra */}
+                                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 cursor-pointer transition-colors border border-gray-100">
+                                            <div className="bg-white p-2 rounded-lg shadow-sm text-green-500">
+                                                <ExternalLink size={16} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-sm font-bold text-gray-800">Jejaring Eksternal</p>
+                                                <p className="text-xs text-gray-500">Komunitas & Organisasi</p>
+                                            </div>
+                                            <ArrowRight size={14} className="text-gray-400" />
+                                        </div>
+                                    </div>
                                 </Card>
 
-                                {/* 3. PETA - Deskripsi Diperjelas */}
+                                {/* 3. PETA */}
                                 <div className="md:col-span-2">
                                     <Card className="p-0 overflow-hidden border border-gray-200 h-[250px] relative">
                                         <div className="p-4 border-b border-gray-100 bg-white z-10 relative flex justify-between items-center">
@@ -446,7 +477,7 @@ export default function Dashboard() {
                                                     Peta & Zona Aman
                                                 </h3>
                                                 <p className="text-sm text-gray-500 mt-1">
-                                                    Pantau lokasi rawan dan temukan posko bantuan terdekat secara real-time.
+                                                    Pantau lokasi rawan dan temukan posko bantuan terdekat.
                                                 </p>
                                             </div>
                                             <Button onClick={handleGoToMaps} variant="outline" className="hidden sm:flex text-xs h-8">
@@ -463,54 +494,54 @@ export default function Dashboard() {
                                             ) : (
                                                 <div className="w-full h-full bg-gray-50 flex items-center justify-center text-xs text-gray-400">Peta dimuat...</div>
                                             )}
-                                        </div>
-                                        <div className="absolute bottom-4 right-4 z-[400] sm:hidden">
-                                            <Button onClick={handleGoToMaps} className="bg-white text-gray-900 hover:bg-gray-50 border border-gray-200 shadow-lg text-xs h-9">
-                                                Buka Peta
-                                            </Button>
+                                            <div className="absolute bottom-4 right-4 z-[400] sm:hidden">
+                                                <Button onClick={handleGoToMaps} className="bg-white text-gray-900 hover:bg-gray-50 border border-gray-200 shadow-lg text-xs h-9">
+                                                    Buka Peta
+                                                </Button>
+                                            </div>
                                         </div>
                                     </Card>
                                 </div>
                             </div>
                         </section>
 
-                        {/* KOMUNITAS */}
-                        <section id="komunitas">
+                        {/* AI ASSISTANT (REPLACING KOMUNITAS) */}
+                        {/* AI ASSISTANT (Wording Fixed) */}
+                        <section id="chatbot">
                             <SectionHeader 
-                                icon={Users}
-                                title="Komunitas" 
-                                subtitle="Diskusi & Dukungan."
+                                icon={Bot}
+                                title="Gugah AI Assistant" 
+                                subtitle="Asisten virtual siap sedia 24 jam."
                             />
                             
-                            <div className="bg-white rounded-2xl border border-gray-200 p-1">
-                                <div className="flex flex-col md:flex-row items-center">
-                                    <div className="p-6 md:w-2/3">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-2">Topik: "Etika Digital"</h3>
-                                        <p className="text-gray-600 text-sm mb-4">
-                                            Yuk, diskusi tentang menjaga sopan santun di dunia maya.
-                                        </p>
-                                        <div className="flex gap-3">
-                                            <Button className="bg-teal-600 hover:bg-teal-700 text-white">
-                                                Gabung
-                                            </Button>
-                                            <Button variant="outline">
-                                                Lainnya
-                                            </Button>
+                            <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-3xl p-1 shadow-lg overflow-hidden">
+                                <div className="bg-white/5 backdrop-blur-sm p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 rounded-[20px]">
+                                    
+                                    <div className="flex items-center gap-5">
+                                        <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                                            {/* Icon Send/Telegram */}
+                                            <Send className="w-8 h-8 text-white ml-1" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl md:text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                                                Butuh Teman Cerita?
+                                                <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
+                                            </h3>
+                                            <p className="text-slate-300 text-sm md:text-base max-w-md leading-relaxed">
+                                                Jangan bingung sendirian. Tanyakan apa saja seputar edukasi seksual. Langsung dibalas oleh AI, kapan pun kamu butuh.
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="w-full md:w-1/3 bg-teal-50 h-full min-h-[140px] rounded-xl flex flex-col items-center justify-center text-teal-300 p-4">
-                                        <div className="flex -space-x-2 mb-2">
-                                            {[1,2,3].map(i => (
-                                                <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-300 overflow-hidden">
-                                                    <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" className="w-full h-full object-cover"/>
-                                                </div>
-                                            ))}
-                                            <div className="w-8 h-8 rounded-full border-2 border-white bg-teal-100 flex items-center justify-center text-[10px] font-bold text-teal-700">
-                                                +99
-                                            </div>
-                                        </div>
-                                        <span className="text-teal-700 text-xs font-bold">450+ Bergabung</span>
-                                    </div>
+
+                                    <Button 
+                                        onClick={handleOpenChatBot} 
+                                        variant="white"
+                                        className="w-full md:w-auto px-8 py-6 text-base shadow-xl border-0 text-indigo-700 hover:bg-indigo-50 font-bold"
+                                    >
+                                        <Send className="w-4 h-4 mr-2" />
+                                        Chat di Telegram
+                                    </Button>
+
                                 </div>
                             </div>
                         </section>

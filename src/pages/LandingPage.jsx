@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react"; 
-import { AlertTriangle, Users, Home, Heart, MessageCircle, MapPin, Shield, Lock, ArrowRight, ArrowUp, Play, Gamepad2, Activity, CheckCircle, ArrowDown, BookOpen } from "lucide-react";
+import { AlertTriangle, Users, Home, Heart, MessageCircle, MapPin, Shield, Lock, ArrowRight, ArrowUp, Play, Gamepad2, Activity, CheckCircle, ArrowDown, BookOpen, Handshake, FileCheck, Award, CheckCheck } from "lucide-react";
 import Swal from "sweetalert2"; 
 import { HERO_IMAGE_URL } from '../lib/landingPageUtils'; 
 import Navbar from "../components/Navbar";
@@ -512,6 +512,71 @@ const LandingPage = () => {
     </div>
   </div>
 </section>
+
+{/* ================= SECTION 3.5: PARTNERSHIP (CINEMATIC BLEND - REVISI) ================= */}
+      <section className="relative w-full h-[600px] md:h-[500px] overflow-hidden bg-white z-30 group">
+         
+         {/* 1. LAYER FOTO BACKGROUND */}
+         <div className="absolute inset-0 w-full h-full">
+            <ImageWithFallback 
+                src={'https://res.cloudinary.com/dj2gwflqs/image/upload/v1764929630/WhatsApp_Image_2025-12-04_at_4.04.28_PM2_xxy9im.jpg'} 
+                alt="Dokumentasi Satgas PPK Polines" 
+                // REVISI 1: Menggeser fokus foto lebih ke kiri (25% dari kiri)
+                className="w-full h-full object-cover object-center md:object-[-25%_center]" 
+            />
+         </div>
+
+         {/* 2. GRADIENT OVERLAY (REVISI) */}
+         {/* REVISI 2: Mengurangi ketebalan gradient (via-white/50) agar foto kanan lebih terlihat */}
+         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent md:bg-gradient-to-l md:from-white md:via-white/50 md:to-transparent"></div>
+
+         {/* 3. KONTEN (Teks) */}
+         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-end md:justify-center items-center md:items-end pb-12 md:pb-0">
+            
+            <div className="max-w-lg text-center md:text-right">
+               
+               <SimpleFadeIn direction="up">
+                  {/* Badge Minimalis (Dipindah ke atas headline biar rapi) */}
+                  <div className="inline-flex items-center justify-center md:justify-end gap-2 mb-6 w-full">
+                     <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
+                     </span>
+                     <span className="text-sm font-bold tracking-widest text-blue-700 uppercase">KOLABORASI RESMI</span>
+                  </div>
+
+                  {/* Headline Besar & Bersih */}
+                  <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 leading-tight">
+                     Didukung Penuh oleh <br/>
+                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                        Satgas PPK Polines
+                     </span>
+                  </h2>
+
+                  {/* Deskripsi */}
+                  <p className="text-slate-600 text-lg leading-relaxed mb-8 font-medium">
+                     Seluruh materi edukasi dan alur pelaporan di aplikasi GUGAH telah ditinjau dan disetujui oleh Satgas PPK Polines. Kami menjamin standar keamanan yang sesuai prosedur.
+                  </p>
+
+                  {/* Signature / Footer (REVISI TOTAL) */}
+                  {/* REVISI 3: Mengubah layout Status/Year menjadi satu baris horizontal yang bersih */}
+                  <div className="flex items-center justify-center md:justify-end gap-3 border-t border-slate-200/60 pt-6 text-slate-500 font-medium text-sm mb-20">
+                     
+                     <div className="flex items-center gap-2 text-blue-700 font-bold">
+                        <CheckCheck size={18} />
+                        <span>Terverifikasi</span>
+                     </div>
+                     
+                     <span>•</span> {/* Pemisah Titik */}
+                     
+                     <span>Sejak Tahun 2025</span>
+
+                  </div>
+               </SimpleFadeIn>
+
+            </div>
+         </div>
+      </section>
 
       {/* ================= SECTION 4: LAYANAN (DARK MODE) ================= */}
 {/* 1. BACKGROUND: Ganti bg-slate-50 jadi bg-slate-900 (Gelap) */}
