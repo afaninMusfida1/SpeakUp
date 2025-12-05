@@ -114,8 +114,7 @@ export default function Dashboard() {
     const handleOpenChatBot = () => {
         // Logika untuk membuka chatbot n8n
         // Bisa redirect ke halaman khusus atau trigger modal widget
-        alert("Membuka AI Assistant ...");
-        navigate('https://t.me/gugahassistant_bot');
+        window.open('https://t.me/gugahassistant_bot', '_blank');
     };
 
     // --- EFFECT: FETCH DATA USER & XP ---
