@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Menu, X, ArrowLeft, LogIn, ChevronDown, LogOut, Lock, Bot } from "lucide-react";
+import { Menu, X, ArrowLeft, LogIn, ChevronDown, LogOut, Lock, Bot, MapPin, Calendar, Users, MessageSquare } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
@@ -108,21 +108,27 @@ const Navbar = ({
     const articleDropdown = articleCategories.length > 0 
       ? articleCategories.map(cat => ({ 
           name: cat, 
-          path: `/articles?category=${encodeURIComponent(cat)}`
+          path: `/articles?category=${encodeURIComponent(cat)}`,
+          type: 'link'
         }))
-      : [{ name: "Semua Artikel", path: "/articles" }];
+      : [{ name: "Semua Artikel", path: "/articles", type: 'link' }];
 
-    // Dropdown Layanan
-    const servicesDropdown = [      
-      { name: "Chat Satgas", path: "/chat", restricted: true }, 
-      { name: "Pusat Informasi", path: "#layanan", restricted: false }, 
-      { name: "Peta Darurat", path: "/maps", restricted: false }, 
+    // Dropdown Layanan (GROUPED)
+    const servicesDropdown = [
+      { type: 'header', label: 'Bantuan Darurat' },
+      { type: 'link', name: "Chat Satgas", path: "/chat", restricted: true, icon: MessageSquare },
+      { type: 'link', name: "Peta Darurat", path: "/maps", restricted: false, icon: MapPin },
+      
+      { type: 'divider' }, 
+      
+      { type: 'header', label: 'Informasi & Event' },
+      { type: 'link', name: "Agenda Event", path: "/events", restricted: false, icon: Calendar }, 
+      { type: 'link', name: "Rekomendasi Komunitas", path: "/partners", restricted: false, icon: Users }, 
     ];
 
     const config = {
-      // MENU GUEST (BELUM LOGIN) -> TIDAK ADA BERANDA
+      // MENU GUEST
       guest: [
-        // { name: "Beranda", path: "/" }, <--- INI DIHAPUS
         { name: "Game", path: "/game", restricted: true },
         { 
           name: "Artikel", 
@@ -134,12 +140,13 @@ const Navbar = ({
           path: "#layanan",
           dropdown: servicesDropdown 
         },
-        { name: "AI Assistant", path: "#chatbot", restricted: false, icon: Bot }, 
+        // 👇 UPDATE PATH DISINI (Link Eksternal)
+        { name: "AI Assistant", path: "https://t.me/gugahassistant_bot", restricted: false, icon: Bot }, 
       ],
 
-      // MENU USER (SUDAH LOGIN) -> ADA BERANDA
+      // MENU USER
       user: [
-        { name: "Beranda", path: "/" }, // <--- MUNCUL DISINI
+        { name: "Beranda", path: "/" },
         { name: "Dashboard", path: "/dashboard" },
         { name: "Game", path: "/game" },
         { 
@@ -152,12 +159,13 @@ const Navbar = ({
           path: "#layanan",
           dropdown: servicesDropdown 
         },
-        { name: "AI Assistant", path: "#chatbot" },
+        // 👇 UPDATE PATH DISINI (Link Eksternal)
+        { name: "AI Assistant", path: "https://t.me/gugahassistant_bot" },
       ],
 
-      // MENU SATGAS (SUDAH LOGIN) -> ADA BERANDA
+      // MENU SATGAS
       satgas: [
-        { name: "Beranda", path: "/" }, // <--- MUNCUL DISINI
+        { name: "Beranda", path: "/" },
         { name: "Dashboard", path: "/dashboard" },
         { name: "Inbox Chat", path: "/chat" }, 
         { name: "Laporan Menfess", path: "/menfess" }, 
@@ -187,11 +195,11 @@ const Navbar = ({
     });
   };
 
-  // --- CEK AKSES & NAVIGASI ---
+  // --- CEK AKSES & NAVIGASI (UPDATED) ---
   const handleNavigation = (path, isRestricted = false) => {
     setIsOpen(false);
 
-    // Jika Restricted dan User adalah Guest -> Munculkan Alert Login
+    // 1. Cek Login
     if (isRestricted && activeRole === 'guest') {
       Swal.fire({
         title: 'Akses Terbatas',
@@ -209,23 +217,26 @@ const Navbar = ({
       return; 
     }
 
-    // Handle Anchor Link (#)
+    // 2. Cek Link Eksternal (HTTP/HTTPS) -> Buka Tab Baru
+    if (path.startsWith("http")) {
+        window.open(path, "_blank");
+        return;
+    }
+
+    // 3. Cek Anchor Link (#)
     if (path.startsWith("#")) {
-      // Jika user belum di dashboard dan klik link hash (kecuali dari landing page ke landing section)
-      // Kita arahkan ke dashboard dulu baru scroll
       if (location.pathname !== '/dashboard' && location.pathname !== '/') {
-         navigate('/dashboard' + path); // Arahkan ke dashboard dengan hash
+         navigate('/dashboard' + path); 
       } else {
-         // Jika sudah di page yang benar, scroll
          const element = document.querySelector(path);
          if (element) {
             element.scrollIntoView({ behavior: "smooth" });
          } else {
-            // Fallback jika elemen tidak ditemukan di halaman saat ini (misal di Home tapi klik #chatbot yang ada di Dashboard)
             navigate('/dashboard' + path);
          }
       }
     } else {
+      // 4. Link Internal Biasa
       navigate(path);
     }
   };
@@ -234,7 +245,7 @@ const Navbar = ({
     setMobileSubmenu(mobileSubmenu === name ? null : name);
   };
 
-  // --- RENDER ---
+  // --- RENDER (Sama seperti sebelumnya) ---
   return (
     <nav className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-[9999]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -266,7 +277,7 @@ const Navbar = ({
             )}
           </div>
 
-          {/* === RIGHT SIDE (MENU) === */}
+          {/* === RIGHT SIDE (MENU - DESKTOP) === */}
           {!backButton ? (
               <div className="flex items-center gap-3">
                 <div className="hidden md:flex items-center gap-1">
@@ -288,18 +299,33 @@ const Navbar = ({
 
                             {/* Dropdown Menu */}
                             {link.dropdown && (
-                              <div className="absolute top-full left-0 mt-1 w-52 bg-white border border-gray-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50 overflow-hidden">
-                                <div className="p-1">
-                                  {link.dropdown.map((subItem) => (
-                                    <button 
-                                      key={subItem.name} 
-                                      onClick={() => handleNavigation(subItem.path, subItem.restricted)} 
-                                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors flex items-center justify-between"
-                                    >
-                                      {subItem.name}
-                                      {subItem.restricted && activeRole === 'guest' && <Lock size={12} className="text-gray-400" />}
-                                    </button>
-                                  ))}
+                              <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50 overflow-hidden">
+                                <div className="py-2">
+                                  {link.dropdown.map((subItem, idx) => {
+                                    
+                                    if (subItem.type === 'header') {
+                                        return (
+                                            <div key={idx} className="px-4 py-2 text-xs font-extrabold text-blue-800 uppercase tracking-wider bg-blue-50/50">
+                                                {subItem.label}
+                                            </div>
+                                        );
+                                    }
+
+                                    if (subItem.type === 'divider') {
+                                        return <div key={idx} className="h-px bg-gray-100 my-1"></div>;
+                                    }
+
+                                    return (
+                                        <button 
+                                          key={subItem.name || idx} 
+                                          onClick={() => handleNavigation(subItem.path, subItem.restricted)} 
+                                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors flex items-center justify-between"
+                                        >
+                                          <span className="font-medium">{subItem.name}</span>
+                                          {subItem.restricted && activeRole === 'guest' && <Lock size={12} className="text-gray-400" />}
+                                        </button>
+                                    );
+                                  })}
                                 </div>
                               </div>
                             )}
@@ -345,17 +371,30 @@ const Navbar = ({
                     </button>
                     
                     {link.dropdown && mobileSubmenu === link.name && (
-                      <div className="pl-6 pr-2 py-1 space-y-1 bg-gray-50/50 rounded-lg mx-2">
-                          {link.dropdown.map((subItem) => (
-                           <button 
-                              key={subItem.name} 
-                              onClick={() => handleNavigation(subItem.path, subItem.restricted)} 
-                              className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-blue-600 rounded-lg flex items-center justify-between"
-                           >
-                             {subItem.name}
-                             {subItem.restricted && activeRole === 'guest' && <Lock size={12} className="text-gray-400" />}
-                           </button>
-                          ))}
+                      <div className="pl-4 pr-2 py-2 space-y-1 bg-gray-50/50 rounded-lg mx-2 border border-gray-100">
+                          {link.dropdown.map((subItem, idx) => {
+                             
+                             if (subItem.type === 'header') {
+                                return (
+                                    <div key={idx} className="px-3 pt-3 pb-1 text-xs font-bold text-gray-900 uppercase tracking-wider">
+                                        {subItem.label}
+                                    </div>
+                                );
+                             }
+
+                             if (subItem.type === 'divider') return <div key={idx} className="h-px bg-gray-200 my-1 mx-3"></div>;
+
+                             return (
+                               <button 
+                                  key={subItem.name || idx} 
+                                  onClick={() => handleNavigation(subItem.path, subItem.restricted)} 
+                                  className="w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-white rounded-lg flex items-center justify-between active:bg-blue-50 transition-all"
+                               >
+                                 <span>{subItem.name}</span>
+                                 {subItem.restricted && activeRole === 'guest' && <Lock size={12} className="text-gray-400" />}
+                               </button>
+                             );
+                          })}
                       </div>
                     )}
                 </div>

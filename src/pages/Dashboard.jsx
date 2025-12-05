@@ -108,14 +108,14 @@ export default function Dashboard() {
 
     // --- FUNCTION HANDLE BARU ---
     const handleOpenPDF = () => {
-        window.open("https://merdekakekerasanseksual.kemdikbud.go.id/peraturan", "_blank");
+        window.open("/Salinan-Permendikbudristek-Nomor-55-Tahun-2024-PPKPT (1).pdf", "_blank");
     };
 
     const handleOpenChatBot = () => {
         // Logika untuk membuka chatbot n8n
         // Bisa redirect ke halaman khusus atau trigger modal widget
         alert("Membuka AI Assistant (n8n Integration)...");
-        // navigate('/ai-chat'); // Contoh jika ada rute khusus
+        navigate('/ai-chat');
     };
 
     // --- EFFECT: FETCH DATA USER & XP ---
@@ -184,6 +184,9 @@ export default function Dashboard() {
             </div>
         );
     }
+
+    const handleGoToEvents = () => navigate('/events');
+    const handleGoToExternal = () => navigate('/partners');
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
@@ -442,7 +445,7 @@ export default function Dashboard() {
                                         </div>
 
                                         {/* Item 2: Event */}
-                                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 cursor-pointer transition-colors border border-gray-100">
+                                        <div onClick={handleGoToEvents} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 cursor-pointer transition-colors border border-gray-100">
                                             <div className="bg-white p-2 rounded-lg shadow-sm text-orange-500">
                                                 <Calendar size={16} />
                                             </div>
@@ -454,13 +457,13 @@ export default function Dashboard() {
                                         </div>
 
                                         {/* Item 3: Komunitas Mitra */}
-                                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 cursor-pointer transition-colors border border-gray-100">
+                                        <div onClick={handleGoToExternal} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 cursor-pointer transition-colors border border-gray-100">
                                             <div className="bg-white p-2 rounded-lg shadow-sm text-green-500">
                                                 <ExternalLink size={16} />
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-sm font-bold text-gray-800">Jejaring Eksternal</p>
-                                                <p className="text-xs text-gray-500">Komunitas & Organisasi</p>
+                                                <p className="text-sm font-bold text-gray-800">Rekomendasi Komunitas</p>
+                                                <p className="text-xs text-gray-500">Temukan komunitas di sekitar anda.</p>
                                             </div>
                                             <ArrowRight size={14} className="text-gray-400" />
                                         </div>
