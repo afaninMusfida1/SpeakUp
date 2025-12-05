@@ -115,7 +115,7 @@ export default function Dashboard() {
         // Logika untuk membuka chatbot n8n
         // Bisa redirect ke halaman khusus atau trigger modal widget
         alert("Membuka AI Assistant (n8n Integration)...");
-        navigate('/ai-chat');
+        navigate('https://t.me/gugahassistant_bot');
     };
 
     // --- EFFECT: FETCH DATA USER & XP ---
