@@ -117,7 +117,7 @@ const Navbar = ({
     const servicesDropdown = [
       { type: 'header', label: 'Bantuan Darurat' },
       { type: 'link', name: "Chat Satgas", path: "/chat", restricted: true, icon: MessageSquare },
-      { type: 'link', name: "Peta Darurat", path: "/maps", restricted: false, icon: MapPin },
+      { type: 'link', name: "Peta Darurat", path: "/maps", restricted: true, icon: MapPin },
       
       { type: 'divider' }, 
       
@@ -140,7 +140,6 @@ const Navbar = ({
           path: "#layanan",
           dropdown: servicesDropdown 
         },
-        // 👇 UPDATE PATH DISINI (Link Eksternal)
         { name: "AI Assistant", path: "https://t.me/gugahassistant_bot", restricted: false, icon: Bot }, 
       ],
 
