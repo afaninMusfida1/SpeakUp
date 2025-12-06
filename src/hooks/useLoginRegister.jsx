@@ -288,35 +288,57 @@ const useLoginRegister = (onAuthSuccess) => {
         }
     }, [googleLoaded, isRegister, GOOGLE_CLIENT_ID]);
 
-    // --- AUTH RESPONSE ---
     const processAuthResponse = (response) => {
+        // 1. Ambil Token
         const token = response?.payload?.datas?.token || 
                       response?.data?.token || 
                       response?.token;
 
         if (!token) {
-            if (isRegister && (response?.status === 200 || response?.status === 201 || response?.message === "User created successfully")) {
+            if (isRegister && (response?.status === 200 || response?.status === 201)) {
                 Swal.fire('Sukses', 'Registrasi berhasil! Silakan login.', 'success');
                 navigate("/login");
                 setLoading(false);
                 return;
             }
-            setError("Login sukses, namun token tidak ditemukan.");
+            setError("Login sukses, tapi token tidak ditemukan.");
             setLoading(false);
             return;
         }
 
         try {
             localStorage.setItem("token", token);
-            const userData = response?.payload?.datas;
-            if (userData) {
-                localStorage.setItem("userRole", userData.role || "user");
-                localStorage.setItem("userXp", userData.userXp || 0);
-            } 
+
+            const decodedToken = jwtDecode(token);
+            const userId = decodedToken.id || decodedToken._id || decodedToken.sub;
+
+            if (userId) {
+                localStorage.setItem("userId", userId); 
+            } else {
+                // console.warn("⚠️ Tidak ditemukan ID di dalam token JWT");
+            }
+
+            const userData = response?.payload?.datas || response?.data?.data || {};
+            
+            // Simpan Role
+            const role = userData.role || decodedToken.role || "user";
+            localStorage.setItem("userRole", role);
+
+            // Simpan XP
+            const xp = userData.userXp || 0;
+            localStorage.setItem("userXp", xp);
+
+            localStorage.removeItem("user"); 
+
+            // 6. Redirect
             if (onAuthSuccess) onAuthSuccess();
-            setTimeout(() => { navigate("/dashboard"); }, 100);
+            setTimeout(() => { 
+                navigate("/dashboard"); 
+            }, 500);
+
         } catch (err) {
-            setError("Gagal memproses data sesi login.");
+            console.error("Storage Error:", err);
+            setError("Gagal memproses data user.");
         } finally {
             setLoading(false);
         }

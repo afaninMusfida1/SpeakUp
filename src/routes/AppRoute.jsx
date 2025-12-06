@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom"; 
 import LandingPage from "../pages/LandingPage";
 import LoginRegistPage from "../pages/LoginRegistPage";
 import Dashboard from "../pages/Dashboard";
@@ -26,20 +26,8 @@ const isAuthenticated = () => {
 // 2. Helper untuk ambil role & data user
 const getUserData = () => {
     const role = localStorage.getItem("userRole")?.toLowerCase() || "user";
-    
-    const userString = localStorage.getItem("user");
-    let userId = "default-user";
-    
-    if (userString) {
-        try {
-            const userObj = JSON.parse(userString);
-            userId = userObj.id || userObj.email || "default-user";
-        } catch (e) {
-            console.error("Gagal parse user data", e);
-        }
-    }
-
-    return { role, userId };
+    // userId tidak wajib diambil di sini jika logic redirect diganti
+    return { role };
 };
 
 // 3. Private Route Wrapper 
@@ -55,14 +43,12 @@ const ChatEntryPoint = () => {
         return <Navigate to="/login" replace />;
     }
 
-    const { role, userId } = getUserData();
+    const { role } = getUserData();
 
     if (role === "satgas") {
         return <ChatList />;
-    } else {
-        const sessionID = `session-${userId}`; 
-        return <Navigate to={`/chat/${sessionID}`} replace />;
-    }
+    } 
+    return <ChatList />;
 };
 
 export default function AppRoute() {
@@ -107,8 +93,10 @@ export default function AppRoute() {
                 } 
             />
 
+            {/* Route Entry Point */}
             <Route path="/chat" element={<ChatEntryPoint />} />
             
+            {/* Route Chat Detail */}
             <Route 
                 path="/chat/:chatId" 
                 element={

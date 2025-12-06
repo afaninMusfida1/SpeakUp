@@ -1,52 +1,85 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ExternalLink, Globe, HeartHandshake, ShieldCheck } from "lucide-react";
 import Navbar from "../components/Navbar";
 
-// --- MOCK DATA PARTNER ---
-const partners = [
-    {
-        id: 1,
-        name: "GenRe Indonesia",
-        desc: "Pusat Informasi dan Konseling Remaja. Fokus pada kesehatan reproduksi dan penyiapan kehidupan berkeluarga.",
-        type: "Pemerintah / BKKBN",
-        color: "text-blue-600",
-        bgColor: "bg-blue-50",
-        icon: HeartHandshake,
-        link: "https://genreindonesia.com" // Contoh link
-    },
-    {
-        id: 2,
-        name: "Komnas Perempuan",
-        desc: "Lembaga negara independen untuk penegakan hak asasi manusia perempuan Indonesia.",
-        type: "Lembaga Negara",
-        color: "text-rose-600",
-        bgColor: "bg-rose-50",
-        icon: ShieldCheck,
-        link: "https://komnasperempuan.go.id"
-    },
-    {
-        id: 3,
-        name: "LBH APIK",
-        desc: "Lembaga Bantuan Hukum yang berfokus pada pembelaan perempuan dan anak korban kekerasan.",
-        type: "NGO / Bantuan Hukum",
-        color: "text-purple-600",
-        bgColor: "bg-purple-50",
-        icon: Globe,
-        link: "https://lbhapik.org"
-    },
-    {
-        id: 4,
-        name: "CARI Layanan (KemenPPPA)",
-        desc: "Direktori layanan perlindungan perempuan dan anak dari Kementerian PPPA.",
-        type: "Direktori Layanan",
-        color: "text-orange-600",
-        bgColor: "bg-orange-50",
-        icon: ExternalLink,
-        link: "https://carilayanan.kemenpppa.go.id"
-    }
-];
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000"; 
+
+// Helper function untuk Ikon (dibiarkan default)
+const getIconByType = (type) => {
+    return ExternalLink; 
+};
+
+// Helper function untuk Warna (dibiarkan default)
+const getColorClassByType = (type) => {
+    return { color: "text-blue-600", bgColor: "bg-blue-50" }; 
+};
+
 
 export default function ExternalPartnersPage() {
+    const [partners, setPartners] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchPartners = async () => {
+            // ... (Kode Try/Catch dan fetch tetap sama)
+            try {
+                const response = await fetch(`${API_BASE_URL}/community`);
+                
+                if (!response.ok) {
+                    throw new Error(`Gagal mengambil data: ${response.status} ${response.statusText}`);
+                }
+
+                const apiResponse = await response.json(); 
+                const communityArray = apiResponse.payload && apiResponse.payload.datas 
+                                       ? apiResponse.payload.datas 
+                                       : [];
+
+                // Mapping data
+                const formattedData = communityArray.map(item => {
+                    const communityType = item.type || "Komunitas"; 
+                    
+                    const { color, bgColor } = getColorClassByType(communityType);
+                    const Icon = getIconByType(communityType);
+                    
+                    return {
+                        id: item.id,
+                        // ✅ Field name
+                        name: item.name,
+                        // ✅ Field description
+                        desc: item.description, 
+                        
+                        type: communityType, 
+                        color: color,
+                        bgColor: bgColor,
+                        icon: Icon,
+                        
+                        // ✅ Field logos (untuk ditampilkan sebagai gambar)
+                        image: item.logos, 
+                        // ✅ Field sosmed (untuk link tombol)
+                        link: item.sosmed 
+                    };
+                });
+
+
+                setPartners(formattedData);
+                setError(null);
+            } catch (err) {
+                console.error("Error fetching partners:", err);
+                setError("Gagal memuat data jejaring. Silakan coba lagi nanti.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchPartners();
+    }, []);
+
+    // --- Tampilan Loading dan Error (Dihilangkan untuk brevity, asumsikan tidak berubah) ---
+    if (isLoading) { /* ... */ return (<div>Memuat...</div>); }
+    if (error) { /* ... */ return (<div>Error: {error}</div>); }
+
+    // --- Tampilan Utama ---
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
             <Navbar backButton title="Jejaring Eksternal" />
@@ -61,37 +94,61 @@ export default function ExternalPartnersPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {partners.map((item) => (
-                        <div key={item.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:border-blue-300 hover:shadow-md transition-all group flex flex-col h-full">
+                    {partners.length > 0 ? (
+                        partners.map((item) => {
+                            const IconComponent = item.icon; 
                             
-                            <div className="flex items-start justify-between mb-4">
-                                <div className={`w-14 h-14 rounded-2xl ${item.bgColor} ${item.color} flex items-center justify-center`}>
-                                    <item.icon size={28} />
+                            return (
+                                <div 
+                                    key={item.id} 
+                                    className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:border-blue-300 hover:shadow-md transition-all group flex flex-col h-full"
+                                >
+                                    
+                                    <div className="flex items-start justify-between mb-4">
+                                        {/* Slot Logo: Menampilkan gambar dari 'logos' jika ada, jika tidak, ikon default */}
+                                        <div className={`w-14 h-14 rounded-2xl ${item.bgColor} ${item.color} flex items-center justify-center`}>
+                                            {item.image ? (
+                                                <img src={item.image} alt={`${item.name} logo`} className="w-full h-full object-contain p-1 rounded-2xl" />
+                                            ) : (
+                                                <IconComponent size={28} /> 
+                                            )}
+                                        </div>
+                                        {/* Tipe Komunitas */}
+                                        <span className="px-3 py-1 bg-gray-50 rounded-full text-[10px] font-bold uppercase tracking-wide text-gray-500 border border-gray-100">
+                                            {item.type}
+                                        </span>
+                                    </div>
+
+                                    {/* Nama (item.name) */}
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                        {item.name}
+                                    </h3>
+                                    
+                                    {/* Deskripsi (item.description) */}
+                                    {item.desc && (
+                                        <p className="text-gray-500 text-sm leading-relaxed mb-6 flex-1">
+                                            {item.desc}
+                                        </p>
+                                    )}
+
+                                    {/* Tombol Kunjungi Website (item.sosmed) */}
+                                    {item.link && (
+                                        <a 
+                                            href={item.link} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="w-full py-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn"
+                                        >
+                                            Kunjungi Website
+                                            <ExternalLink size={14} className="group-hover/btn:translate-x-0.5 transition-transform" />
+                                        </a>
+                                    )}
                                 </div>
-                                <span className="px-3 py-1 bg-gray-50 rounded-full text-[10px] font-bold uppercase tracking-wide text-gray-500 border border-gray-100">
-                                    {item.type}
-                                </span>
-                            </div>
-
-                            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                                {item.name}
-                            </h3>
-                            
-                            <p className="text-gray-500 text-sm leading-relaxed mb-6 flex-1">
-                                {item.desc}
-                            </p>
-
-                            <a 
-                                href={item.link} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="w-full py-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn"
-                            >
-                                Kunjungi Website
-                                <ExternalLink size={14} className="group-hover/btn:translate-x-0.5 transition-transform" />
-                            </a>
-                        </div>
-                    ))}
+                            );
+                        })
+                    ) : (
+                        <p className="md:col-span-2 text-center text-gray-500">Tidak ada mitra yang tersedia saat ini.</p>
+                    )}
                 </div>
 
             </main>

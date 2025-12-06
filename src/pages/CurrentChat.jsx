@@ -1,551 +1,535 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ArrowLeft, Send, Camera, MapPin, Loader2, Image, FileText } from "lucide-react"; 
+import {
+  ArrowLeft,
+  Send,
+  Camera,
+  MapPin,
+  Loader2,
+  Image as ImageIcon,
+  FileText,
+  Check,       // --- NEW: Icon Centang 1
+  CheckCheck,  // --- NEW: Icon Centang 2
+  ChevronDown  // --- NEW: Icon Panah Bawah
+} from "lucide-react";
 import Navbar from "../components/Navbar";
 import Swal from "sweetalert2";
-import WebcamCapture from "../components/common/WebcamCapture"; 
-import { 
-    PlainButton, 
-    PlainInput, 
-    PlainAvatar, 
-    PlainBadge, 
-    LocationPreview 
-} from "../components/common/UI"; 
+import WebcamCapture from "../components/common/WebcamCapture";
+import {
+  PlainButton,
+  PlainInput,
+  PlainAvatar,
+  LocationPreview,
+} from "../components/common/UI";
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const CurrentChat = () => {
-    // --- Hooks ---
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [currentRole] = useState(
-        localStorage.getItem("userRole")?.toLowerCase() || "user"
-    );
-    const token = localStorage.getItem('token');
-    const isSatgas = currentRole === "satgas";
-    const partnerName = isSatgas ? (location.state?.partnerName || "User") : "Satgas SpeakUp"; 
-    const mySenderRole = isSatgas ? "satgas" : "user";
-    const [isWebcamActive, setIsWebcamActive] = useState(false); 
-    const [isAttachmentPickerOpen, setIsAttachmentPickerOpen] = useState(false); 
-    const [isLocationLoading, setIsLocationLoading] = useState(false);
-    const [locationError, setLocationError] = useState(null); 
-    const [inputText, setInputText] = useState("");
-    const [isTyping, setIsTyping] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { chatId: chatIdParam } = useParams();
 
-    // Hardcoded values
-    const chatId = 1;
-    const receiverId = 3;
+  // ---------- AUTH / USER ----------
+  const getLocalUserId = () => {
+    const directId = localStorage.getItem("userId") || localStorage.getItem("id");
+    if (directId) return directId;
+    try {
+      const userObj = JSON.parse(localStorage.getItem("user") || "{}");
+      return userObj.id || null;
+    } catch (e) {
+      return null;
+    }
+  };
 
-    const [messages, setMessages] = useState([]);
-    const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const localUserId = getLocalUserId();
+  const token = localStorage.getItem("token") || "";
+  
+  const partnerName = location.state?.partnerName || "Chat";
+  const partnerId = location.state?.partnerId || null;
+
+  // ---------- UI STATE ----------
+  const [isWebcamActive, setIsWebcamActive] = useState(false);
+  const [isAttachmentPickerOpen, setIsAttachmentPickerOpen] = useState(false);
+  const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [inputText, setInputText] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+
+  // --- NEW: State untuk Scroll & Unread Count
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [unreadNewMessages, setUnreadNewMessages] = useState(0);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+
+  const messagesEndRef = useRef(null);
+  const galleryInputRef = useRef(null);
+  const chatContainerRef = useRef(null); // --- NEW: Ref untuk container scroll
+
+  // ---------- HELPER ----------
+  const handleSessionExpired = () => {
+    if (Swal.isVisible()) return;
+    Swal.fire({
+      icon: "error",
+      title: "Sesi Habis",
+      text: "Token anda kadaluarsa, silakan login kembali.",
+      timer: 2000,
+      showConfirmButton: false
+    }).then(() => {
+      localStorage.clear();
+      navigate("/login", { replace: true });
+    });
+  };
+
+  const scrollToBottom = (smooth = true) => {
+    // --- NEW: Logic scroll hanya jika user mau atau dipaksa
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+      setUnreadNewMessages(0); // Reset counter kalau udah di bawah
+    }
+  };
+
+  const formatTime = (date) => {
+    if (!date) return "";
+    const d = date instanceof Date ? date : new Date(date);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+  };
+
+  // ---------------- NORMALIZE MESSAGE ----------------
+  const normalizeMessage = (raw) => {
+    const msg = { ...(raw || {}) };
+    msg.id = msg.id ?? msg._id ?? `msg-${Date.now()}-${Math.random()}`;
+    msg.senderId = msg.senderId ?? msg.sender_id ?? msg.senderID ?? msg.userId ?? null;
+    msg.text = msg.text ?? msg.message ?? msg.content?.message ?? null;
+    msg.image = msg.image ?? msg.imageUrl ?? msg.content?.image ?? null;
     
-    // --- Refs ---
-    const messagesEndRef = useRef(null);
-    const galleryInputRef = useRef(null); 
-    
-    const formatTime = (date) => {
-        if (!date) return '';
-        
-        const dateObj = date instanceof Date ? date : new Date(date);
-        
-        if (isNaN(dateObj.getTime())) {
-            return '';
+    // --- NEW: Handle Status Read
+    // Pastikan backend mengirim field 'isRead' atau 'read_at'
+    msg.isRead = msg.isRead ?? (msg.read_at ? true : false) ?? false;
+
+    const lat = msg.latitude ?? msg.lat ?? msg.content?.latitude ?? null;
+    const lng = msg.longitude ?? msg.lng ?? msg.content?.longitude ?? null;
+    if (lat && lng) {
+      msg.location = { lat: parseFloat(lat), lng: parseFloat(lng) };
+    }
+    msg.timestamp = msg.timestamp ?? msg.createdAt ?? new Date();
+    msg.timestamp = msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp);
+    return msg;
+  };
+
+  const isMessageFromMe = (msg) => {
+    if (!msg) return false;
+    if (msg._forceMine || msg._isSending) return true;
+    if (localUserId && msg.senderId) {
+      return String(msg.senderId) === String(localUserId);
+    }
+    return false; 
+  };
+
+  // ---------------- NEW: MARK AS READ API ----------------
+  const markMessagesAsRead = async (messageList = messages) => {
+  if (!token || !messageList.length) return;
+
+  // ✅ HANYA pesan lawan + belum dibaca
+  const unreadMessages = messageList.filter(
+    (msg) => !isMessageFromMe(msg) && !msg.isRead
+  );
+
+  if (unreadMessages.length === 0) return;
+
+  for (const msg of unreadMessages) {
+    try {
+      await axios.put(
+        `${API_BASE_URL}/api/v1/message/read/${msg.id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-        
-        return dateObj.toLocaleTimeString("id-ID", { 
-            hour: "2-digit", 
-            minute: "2-digit" 
-        });
-    };
+      );
+
+      // ✅ update state biar UI langsung berubah
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === msg.id ? { ...m, isRead: true } : m
+        )
+      );
+    } catch (err) {
+      console.error("Gagal mark read msgId:", msg.id, err);
+    }
+  }
+};
+
+
+  // ---------------- EFFECTS ----------------
+  useEffect(() => {
+    if ((chatIdParam === "new" || !chatIdParam) && !partnerId) {
+      navigate("/chat");
+    }
+  }, [chatIdParam, partnerId]);
+
+  // --- NEW: Scroll Handler Logic
+  const handleScroll = () => {
+    if (!chatContainerRef.current) return;
     
-    const scrollToBottom = () => {
-        setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 100);
-    };
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    // Deteksi jika user sudah dekat bagian bawah (toleransi 100px)
+    const isBottom = scrollHeight - scrollTop - clientHeight < 150;
+    
+    setIsAtBottom(isBottom);
+    setShowScrollButton(!isBottom);
 
-    // --- Effects & Handlers ---
+    // Jika user scroll mentok bawah, reset unread count & tandai dibaca
+    if (isBottom) {
+        setUnreadNewMessages(0);
+        markMessagesAsRead(messages);
+        }
+  };
 
-    useEffect(() => {
+  // Auto scroll saat pertama load atau user kirim pesan sendiri
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      // Jika pesan terakhir dari saya, paksa scroll ke bawah
+      if (isMessageFromMe(lastMsg)) {
         scrollToBottom();
-    }, [messages]);
+      } 
+    }
+  }, [messages]);
 
-    useEffect(() => {
-        if (locationError) { 
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal Mengambil Lokasi',
-                text: locationError,
-                confirmButtonText: 'Oke, Paham',
-                confirmButtonColor: '#3b82f6', 
-                customClass: {
-                    popup: 'rounded-2xl font-sans',
-                    confirmButton: 'rounded-xl px-6 py-2.5 font-medium'
-                }
-            });
-            setLocationError(null); 
-        }
-    }, [locationError]);
 
-    // Load REAL chat history - FIXED STRUCTURE
-    useEffect(() => {
-        const loadChatHistory = async () => {
-            try {
-                console.log("🔄 Loading chat history...");
-                setIsLoadingHistory(true);
-                
-                const response = await axios.get(
-                    `${API_BASE_URL}/message/history/${chatId}?page=1&limit=50`, 
-                    { 
-                        headers: { 
-                            'Authorization': 'Bearer ' + token
-                        } 
-                    }
-                );
-                
-                console.log("✅ History response:", response.data);
-                
-                if (response.status === 200) {
-                    // FIX: Structure sesuai BE - response.data.payload.datas.messages
-                    const messagesData = response.data.payload?.datas?.messages || [];
-                    
-                    console.log("🎯 Messages data:", messagesData);
-                    
-                    if (messagesData.length > 0) {
-                        setMessages(messagesData);
-                        console.log("🚀 Messages loaded:", messagesData.length);
-                    } else {
-                        // Jika tidak ada history, tampilkan welcome message
-                        const welcomeMessage = {
-                            id: 1,
-                            text: `Halo! Saya di sini untuk membantu. Silakan ceritakan masalah Anda.`,
-                            sender: "satgas", 
-                            timestamp: new Date(),
-                        };
-                        setMessages([welcomeMessage]);
-                    }
-                    
-                    scrollToBottom();
-                }
-            } catch (error) {
-                console.error("❌ Gagal load history:", error);
-                
-                // Fallback dengan sample data
-                const sampleMessages = [
-                    {
-                        id: 1,
-                        text: "Halo, ada yang bisa saya bantu?",
-                        sender: "satgas",
-                        timestamp: new Date(Date.now() - 3600000),
-                    },
-                    {
-                        id: 2, 
-                        text: "test",
-                        sender: "user",
-                        timestamp: new Date(Date.now() - 1800000),
-                    }
-                ];
-                setMessages(sampleMessages);
-            } finally {
-                setIsLoadingHistory(false);
-            }
-        };
+  // ---------------- LOAD HISTORY (POLLING) ----------------
+  useEffect(() => {
+    let isMounted = true;
+    const chatId = chatIdParam === "new" ? null : chatIdParam;
 
-        if (chatId && token) {
-            loadChatHistory();
-        } else {
-            setIsLoadingHistory(false);
-        }
-    }, [chatId, token]);
+    const loadChatHistory = async () => {
+      if (!token || !chatId) {
+        if (isMounted) setIsLoadingHistory(false);
+        return;
+      }
 
-    const handleSendMessage = async (options = {}) => {
-        const { imageFile = null, skipText = false } = options;
-        
-        if (!inputText.trim() && !imageFile) return;
+      try {
+        if (isMounted && messages.length === 0) setIsLoadingHistory(true);
 
-        // 1. Optimistic Update
-        const tempId = Date.now();
-        const newMessage = {
-            id: tempId,
-            text: inputText.trim() || "",
-            sender: mySenderRole,
-            timestamp: new Date(),
-            _isSending: true
-        };
-
-        if (imageFile) {
-            const url = URL.createObjectURL(imageFile);
-            newMessage.image = url;
-            newMessage._file = imageFile;
-        }
-
-        setMessages(prev => [...prev, newMessage]);
-        if (!skipText) setInputText("");
-        setIsAttachmentPickerOpen(false);
-        scrollToBottom();
-
-        // 2. Kirim ke BE
-        try {
-            const formData = new FormData();
-            formData.append('receiverId', receiverId);
-            formData.append('messageType', "urgent");
-            
-            if (inputText.trim() && !skipText) {
-                formData.append('message', inputText);
-            }
-
-            if (imageFile) {
-                formData.append('image', imageFile);
-            }
-
-            const response = await axios.post(`${API_BASE_URL}/message`, formData, {
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-
-            // 3. Update dengan data real dari BE
-            if(response.status === 201){
-                setMessages(prev => prev.map(msg => 
-                    msg.id === tempId 
-                        ? { ...msg, _isSending: false }
-                        : msg
-                ));
-            }
-            
-        } catch (error) {
-            console.error("❌ Gagal mengirim pesan:", error);
-            
-            // 4. Mark as failed
-            setMessages(prev => prev.map(msg => 
-                msg.id === tempId 
-                    ? { ...msg, _isFailed: true, _isSending: false }
-                    : msg
-            ));
-        }
-    };
-
-    const handleSendImage = (e) => {
-        const file = e?.target?.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            Swal.fire({
-                icon: 'error',
-                title: 'File tidak didukung',
-                text: 'Hanya file gambar yang diizinkan',
-                confirmButtonText: 'Oke'
-            });
-            return;
-        }
-
-        handleSendMessage({ 
-            imageFile: file, 
-            skipText: true 
-        });
-
-        e.target.value = "";
-    };
-
-    const handleCaptureWebcam = async (imageDataUrl) => {
-        setIsWebcamActive(false); 
-        
-        try {
-            const response = await fetch(imageDataUrl);
-            const blob = await response.blob();
-            const file = new File([blob], "webcam-capture.jpg", { type: "image/jpeg" });
-
-            await handleSendMessage({ 
-                imageFile: file, 
-                skipText: true 
-            });
-            
-        } catch (error) {
-            console.error("❌ Gagal mengirim foto dari webcam:", error);
-            
-            // Fallback UI update
-            setMessages((prev) => [
-                ...prev,
-                { 
-                    id: Date.now(), 
-                    image: imageDataUrl, 
-                    sender: mySenderRole, 
-                    timestamp: new Date(),
-                    _isFailed: true 
-                },
-            ]);
-            scrollToBottom();
-        }
-    };
-
-    const handleShareLocation = () => {
-        if (!navigator.geolocation) {
-            setLocationError('Perangkat kamu tidak mendukung fitur lokasi.');
-            return;
-        }
-        
-        Swal.fire({
-            title: 'Mengambil Lokasi...',
-            text: 'Mohon tunggu sebentar',
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        setIsLocationLoading(true);
-        setLocationError(null);
-
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                Swal.close(); 
-                setIsLocationLoading(false);
-                const { latitude, longitude } = pos.coords;
-                
-                // Create location message
-                const locationMessage = {
-                    id: Date.now(),
-                    location: { lat: latitude, lng: longitude },
-                    sender: mySenderRole,
-                    timestamp: new Date(),
-                };
-                
-                setMessages((prev) => [...prev, locationMessage]);
-                scrollToBottom();
-            },
-            (error) => {
-                Swal.close(); 
-                setIsLocationLoading(false);
-                if (error.code === error.PERMISSION_DENIED) {
-                    setLocationError('Izin lokasi ditolak. Aktifkan izin lokasi di browser.');
-                } else if (error.code === error.TIMEOUT) {
-                    setLocationError('Waktu habis. Coba lagi.');
-                } else {
-                    setLocationError('Gagal mengambil lokasi.');
-                }
-            },
-            { 
-                enableHighAccuracy: true, 
-                timeout: 10000, 
-                maximumAge: 0 
-            }
+        const res = await axios.get(
+          `${API_BASE_URL}/message/history/${chatId}?page=1&limit=100`,
+          { headers: { Authorization: "Bearer " + token } }
         );
+
+        const rawMessages =
+          res?.data?.payload?.messages ?? 
+          res?.data?.payload?.datas?.messages ??
+          res?.data?.payload ??
+          [];
+
+        const normalized = (Array.isArray(rawMessages) ? rawMessages : []).map(normalizeMessage);
+
+        if (isMounted) {
+          setMessages(prev => {
+            // --- NEW: Logic Unread Count & Scroll Prevention
+            // Jika ada pesan baru (jumlah bertambah) DAN user TIDAK di posisi bawah
+            if (prev.length > 0 && normalized.length > prev.length && !isAtBottom) {
+              const diff = normalized.length - prev.length;
+              setUnreadNewMessages(p => p + diff);
+            }
+            
+            // --- NEW: Jika user di posisi bawah, langsung update & mark read
+            if (isAtBottom && normalized.length > prev.length) {
+               markMessagesAsRead();
+            }
+
+            return normalized; 
+          });
+          setIsLoadingHistory(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          if (err?.response?.status === 401) handleSessionExpired();
+          setIsLoadingHistory(false);
+        }
+      }
     };
 
-    const handleAttachmentClick = () => {
-        setIsAttachmentPickerOpen(prev => !prev);
+    loadChatHistory();
+    // Mark read saat pertama kali buka chat
+    markMessagesAsRead();
+
+    const polling = setInterval(loadChatHistory, 3000); 
+    return () => {
+      isMounted = false;
+      clearInterval(polling);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatIdParam, token, isAtBottom]); // Tambahkan isAtBottom ke dependency
+
+  // ---------------- SEND MESSAGE ----------------
+  const handleSendMessage = async ({ imageFile = null, skipText = false, lat = null, lng = null } = {}) => {
+    if (!token) return handleSessionExpired();
+    if ((!inputText || !inputText.trim()) && !imageFile && !(lat && lng)) return;
+
+    const tempId = "temp-" + Date.now();
+    const optimistic = {
+      id: tempId,
+      text: !skipText && inputText ? inputText.trim() : null,
+      image: imageFile ? URL.createObjectURL(imageFile) : null,
+      location: lat && lng ? { lat, lng } : null,
+      senderId: localUserId, 
+      timestamp: new Date(),
+      _isSending: true,
+      _forceMine: true, 
+      isRead: false, // Default unread
+    };
+
+    setMessages((p) => [...p, normalizeMessage(optimistic)]);
+    if (!skipText) setInputText("");
+    setIsAttachmentPickerOpen(false);
     
-    const handleCameraClick = () => {
-        setIsAttachmentPickerOpen(false); 
-        setIsWebcamActive(true); 
-    };
+    // Force scroll ke bawah karena kita yang kirim
+    setTimeout(() => scrollToBottom(), 100);
 
-    const handleGalleryClick = () => {
-        setIsAttachmentPickerOpen(false);
-        galleryInputRef.current.click();
-    };
+    try {
+      const fd = new FormData();
+      if (chatIdParam && chatIdParam !== 'new') fd.append("chatId", chatIdParam);
+      if (partnerId) fd.append("receiverId", partnerId);
+      fd.append("messageType", "not-urgent"); 
+      
+      if (!skipText && optimistic.text) fd.append("message", optimistic.text);
+      if (imageFile) fd.append("image", imageFile);
+      if (lat && lng) {
+        fd.append("latitude", lat);
+        fd.append("longitude", lng);
+      }
 
-    return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            
-            {/* Modal Webcam Capture */}
-            {isWebcamActive && (
-                <WebcamCapture 
-                    onCapture={handleCaptureWebcam} 
-                    onClose={() => setIsWebcamActive(false)} 
-                />
-            )}
-            
-            {/* Navbar */}
-            <Navbar backButton title={partnerName} /> 
+      const res = await axios.post(`${API_BASE_URL}/message`, fd, {
+        headers: { Authorization: "Bearer " + token, "Content-Type": "multipart/form-data" },
+      });
 
-            {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                <div className="max-w-3xl mx-auto">
-                    
-                    {/* Loading indicator */}
-                    {isLoadingHistory && (
-                        <div className="flex justify-center mb-4">
-                            <div className="bg-white rounded-full px-4 py-2 shadow-md flex items-center gap-2">
-                                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                                <span className="text-sm text-gray-600">Memuat percakapan...</span>
-                            </div>
-                        </div>
-                    )}
+      if (res?.status === 200 || res?.status === 201) {
+        const payload = res.data?.payload;
+        const serverMsg = payload?.datas ?? payload ?? res.data?.data;
 
-                    {/* Messages */}
-                    {messages.map((message) => {
-                        const isMyMessage = message.sender === mySenderRole;
-                        const avatarEmoji = message.sender === "satgas" ? '🧑‍⚖️' : '👤';
-                        const showPartnerName = isSatgas && !isMyMessage;
+        setMessages((prev) =>
+          prev.map((m) => {
+            if (m.id === tempId) {
+              if (serverMsg) {
+                const normalizedServer = normalizeMessage(serverMsg);
+                normalizedServer._forceMine = true; 
+                return normalizedServer;
+              }
+              return { ...m, _isSending: false };
+            }
+            return m;
+          })
+        );
+        
+        if (chatIdParam === 'new') {
+          const newChatId = serverMsg?.chatId || serverMsg?.chat_id || payload?.chatId;
+          if (newChatId) {
+            navigate(`/chat/${newChatId}`, { replace: true, state: location.state }); 
+          }
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      if (err?.response?.status === 401) return handleSessionExpired();
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, _isSending: false, _isFailed: true } : m)));
+    }
+  };
 
-                        return (
-                            <div
-                                key={message.id}
-                                className={`flex items-end gap-2 mb-4 ${
-                                    isMyMessage ? "justify-end" : "justify-start"
-                                }`}
-                            >
-                                {/* Avatar Lawan Bicara */}
-                                {!isMyMessage && (
-                                    <PlainAvatar className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600">
-                                        <span className="text-white text-lg">{avatarEmoji}</span>
-                                    </PlainAvatar>
-                                )}
+  const handleSendImage = (e) => {
+    const file = e?.target?.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      handleSendMessage({ imageFile: file, skipText: true });
+    }
+    e.target.value = "";
+  };
 
-                                {/* Kontainer Bubble & Nama */}
-                                <div className={`flex flex-col ${isMyMessage ? 'items-end' : 'items-start'}`}>
-                                    {showPartnerName && (
-                                        <p className="text-xs text-gray-500 mb-1 ml-4">{partnerName}</p>
-                                    )}
+  const handleCaptureWebcam = async (dataUrl) => {
+    setIsWebcamActive(false);
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], `cam-${Date.now()}.jpg`, { type: "image/jpeg" });
+    handleSendMessage({ imageFile: file, skipText: true });
+  };
 
-                                    {/* Bubble Chat */}
-                                    <div
-                                        className={`max-w-xs rounded-3xl px-4 py-3 text-sm flex flex-col ${
-                                            isMyMessage
-                                                ? "bg-blue-600 text-white rounded-tr-xl" 
-                                                : "bg-white text-gray-900 border-2 border-gray-100 rounded-tl-xl"
-                                        }`}
-                                    >
-                                        {message.text && <p className="text-left whitespace-pre-wrap">{message.text}</p>}
-                                        
-                                        {/* Gambar */}
-                                        {message.image && (
-                                            <img src={message.image} alt="Foto" className="rounded-xl mt-2 max-w-full border" />
-                                        )}
-                                        
-                                        {/* Lokasi */}
-                                        {message.location && (
-                                            <LocationPreview 
-                                                lat={message.location.lat} 
-                                                lng={message.location.lng} 
-                                                isMyMessage={isMyMessage} 
-                                            />
-                                        )}
-
-                                        {/* Waktu Kirim */}
-                                        <p 
-                                            className={`mt-1 text-[10px] self-end ${
-                                                isMyMessage ? "text-blue-100" : "text-gray-500"
-                                            }`}
-                                        >
-                                            {formatTime(message.timestamp)}
-                                        </p>
-
-                                        {/* Sending Indicator */}
-                                        {message._isSending && (
-                                            <div className="flex justify-end mt-1">
-                                                <Loader2 className="w-3 h-3 animate-spin text-blue-200" />
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Avatar Saya */}
-                                {isMyMessage && (
-                                    <PlainAvatar className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600">
-                                        <span className="text-white text-lg">{avatarEmoji}</span>
-                                    </PlainAvatar>
-                                )}
-                            </div>
-                        );
-                    })}
-
-                    {/* Location Loading Indicator */}
-                    {isLocationLoading && (
-                        <div className="flex items-end gap-2 mb-4 justify-end">
-                            <div className="bg-blue-600 text-white rounded-3xl rounded-tr-xl px-4 py-3 max-w-xs flex items-center gap-2">
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                <p className="text-sm">Mengirim lokasi...</p>
-                            </div>
-                            <PlainAvatar className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600">
-                                <span className="text-white text-lg">👤</span>
-                            </PlainAvatar>
-                        </div>
-                    )}
-
-                    <div ref={messagesEndRef} />
-                </div>
-            </div>
-
-            {/* Input Footer */}
-            <div className="bg-white border-t border-gray-200 p-4 sticky bottom-0">
-                <div className="max-w-3xl mx-auto relative"> 
-                    
-                    {/* Attachment Picker */}
-                    {isAttachmentPickerOpen && (
-                        <div className="absolute bottom-full left-0 mb-3 p-3 bg-white border border-gray-200 shadow-xl rounded-xl flex gap-2 transition-all duration-300 transform origin-bottom-left z-10">
-                            <PlainButton 
-                                onClick={handleCameraClick}
-                                className="flex flex-col items-center justify-center w-20 h-20 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition"
-                            >
-                                <Camera className="w-6 h-6" />
-                                <span className="text-xs mt-1">Kamera</span>
-                            </PlainButton>
-                            <PlainButton 
-                                onClick={handleGalleryClick}
-                                className="flex flex-col items-center justify-center w-20 h-20 rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition"
-                            >
-                                <Image className="w-6 h-6" />
-                                <span className="text-xs mt-1">Galeri</span>
-                            </PlainButton>
-                        </div>
-                    )}
-                    
-                    <div className="flex items-center gap-3">
-                        
-                        <button
-                            onClick={handleAttachmentClick}
-                            disabled={isLocationLoading || isWebcamActive}
-                            className={`p-3 rounded-xl border border-gray-300 active:scale-95 transition-all duration-150 disabled:opacity-50 ${
-                                isAttachmentPickerOpen ? 'bg-blue-100 border-blue-400' : 'hover:bg-gray-100'
-                            }`}
-                        >
-                            <Camera className="w-5 h-5 text-gray-700" />
-                        </button>
-                        
-                        {/* Hidden file input */}
-                        <input 
-                            type="file" 
-                            accept="image/*" 
-                            ref={galleryInputRef} 
-                            className="hidden" 
-                            onChange={handleSendImage} 
-                        />
-                        
-                        <button
-                            onClick={handleShareLocation}
-                            disabled={isLocationLoading || isAttachmentPickerOpen || isWebcamActive}
-                            className="p-3 rounded-xl border border-gray-300 hover:bg-gray-100 active:scale-95 transition-all duration-150 disabled:opacity-50"
-                        >
-                            <MapPin className="w-5 h-5 text-gray-700" />
-                        </button>
-
-                        <PlainInput
-                            value={inputText}
-                            onChange={(e) => setInputText(e.target.value)}
-                            onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                            placeholder={`Ketik pesan...`}
-                            className="flex-1 rounded-full border-2 h-12 px-4"
-                            disabled={isLocationLoading || isAttachmentPickerOpen || isWebcamActive}
-                        />
-
-                        <PlainButton
-                            onClick={() => handleSendMessage()}
-                            disabled={!inputText.trim() || isLocationLoading || isAttachmentPickerOpen || isWebcamActive}
-                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-12 h-12 p-0 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        >
-                            <Send className="w-5 h-5" />
-                        </PlainButton>
-                    </div>
-                </div>
-            </div>
-        </div>
+  const handleShareLocation = () => {
+    if (!navigator.geolocation) return;
+    setIsLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setIsLocationLoading(false);
+        handleSendMessage({ lat: pos.coords.latitude, lng: pos.coords.longitude, skipText: true });
+      },
+      () => {
+        setIsLocationLoading(false);
+        Swal.fire({ icon: 'error', title: 'Gagal', text: 'Tidak bisa mengambil lokasi' });
+      },
+      { enableHighAccuracy: true }
     );
+  };
+
+  const handleAttachmentClick = () => setIsAttachmentPickerOpen((p) => !p);
+  const openCamera = () => { setIsAttachmentPickerOpen(false); setIsWebcamActive(true); };
+  const openGallery = () => { setIsAttachmentPickerOpen(false); galleryInputRef.current?.click(); };
+
+  // --- NEW: Komponen Indikator Status (Ticks)
+  const MessageStatus = ({ isSending, isFailed, isRead }) => {
+    if (isFailed) return <span className="text-red-300 font-bold ml-1">!</span>;
+    if (isSending) return <Loader2 className="w-3 h-3 animate-spin ml-1" />;
+    
+    // Logic centang
+    if (isRead) {
+      // Dibaca (Centang 2 Biru)
+      return <CheckCheck className="w-3 h-3 ml-1 text-blue-300" />;
+    } else {
+      // Terkirim tapi belum dibaca (Centang 2 Abu-abu / Centang 1)
+      // Disini kita default pakai Centang 2 Abu (Delivered) agar mirip WA
+      return <CheckCheck className="w-3 h-3 ml-1 text-gray-300" />;
+    }
+  };
+
+  // ---------------- RENDER ----------------
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col relative">
+      {isWebcamActive && <WebcamCapture onCapture={handleCaptureWebcam} onClose={() => setIsWebcamActive(false)} />}
+
+      <Navbar backButton title={partnerName} />
+
+      {/* --- NEW: Tambahkan onScroll dan ref pada container --- */}
+      <div 
+        ref={chatContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto p-4 custom-scrollbar relative"
+      >
+        <div className="max-w-3xl mx-auto pb-2">
+          {isLoadingHistory && messages.length === 0 && (
+            <div className="flex justify-center mb-4">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+            </div>
+          )}
+
+          {!isLoadingHistory && messages.length === 0 && (
+            <div className="text-center mt-20 opacity-50"><p>Belum ada pesan.</p></div>
+          )}
+
+          {messages.map((rawMsg, idx) => {
+            const m = normalizeMessage(rawMsg);
+            const isMe = isMessageFromMe(m);
+
+            return (
+              <div key={m.id || idx} className={`flex items-end gap-2 mb-4 ${isMe ? "justify-end" : "justify-start"}`}>
+                
+                {!isMe && (
+                  <PlainAvatar className="w-8 h-8 bg-gray-300 flex-shrink-0">
+                    <span className="text-sm">👤</span>
+                  </PlainAvatar>
+                )}
+
+                <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[75%]`}>
+                  <div className={`px-4 py-3 text-sm flex flex-col shadow-sm
+                    ${isMe 
+                      ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm" 
+                      : "bg-white text-gray-800 border border-gray-100 rounded-2xl rounded-tl-sm"
+                    }`}
+                  >
+                    {m.text && <p className="whitespace-pre-wrap break-words">{m.text}</p>}
+                    
+                    {m.image && (
+                        <img src={m.image} alt="attachment" className="rounded-lg mt-2 max-w-full object-cover max-h-64" />
+                    )}
+                    
+                    {m.location && (
+                      <div className="mt-2 rounded overflow-hidden">
+                        <LocationPreview lat={m.location.lat} lng={m.location.lng} isMyMessage={isMe} />
+                      </div>
+                    )}
+
+                    <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? "text-blue-100" : "text-gray-400"}`}>
+                      {formatTime(m.timestamp)}
+                      
+                      {/* --- NEW: Render Status Centang khusus pesan kita --- */}
+                      {isMe && (
+                        <MessageStatus 
+                          isSending={m._isSending} 
+                          isFailed={m._isFailed} 
+                          isRead={m.isRead} 
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            );
+          })}
+          
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      {/* --- NEW: Floating Scroll Button (WhatsApp Style) --- */}
+      {showScrollButton && (
+        <div className="absolute bottom-20 right-4 z-30 animate-in fade-in zoom-in duration-200">
+          <button 
+            onClick={() => scrollToBottom(true)}
+            className="relative w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <ChevronDown size={20} />
+            {unreadNewMessages > 0 && (
+              <span className="absolute -top-2 -right-2 bg-green-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
+                {unreadNewMessages}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
+
+      <div className="bg-white border-t border-gray-200 p-3 sticky bottom-0 z-10">
+        <div className="max-w-3xl mx-auto relative">
+          
+          {isAttachmentPickerOpen && (
+            <div className="absolute bottom-full left-0 mb-3 p-2 bg-white border border-gray-100 shadow-lg rounded-xl flex gap-4 z-20">
+              <button onClick={openCamera} className="flex flex-col items-center gap-1 p-2 hover:bg-gray-50 rounded-lg">
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600"><Camera size={20} /></div>
+                <span className="text-[10px] font-medium text-gray-600">Kamera</span>
+              </button>
+              <button onClick={openGallery} className="flex flex-col items-center gap-1 p-2 hover:bg-gray-50 rounded-lg">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600"><ImageIcon size={20} /></div>
+                <span className="text-[10px] font-medium text-gray-600">Galeri</span>
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-end gap-2">
+            <button onClick={handleAttachmentClick} className={`p-3 rounded-full transition-colors ${isAttachmentPickerOpen ? 'bg-gray-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}>
+              <FileText size={20} />
+            </button>
+            <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleSendImage} />
+            <button onClick={handleShareLocation} disabled={isLocationLoading} className={`p-3 rounded-full transition-colors ${isLocationLoading ? 'animate-pulse' : ''} text-gray-500 hover:bg-gray-100`}>
+              {isLocationLoading ? <Loader2 size={20} className="animate-spin" /> : <MapPin size={20} />}
+            </button>
+
+            <div className="flex-1 bg-gray-100 rounded-3xl flex items-center px-4 py-2">
+                <input
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                    placeholder="Tulis pesan..."
+                    className="bg-transparent border-none outline-none w-full text-sm max-h-24 resize-none overflow-y-auto"
+                    disabled={isLocationLoading}
+                />
+            </div>
+
+            <button onClick={() => handleSendMessage()} disabled={(!inputText.trim() && !isLocationLoading)} className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 transition-transform active:scale-95">
+              <Send size={18} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default CurrentChat;
