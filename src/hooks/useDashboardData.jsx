@@ -35,7 +35,7 @@ const useDashboardData = () => {
                         title: item.title,
                         description: item.summary || "Tidak ada deskripsi singkat.",
                         category: item.category || "Umum",
-                        readTime: item.timeRead ? `${item.timeRead} menit` : "5 menit",
+                        readTime: item.timeRead ? `${item.timeRead}` : "5",
                         image: item.imageUrl || null, 
                         color: "blue",
                         requiredXp: item.requiredXp || 0,

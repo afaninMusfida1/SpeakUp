@@ -200,7 +200,7 @@ export default function ArticlePage() {
                                     >
                                         <div className="aspect-video bg-gray-100 overflow-hidden relative">
                                             <ImageWithFallback 
-                                                src={a.image || "https://via.placeholder.com/400x200?text=No+Image"} 
+                                                src={a.imageUrl || "https://via.placeholder.com/400x200?text=No+Image"} 
                                                 alt={a.title} 
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" 
                                             />
@@ -215,10 +215,7 @@ export default function ArticlePage() {
                                                 </span>
                                             </div>
                                             
-                                            {/* Tampilkan XP jika ada */}
-                                            {a.requiredXp && (
-                                                <p className="text-xs text-yellow-600 font-bold mb-2">⭐ {a.requiredXp} XP</p>
-                                            )}
+                                            <p className="text-xs text-yellow-600 font-bold mb-2">⭐ {a.requiredXp} XP</p>
 
                                             <h4 className="text-xl font-bold mb-2 text-gray-900 line-clamp-2">{a.title}</h4>
                                             <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">
