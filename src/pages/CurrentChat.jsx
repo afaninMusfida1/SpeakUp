@@ -494,10 +494,10 @@ const CurrentChat = () => {
                 )}
 
                 <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[75%]`}>
-                  <div className={`px-4 py-3 text-sm flex flex-col shadow-sm
+                  <div className={`px-4 py-3 text-sm flex flex-col shadow-sm w-fit max-w-full
                     ${isMe 
-                      ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm" 
-                      : "bg-white text-gray-800 border border-gray-100 rounded-2xl rounded-tl-sm"
+                        ? "bg-blue-600 text-white rounded-3xl rounded-tr-none" 
+                        : "bg-white text-gray-800 border border-gray-50 rounded-3xl rounded-tl-none"
                     }`}
                   >
                     {m.text && <p className="whitespace-pre-wrap break-words">{m.text}</p>}

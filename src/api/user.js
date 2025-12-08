@@ -32,7 +32,7 @@ export const getUserProfile = async () => {
 };
 
 export const updateUserProfile = async (data) => {
-  const response = await fetch(`${API_URL}users/profile`, {
+  const response = await fetch(`${API_URL}/user/profile`, {
     method: "PUT", 
     headers: {
       "Content-Type": "application/json",
