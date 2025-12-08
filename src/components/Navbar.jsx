@@ -1,5 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Menu, X, ArrowLeft, LogIn, ChevronDown, LogOut, Lock, Bot, MapPin, Calendar, Users, MessageSquare } from "lucide-react";
+import { 
+  Menu, X, ArrowLeft, LogIn, ChevronDown, LogOut, Lock, Bot, 
+  MapPin, MapPinCheck, Calendar, Users, MessageSquare, Inbox, Gamepad2, FileText 
+} from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
@@ -78,7 +81,8 @@ const Navbar = ({
   // --- 2. FETCH KATEGORI (USER & GUEST) ---
   useEffect(() => {
     const fetchCategories = async () => {
-      if (activeRole === "user" || activeRole === "guest") {
+      // Satgas juga boleh lihat artikel
+      if (activeRole === "user" || activeRole === "guest" || activeRole === "satgas") {
         try {
           const response = await axios.get(`${API_BASE_URL}/article`);
           const result = response.data;
@@ -113,62 +117,68 @@ const Navbar = ({
         }))
       : [{ name: "Semua Artikel", path: "/articles", type: 'link' }];
 
-    // Dropdown Layanan (GROUPED)
-    const servicesDropdown = [
+    // Dropdown Layanan (Untuk User/Guest)
+    const userServicesDropdown = [
       { type: 'header', label: 'Bantuan Darurat' },
       { type: 'link', name: "Chat Satgas", path: "/chat", restricted: true, icon: MessageSquare },
-      { type: 'link', name: "Peta Darurat", path: "/maps", restricted: true, icon: MapPin },
+      { type: 'link', name: "Peta & Zona Aman", path: "/maps", restricted: true, icon: MapPin },
       
       { type: 'divider' }, 
       
       { type: 'header', label: 'Informasi & Event' },
-      { type: 'link', name: "Agenda Event", path: "/events", restricted: false, icon: Calendar }, 
-      { type: 'link', name: "Rekomendasi Komunitas", path: "/partners", restricted: false, icon: Users }, 
+      { type: 'link', name: "Webinar & Event", path: "/events", restricted: false, icon: Calendar }, 
+      { type: 'link', name: "Komunitas", path: "/partners", restricted: false, icon: Users }, 
     ];
 
     const config = {
-      // MENU GUEST
+      // === MENU GUEST ===
       guest: [
-        { name: "Game", path: "/game", restricted: true },
+        { name: "Beranda", path: "/" },
         { 
           name: "Artikel", 
           path: "/articles",
           dropdown: articleDropdown 
         },
+        { name: "Game", path: "/game", restricted: true },
         { 
           name: "Layanan", 
           path: "#layanan",
-          dropdown: servicesDropdown 
+          dropdown: userServicesDropdown 
         },
         { name: "AI Assistant", path: "https://t.me/gugahassistant_bot", restricted: false, icon: Bot }, 
       ],
 
-      // MENU USER
+      // === MENU USER ===
       user: [
-        { name: "Beranda", path: "/" },
         { name: "Dashboard", path: "/dashboard" },
-        { name: "Game", path: "/game" },
         { 
-          name: "Artikel", 
-          path: "/articles",
-          dropdown: articleDropdown
+            name: "Artikel", 
+            path: "/articles",
+            dropdown: articleDropdown
         },
+        { name: "Game", path: "/game" },
         { 
           name: "Layanan", 
           path: "#layanan",
-          dropdown: servicesDropdown 
+          dropdown: userServicesDropdown 
         },
-        // 👇 UPDATE PATH DISINI (Link Eksternal)
-        { name: "AI Assistant", path: "https://t.me/gugahassistant_bot" },
+        { name: "AI Assistant", path: "https://t.me/gugahassistant_bot", icon: Bot },
       ],
 
-      // MENU SATGAS
+      // === MENU SATGAS (Updated) ===
       satgas: [
-        { name: "Beranda", path: "/" },
         { name: "Dashboard", path: "/dashboard" },
-        { name: "Inbox Chat", path: "/chat" }, 
-        { name: "Laporan Menfess", path: "/menfess" }, 
-        { name: "Peta Monitoring", path: "/maps" }, 
+        // Menu Kerja Satgas (Prioritas)
+        { name: "Kotak Masuk", path: "/chat", icon: Inbox, className: "text-blue-600 font-bold" }, 
+        { name: "Pantau Area", path: "/maps", icon: MapPinCheck, className: "text-blue-600 font-bold" }, 
+        // Menu Hiburan/Edukasi (Sekunder)
+        { 
+            name: "Artikel", 
+            path: "/articles",
+            dropdown: articleDropdown
+        },
+        { name: "Game", path: "/game" },
+        { name: "AI Assistan", path: "https://t.me/gugahassistant_bot", icon: Bot },
       ]
     };
 
@@ -194,7 +204,7 @@ const Navbar = ({
     });
   };
 
-  // --- CEK AKSES & NAVIGASI (UPDATED) ---
+  // --- CEK AKSES & NAVIGASI ---
   const handleNavigation = (path, isRestricted = false) => {
     setIsOpen(false);
 
@@ -216,22 +226,22 @@ const Navbar = ({
       return; 
     }
 
-    // 2. Cek Link Eksternal (HTTP/HTTPS) -> Buka Tab Baru
+    // 2. Cek Link Eksternal
     if (path.startsWith("http")) {
         window.open(path, "_blank");
         return;
     }
 
-    // 3. Cek Anchor Link (#)
+    // 3. Cek Anchor Link
     if (path.startsWith("#")) {
       if (location.pathname !== '/dashboard' && location.pathname !== '/') {
          navigate('/dashboard' + path); 
       } else {
          const element = document.querySelector(path);
          if (element) {
-            element.scrollIntoView({ behavior: "smooth" });
+           element.scrollIntoView({ behavior: "smooth" });
          } else {
-            navigate('/dashboard' + path);
+           navigate('/dashboard' + path);
          }
       }
     } else {
@@ -244,7 +254,7 @@ const Navbar = ({
     setMobileSubmenu(mobileSubmenu === name ? null : name);
   };
 
-  // --- RENDER (Sama seperti sebelumnya) ---
+  // --- RENDER ---
   return (
     <nav className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-[9999]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -268,7 +278,7 @@ const Navbar = ({
                 <span className="text-blue-900 font-extrabold text-3xl tracking-tight transition-colors group-hover:text-blue-700">Gugah</span>
                 
                 {activeRole === 'satgas' && (
-                    <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 border border-red-200">
+                    <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 border border-red-200 shadow-sm animate-pulse">
                         SATGAS
                     </span>
                 )}
@@ -288,9 +298,9 @@ const Navbar = ({
                             {/* Main Menu Item */}
                             <button 
                               onClick={() => !link.dropdown && handleNavigation(link.path, link.restricted)} 
-                              className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-1"
+                              className={`px-3 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-1.5 ${link.className ? link.className : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'}`}
                             >
-                              {link.icon && <link.icon size={16} className="text-blue-500"/>}
+                              {link.icon && <link.icon size={16} className={link.className ? 'text-blue-600' : 'text-blue-500'}/>}
                               {link.name}
                               {link.restricted && activeRole === 'guest' && <Lock size={12} className="text-gray-400" />}
                               {link.dropdown && <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300"/>}
@@ -318,9 +328,12 @@ const Navbar = ({
                                         <button 
                                           key={subItem.name || idx} 
                                           onClick={() => handleNavigation(subItem.path, subItem.restricted)} 
-                                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors flex items-center justify-between"
+                                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors flex items-center justify-between group/item"
                                         >
-                                          <span className="font-medium">{subItem.name}</span>
+                                          <div className="flex items-center gap-2">
+                                            {subItem.icon && <subItem.icon size={14} className="text-gray-400 group-hover/item:text-blue-500"/>}
+                                            <span className="font-medium">{subItem.name}</span>
+                                          </div>
                                           {subItem.restricted && activeRole === 'guest' && <Lock size={12} className="text-gray-400" />}
                                         </button>
                                     );
@@ -359,10 +372,10 @@ const Navbar = ({
                 <div key={link.name}>
                     <button 
                       onClick={() => link.dropdown ? toggleMobileSubmenu(link.name) : handleNavigation(link.path, link.restricted)} 
-                      className="w-full text-left px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 rounded-xl active:bg-blue-50 active:text-blue-600 transition-colors flex justify-between items-center"
+                      className={`w-full text-left px-4 py-3 font-medium rounded-xl active:bg-blue-50 active:text-blue-600 transition-colors flex justify-between items-center ${link.className ? link.className + ' bg-blue-50/50' : 'text-gray-700 hover:bg-gray-50'}`}
                     >
-                        <div className="flex items-center gap-2">
-                          {link.icon && <link.icon size={18} className="text-blue-500"/>}
+                        <div className="flex items-center gap-3">
+                          {link.icon && <link.icon size={20} className={link.className ? 'text-blue-600' : 'text-blue-500'}/>}
                           {link.name}
                           {link.restricted && activeRole === 'guest' && <Lock size={14} className="text-gray-400" />}
                         </div>
@@ -389,7 +402,10 @@ const Navbar = ({
                                   onClick={() => handleNavigation(subItem.path, subItem.restricted)} 
                                   className="w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-white rounded-lg flex items-center justify-between active:bg-blue-50 transition-all"
                                >
-                                 <span>{subItem.name}</span>
+                                 <div className="flex items-center gap-2">
+                                     {subItem.icon && <subItem.icon size={16} className="text-gray-400"/>}
+                                     <span>{subItem.name}</span>
+                                 </div>
                                  {subItem.restricted && activeRole === 'guest' && <Lock size={12} className="text-gray-400" />}
                                </button>
                              );

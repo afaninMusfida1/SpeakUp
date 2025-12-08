@@ -131,7 +131,7 @@ export default function ExternalPartnersPage() {
                                         </p>
                                     )}
 
-                                    {/* Tombol Kunjungi Website (item.sosmed) */}
+                                    {/* Tombol Kunjungi  (item.sosmed) */}
                                     {item.link && (
                                         <a 
                                             href={item.link} 
@@ -139,7 +139,7 @@ export default function ExternalPartnersPage() {
                                             rel="noopener noreferrer"
                                             className="w-full py-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn"
                                         >
-                                            Kunjungi Website
+                                            Kunjungi Sosial Media
                                             <ExternalLink size={14} className="group-hover/btn:translate-x-0.5 transition-transform" />
                                         </a>
                                     )}

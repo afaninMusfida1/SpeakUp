@@ -8,9 +8,9 @@ import {
   Loader2,
   Image as ImageIcon,
   FileText,
-  Check,       // --- NEW: Icon Centang 1
-  CheckCheck,  // --- NEW: Icon Centang 2
-  ChevronDown  // --- NEW: Icon Panah Bawah
+  Check,       
+  CheckCheck,  
+  ChevronDown  
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Swal from "sweetalert2";
@@ -22,6 +22,9 @@ import {
   LocationPreview,
 } from "../components/common/UI";
 import axios from "axios";
+
+// Import Socket Helper
+import { getSocket } from "../lib/socketUtils"; 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -56,14 +59,18 @@ const CurrentChat = () => {
   const [messages, setMessages] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
-  // --- NEW: State untuk Scroll & Unread Count
+  // State untuk Scroll & Unread Count
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [unreadNewMessages, setUnreadNewMessages] = useState(0);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  
+  // State Typing Indicator
+  const [isPartnerTyping, setIsPartnerTyping] = useState(false);
 
   const messagesEndRef = useRef(null);
   const galleryInputRef = useRef(null);
-  const chatContainerRef = useRef(null); // --- NEW: Ref untuk container scroll
+  const chatContainerRef = useRef(null);
+  const typingTimeoutRef = useRef(null); 
 
   // ---------- HELPER ----------
   const handleSessionExpired = () => {
@@ -81,10 +88,9 @@ const CurrentChat = () => {
   };
 
   const scrollToBottom = (smooth = true) => {
-    // --- NEW: Logic scroll hanya jika user mau atau dipaksa
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
-      setUnreadNewMessages(0); // Reset counter kalau udah di bawah
+      setUnreadNewMessages(0); 
     }
   };
 
@@ -103,8 +109,7 @@ const CurrentChat = () => {
     msg.text = msg.text ?? msg.message ?? msg.content?.message ?? null;
     msg.image = msg.image ?? msg.imageUrl ?? msg.content?.image ?? null;
     
-    // --- NEW: Handle Status Read
-    // Pastikan backend mengirim field 'isRead' atau 'read_at'
+    // Handle Status Read
     msg.isRead = msg.isRead ?? (msg.read_at ? true : false) ?? false;
 
     const lat = msg.latitude ?? msg.lat ?? msg.content?.latitude ?? null;
@@ -126,72 +131,73 @@ const CurrentChat = () => {
     return false; 
   };
 
-  // ---------------- NEW: MARK AS READ API ----------------
+  // ---------------- MARK AS READ (FIXED URL) ----------------
   const markMessagesAsRead = async (messageList = messages) => {
-  if (!token || !messageList.length) return;
+    if (!token || !messageList.length) return;
 
-  // ✅ HANYA pesan lawan + belum dibaca
-  const unreadMessages = messageList.filter(
-    (msg) => !isMessageFromMe(msg) && !msg.isRead
-  );
+    const unreadMessages = messageList.filter(
+      (msg) => !isMessageFromMe(msg) && !msg.isRead
+    );
 
-  if (unreadMessages.length === 0) return;
+    if (unreadMessages.length === 0) return;
 
-  for (const msg of unreadMessages) {
-    try {
-      await axios.put(
-        `${API_BASE_URL}/api/v1/message/read/${msg.id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+    // 1. Update Server via HTTP
+    for (const msg of unreadMessages) {
+      try {
+        // 🔥 FIX: Hapus '/api/v1' karena API_BASE_URL sudah mengandung path tersebut
+        // URL Sebelumnya: `${API_BASE_URL}/api/v1/message/read/${msg.id}` -> ERROR 404 (Double api/v1)
+        await axios.put(
+          `${API_BASE_URL}/message/read/${msg.id}`, 
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // 2. Update UI State Lokal
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msg.id ? { ...m, isRead: true } : m
+          )
+        );
+
+        // 3. Emit Socket Event
+        const socket = getSocket();
+        if (socket && chatIdParam) {
+            socket.emit("read_message", { chatId: chatIdParam, messageId: msg.id });
         }
-      );
 
-      // ✅ update state biar UI langsung berubah
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === msg.id ? { ...m, isRead: true } : m
-        )
-      );
-    } catch (err) {
-      console.error("Gagal mark read msgId:", msg.id, err);
+      } catch (err) {
+        console.error("Gagal mark read msgId:", msg.id, err);
+      }
     }
-  }
-};
+  };
 
 
-  // ---------------- EFFECTS ----------------
+  // ---------------- EFFECTS & SOCKET LOGIC ----------------
   useEffect(() => {
     if ((chatIdParam === "new" || !chatIdParam) && !partnerId) {
       navigate("/chat");
     }
   }, [chatIdParam, partnerId]);
 
-  // --- NEW: Scroll Handler Logic
+  // Handle Scroll UI
   const handleScroll = () => {
     if (!chatContainerRef.current) return;
     
     const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-    // Deteksi jika user sudah dekat bagian bawah (toleransi 100px)
     const isBottom = scrollHeight - scrollTop - clientHeight < 150;
     
     setIsAtBottom(isBottom);
     setShowScrollButton(!isBottom);
 
-    // Jika user scroll mentok bawah, reset unread count & tandai dibaca
     if (isBottom) {
         setUnreadNewMessages(0);
         markMessagesAsRead(messages);
-        }
+    }
   };
 
-  // Auto scroll saat pertama load atau user kirim pesan sendiri
   useEffect(() => {
     if (messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
-      // Jika pesan terakhir dari saya, paksa scroll ke bawah
       if (isMessageFromMe(lastMsg)) {
         scrollToBottom();
       } 
@@ -199,11 +205,13 @@ const CurrentChat = () => {
   }, [messages]);
 
 
-  // ---------------- LOAD HISTORY (POLLING) ----------------
+  // ---------------- LOAD HISTORY (HTTP) & SOCKET INIT ----------------
   useEffect(() => {
     let isMounted = true;
     const chatId = chatIdParam === "new" ? null : chatIdParam;
+    const socket = getSocket();
 
+    // 1. Initial Load via HTTP
     const loadChatHistory = async () => {
       if (!token || !chatId) {
         if (isMounted) setIsLoadingHistory(false);
@@ -227,23 +235,12 @@ const CurrentChat = () => {
         const normalized = (Array.isArray(rawMessages) ? rawMessages : []).map(normalizeMessage);
 
         if (isMounted) {
-          setMessages(prev => {
-            // --- NEW: Logic Unread Count & Scroll Prevention
-            // Jika ada pesan baru (jumlah bertambah) DAN user TIDAK di posisi bawah
-            if (prev.length > 0 && normalized.length > prev.length && !isAtBottom) {
-              const diff = normalized.length - prev.length;
-              setUnreadNewMessages(p => p + diff);
-            }
-            
-            // --- NEW: Jika user di posisi bawah, langsung update & mark read
-            if (isAtBottom && normalized.length > prev.length) {
-               markMessagesAsRead();
-            }
+        setMessages(normalized);
+        setIsLoadingHistory(false);
 
-            return normalized; 
-          });
-          setIsLoadingHistory(false);
+        setTimeout(() => scrollToBottom(false), 0);
         }
+
       } catch (err) {
         if (isMounted) {
           if (err?.response?.status === 401) handleSessionExpired();
@@ -253,21 +250,96 @@ const CurrentChat = () => {
     };
 
     loadChatHistory();
-    // Mark read saat pertama kali buka chat
-    markMessagesAsRead();
 
-    const polling = setInterval(loadChatHistory, 3000); 
+    // 2. SOCKET CONNECT & LISTENERS
+    if (token) {
+        if (!socket.connected) {
+            socket.auth = { token };
+            socket.connect();
+        }
+
+        // Join Room Chat
+        if (chatId) {
+            socket.emit("join_chat", chatId);
+        }
+
+        const handleNewMessage = (rawMsg) => {
+            const newMsg = normalizeMessage(rawMsg);
+            
+            setMessages((prev) => {
+                const exists = prev.some(m => m.id === newMsg.id);
+                if (exists) return prev;
+
+                if (!isAtBottom && !isMessageFromMe(newMsg)) {
+                    setUnreadNewMessages(p => p + 1);
+                } else if (isAtBottom && !isMessageFromMe(newMsg)) {
+                    setTimeout(() => markMessagesAsRead([newMsg]), 100);
+                }
+
+                return [...prev, newMsg];
+            });
+        };
+        
+        const handleReadUpdate = ({ messageId }) => {
+            setMessages((prev) => 
+                prev.map((m) => 
+                    (m.id === messageId || messageId === 'all') 
+                    ? { ...m, isRead: true } 
+                    : m
+                )
+            );
+        };
+
+        const handlePartnerTyping = () => setIsPartnerTyping(true);
+        const handlePartnerStopTyping = () => setIsPartnerTyping(false);
+
+        socket.on("receive_message", handleNewMessage); 
+        socket.on("new_message", handleNewMessage);
+        
+        socket.on("messages_read_update", handleReadUpdate);
+        socket.on("partner_typing", handlePartnerTyping);
+        socket.on("partner_stop_typing", handlePartnerStopTyping);
+    }
+
     return () => {
-      isMounted = false;
-      clearInterval(polling);
+        isMounted = false;
+        if (socket) {
+            socket.off("receive_message");
+            socket.off("new_message");
+            socket.off("messages_read_update");
+            socket.off("partner_typing");
+            socket.off("partner_stop_typing");
+        }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatIdParam, token, isAtBottom]); // Tambahkan isAtBottom ke dependency
+  }, [chatIdParam, token]); 
+
+
+  // ---------------- TYPING EMITTER ----------------
+  const handleInputChange = (e) => {
+    setInputText(e.target.value);
+    
+    const socket = getSocket();
+    if (socket && chatIdParam) {
+        socket.emit("typing", { chatId: chatIdParam });
+        
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => {
+            socket.emit("stop_typing", { chatId: chatIdParam });
+        }, 2000);
+    }
+  };
 
   // ---------------- SEND MESSAGE ----------------
   const handleSendMessage = async ({ imageFile = null, skipText = false, lat = null, lng = null } = {}) => {
     if (!token) return handleSessionExpired();
     if ((!inputText || !inputText.trim()) && !imageFile && !(lat && lng)) return;
+
+    const socket = getSocket();
+    if (socket && chatIdParam) {
+        socket.emit("stop_typing", { chatId: chatIdParam });
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    }
 
     const tempId = "temp-" + Date.now();
     const optimistic = {
@@ -279,14 +351,13 @@ const CurrentChat = () => {
       timestamp: new Date(),
       _isSending: true,
       _forceMine: true, 
-      isRead: false, // Default unread
+      isRead: false,
     };
 
     setMessages((p) => [...p, normalizeMessage(optimistic)]);
     if (!skipText) setInputText("");
     setIsAttachmentPickerOpen(false);
     
-    // Force scroll ke bawah karena kita yang kirim
     setTimeout(() => scrollToBottom(), 100);
 
     try {
@@ -374,18 +445,14 @@ const CurrentChat = () => {
   const openCamera = () => { setIsAttachmentPickerOpen(false); setIsWebcamActive(true); };
   const openGallery = () => { setIsAttachmentPickerOpen(false); galleryInputRef.current?.click(); };
 
-  // --- NEW: Komponen Indikator Status (Ticks)
+  // --- Komponen Indikator Status ---
   const MessageStatus = ({ isSending, isFailed, isRead }) => {
     if (isFailed) return <span className="text-red-300 font-bold ml-1">!</span>;
     if (isSending) return <Loader2 className="w-3 h-3 animate-spin ml-1" />;
     
-    // Logic centang
     if (isRead) {
-      // Dibaca (Centang 2 Biru)
       return <CheckCheck className="w-3 h-3 ml-1 text-blue-300" />;
     } else {
-      // Terkirim tapi belum dibaca (Centang 2 Abu-abu / Centang 1)
-      // Disini kita default pakai Centang 2 Abu (Delivered) agar mirip WA
       return <CheckCheck className="w-3 h-3 ml-1 text-gray-300" />;
     }
   };
@@ -397,7 +464,6 @@ const CurrentChat = () => {
 
       <Navbar backButton title={partnerName} />
 
-      {/* --- NEW: Tambahkan onScroll dan ref pada container --- */}
       <div 
         ref={chatContainerRef}
         onScroll={handleScroll}
@@ -448,8 +514,6 @@ const CurrentChat = () => {
 
                     <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? "text-blue-100" : "text-gray-400"}`}>
                       {formatTime(m.timestamp)}
-                      
-                      {/* --- NEW: Render Status Centang khusus pesan kita --- */}
                       {isMe && (
                         <MessageStatus 
                           isSending={m._isSending} 
@@ -465,11 +529,18 @@ const CurrentChat = () => {
             );
           })}
           
+          {isPartnerTyping && (
+             <div className="flex items-center gap-2 mb-4 ml-10 animate-pulse">
+                <div className="bg-gray-200 px-3 py-2 rounded-2xl rounded-tl-sm">
+                   <span className="text-xs text-gray-500">Sedang mengetik...</span>
+                </div>
+             </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* --- NEW: Floating Scroll Button (WhatsApp Style) --- */}
       {showScrollButton && (
         <div className="absolute bottom-20 right-4 z-30 animate-in fade-in zoom-in duration-200">
           <button 
@@ -514,7 +585,7 @@ const CurrentChat = () => {
             <div className="flex-1 bg-gray-100 rounded-3xl flex items-center px-4 py-2">
                 <input
                     value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
+                    onChange={handleInputChange} 
                     onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                     placeholder="Tulis pesan..."
                     className="bg-transparent border-none outline-none w-full text-sm max-h-24 resize-none overflow-y-auto"

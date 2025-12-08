@@ -181,9 +181,9 @@ export default function EventsPage() {
                                         )}
                                     </div>
 
-                                    {/* ✅ LOGIKA TOMBOL DAFTAR DIKEMBALIKAN SESUAI RESPONS BE */}
+                                    
                                     {/* Tombol HANYA akan tampil jika status 'upcoming' DAN item.link ada isinya (bukan null) */}
-                                    {item.status === 'upcoming' && item.link && (
+                                    {/* {item.status === 'upcoming' && item.link && (
                                         <a 
                                             href={item.link}
                                             target="_blank"
@@ -193,7 +193,7 @@ export default function EventsPage() {
                                         >
                                             Daftar Sekarang <ExternalLink size={16} />
                                         </a>
-                                    )}
+                                    )} */}
 
                                 </div>
                             </div>

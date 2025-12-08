@@ -3,285 +3,310 @@ import { useNavigate } from "react-router-dom";
 import { Search, ArrowLeft, Loader2 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import axios from "axios";
+// --- NEW: Import helper socket ---
+import { getSocket } from "../lib/socketUtils"; 
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 // Format waktu singkat
 const formatTime = (dateString) => {
     if (!dateString) return "";
     const d = new Date(dateString);
-    return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    if (isNaN(d.getTime())) return "";
+    
+    const now = new Date();
+    const isToday = d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    
+    return isToday 
+        ? d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) 
+        : d.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 };
 
-const getSafeId = (item) => {
-    if (!item) return "";
-    const id = item.id || item.user_id || item.userId || item.uuid || item?.payload?.id || item?.data?.id;
-    return id ? String(id) : "";
-};
+const getSafeId = (item) => item?.id || item?.user_id || item?.userId || "";
 
 const ChatList = () => {
     const navigate = useNavigate();
+    // const socket = useRef(null); // TIDAK PERLU REF LAGI
 
-    const [chats, setChats] = useState([]); // raw chat objects from /chat/
-    const [satgasList, setSatgasList] = useState([]); // for user role
+    const [chats, setChats] = useState([]);
+    const [satgasList, setSatgasList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const [myId, setMyId] = useState("");
-
-    const userRole = (localStorage.getItem("userRole") || "user").toLowerCase();
+    
+    // Auth Data
     const token = localStorage.getItem("token");
+    const userRole = (localStorage.getItem("userRole") || "user").toLowerCase();
+    
+    const getMyId = () => {
+        const u = JSON.parse(localStorage.getItem("user") || "{}");
+        return String(u.id || localStorage.getItem("userId") || "");
+    }
+    const myId = getMyId();
 
-    // get current user id robustly
-    const storedUserId = localStorage.getItem("userId");
-    const userString = localStorage.getItem("user");
-    const parsed = userString ? JSON.parse(userString) : {};
-    const oldObjectId = getSafeId(parsed);
-    const currentUserId = myId || storedUserId || oldObjectId;
-
+    // --- 1. FETCH DATA (INIT) ---
     useEffect(() => {
-        const idFromStorage = localStorage.getItem("userId");
-        if (idFromStorage) {
-            setMyId(String(idFromStorage));
-        } else if (oldObjectId) {
-            setMyId(String(oldObjectId));
-        }
-    }, [oldObjectId]);
-
-    // Fetch chats and satgas list if needed
-    useEffect(() => {
-        let mounted = true;
         const init = async () => {
             setLoading(true);
             await fetchChatHistory();
             if (userRole === "user") await fetchSatgasList();
-            if (mounted) setLoading(false);
+            setLoading(false);
         };
         init();
-
-        const interval = setInterval(async () => {
-            await fetchChatHistory();
-            if (userRole === "user" && satgasList.length === 0) await fetchSatgasList();
-        }, 5000);
-
-        return () => { mounted = false; clearInterval(interval); };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userRole]);
 
-    const fetchChatHistory = async () => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/chat/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+    // --- 2. SOCKET LISTENER (REALTIME UPDATES) ---
+    useEffect(() => {
+        if (!token || !myId) return;
 
-            const datas = res.data?.payload?.datas || [];
-            // We expect an array of Chat objects, each may include last message or maybe not.
-            // Normalize: ensure createdAt, initiatorId, recipientId present.
-            const normalized = datas.map(c => ({
-                ...c,
-                createdAt: c.createdAt || c.created_at || c.created_at,
-                initiatorId: c.initiatorId ?? c.initiator_id ?? getSafeId(c.initiator),
-                recipientId: c.recipientId ?? c.recipient_id ?? getSafeId(c.recipient),
-                // lastMessage if backend supplies, prefer lastMessage or last_message
-                lastMessage: c.lastMessage || c.last_message || null,
-                // optionally include unreadCount if backend supplies
-                unreadCount: typeof c.unreadCount === "number" ? c.unreadCount : (c.unread_count ?? null),
-            }));
+        const socket = getSocket();
 
-            setChats(normalized);
-        } catch (e) {
-            console.error("Err history", e);
+        // Pastikan terkoneksi
+        if (!socket.connected) {
+            socket.auth = { token };
+            socket.connect();
         }
-    };
+
+        // Join room user agar bisa terima notif personal
+        socket.emit("join_user", myId);
+
+        // Handler saat ada pesan baru masuk
+        const handleNewMessage = (newMsg) => {
+            console.log("ChatList: New Message Received", newMsg);
+
+            setChats(prevChats => {
+                const incomingChatId = String(newMsg.chatId || newMsg.chat_id);
+                const senderId = String(newMsg.senderId || newMsg.sender_id);
+
+                // Cari apakah chat sudah ada di list
+                const chatIndex = prevChats.findIndex(c => String(c.id) === incomingChatId);
+                
+                let newChats = [...prevChats];
+                
+                if (chatIndex > -1) {
+                    // --- SKENARIO 1: Chat Sudah Ada ---
+                    const targetChat = { ...newChats[chatIndex] };
+                    
+                    // Update preview pesan terakhir
+                    const preview =
+                        newMsg.text?.trim()
+                            ? newMsg.text
+                            : newMsg.image
+                                ? "📷 Foto"
+                                : newMsg.location
+                                    ? "📍 Lokasi"
+                                    : "Pesan baru";
+
+                    targetChat.lastMessage = preview;
+
+                    localStorage.setItem(
+                        `lastMessage_${incomingChatId}`,
+                        preview
+                    );
+
+                    localStorage.setItem(
+                        `lastMessage_${incomingChatId}`,
+                        targetChat.lastMessage
+                        );
+
+                    targetChat.lastMsgTime = newMsg.createdAt || new Date().toISOString();
+                    
+                    // Logic Unread: Tambah 1 jika pengirim BUKAN kita
+                    if (senderId !== myId) {
+                        targetChat.unreadCount = (targetChat.unreadCount || 0) + 1;
+                    }
+
+                    // Pindahkan ke paling atas (unshift)
+                    newChats.splice(chatIndex, 1);
+                    newChats.unshift(targetChat);
+                } else {
+                    // --- SKENARIO 2: Chat Baru (Belum ada di list) ---
+                    // Fetch ulang agar data chat lengkap (nama partner, avatar, dll)
+                    fetchChatHistory();
+                    return prevChats; // Sementara return prev, nanti ke-update via fetch
+                }
+                
+                return newChats;
+            });
+        };
+
+        // Handler saat pesan dibaca (opsional, untuk reset badge realtime)
+        const handleMessagesRead = ({ chatId }) => {
+             setChats(prev => prev.map(c => {
+                 if(String(c.id) === String(chatId)) {
+                     return { ...c, unreadCount: 0 };
+                 }
+                 return c;
+             }));
+        };
+
+        // Listen Events
+        socket.on("new_message", handleNewMessage);
+        socket.on("receive_message", handleNewMessage); // Jaga-jaga nama event beda
+        socket.on("messages_read_update", handleMessagesRead); // Jika ada fitur ini di backend
+
+        // Cleanup listener saja, jangan disconnect socket global
+        return () => {
+            socket.off("new_message", handleNewMessage);
+            socket.off("receive_message", handleNewMessage);
+            socket.off("messages_read_update", handleMessagesRead);
+        };
+    }, [myId, token]);
+
+
+    // --- API CALLS ---
+    const fetchChatHistory = async () => {
+    try {
+        const res = await axios.get(`${API_BASE_URL}/chat/`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const rawDatas = res.data?.payload?.datas || [];
+        
+        const normalized = rawDatas.map(c => ({
+            id: c.id,
+            initiatorId: getSafeId(c.initiator) || c.initiatorId,
+            recipientId: getSafeId(c.recipient) || c.recipientId,
+            initiator: c.initiator,
+            recipient: c.recipient,
+            lastMessage:
+                c.lastMessage ??
+                localStorage.getItem(`lastMessage_${c.id}`) ??
+                (c.unreadCount > 0 ? "Pesan baru" : "Belum ada pesan"),
+            lastMsgTime: c.updatedAt || c.created_at || new Date().toISOString(),
+            unreadCount: c.unreadCount || c.unread_count || 0,
+        }));
+
+        const uniqueByPartner = [];
+        const seenPartner = new Set();
+
+        for (const chat of normalized) {
+            const partnerId = String(
+                String(chat.initiatorId) === String(myId)
+                    ? chat.recipientId
+                    : chat.initiatorId
+            );
+
+            if (!seenPartner.has(partnerId)) {
+                seenPartner.add(partnerId);
+                uniqueByPartner.push(chat);
+            }
+        }
+
+        uniqueByPartner.sort(
+            (a, b) => new Date(b.lastMsgTime) - new Date(a.lastMsgTime)
+        );
+
+        setChats(uniqueByPartner);
+    } catch (err) {
+        console.error("fetchChatHistory error:", err);
+    }
+};
+
 
     const fetchSatgasList = async () => {
         try {
             const res = await axios.get(`${API_BASE_URL}/satgas`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            const datas = res.data?.payload?.datas || [];
-            setSatgasList(datas);
-        } catch (e) {
-            console.error("Err satgas", e);
-        }
+            setSatgasList(res.data?.payload?.datas || []);
+        } catch (e) { console.error("Err satgas", e); }
     };
 
-    // HELPERS: find partner object and meta for a chat
-    const getPartnerForChat = (chat) => {
-        const myIdStr = String(currentUserId || "");
-        const initId = String(chat.initiatorId ?? getSafeId(chat.initiator) ?? "");
-        const recId = String(chat.recipientId ?? getSafeId(chat.recipient) ?? "");
-
-        let partner = null;
-        let partnerId = "";
-        if (initId === myIdStr) {
-            partnerId = recId;
-            partner = chat.recipient || { id: recId, name: chat.recipient_name || chat.recipient?.name || "User" };
-        } else {
-            partnerId = initId;
-            partner = chat.initiator || { id: initId, name: chat.initiator_name || chat.initiator?.name || "User" };
-        }
-        return { partner, partnerId };
-    };
-
-    // Compute last activity time and unread count per chat (best effort).
-    const computeChatMeta = (chat) => {
-        // lastMessage may be object or string
-        let lastMsgText = "";
-        let lastMsgTime = chat.createdAt || chat.created_at || chat.updatedAt || new Date().toISOString();
-        if (chat.lastMessage) {
-            if (typeof chat.lastMessage === "string") lastMsgText = chat.lastMessage;
-            else if (chat.lastMessage.content) {
-                try {
-                    if (typeof chat.lastMessage.content === "string") lastMsgText = chat.lastMessage.content;
-                    else lastMsgText = JSON.stringify(chat.lastMessage.content);
-                } catch { lastMsgText = ""; }
-            } else lastMsgText = chat.lastMessage.message || chat.lastMessage.text || "";
-            lastMsgTime = chat.lastMessage.createdAt || chat.lastMessage.created_at || lastMsgTime;
-        }
-
-        // unreadCount if provided by backend; else null (we don't spam additional requests here)
-        const unreadCount = (typeof chat.unreadCount === "number") ? chat.unreadCount : null;
-
-        return { lastMsgText, lastMsgTime, unreadCount };
-    };
-
-    // Build list for satgas view: only chats where partner role is 'user'
-    const renderSatgasView = () => {
-        // Filter chats so satgas sees only chats with users (exclude chats between satgas-satgas/admin etc)
-        const myIdStr = String(currentUserId || "");
-        const satgasChats = chats.filter(c => {
-            // ensure chat has initiatorId and recipientId
-            const a = String(c.initiatorId || getSafeId(c.initiator) || "");
-            const b = String(c.recipientId || getSafeId(c.recipient) || "");
-            // satgas should see any chat where either side is a user (not satgas) AND the chat involves them? 
-            // But the user said "di satgas itu cuma tampil list chat dari user ya" -> so show all chats where the other party is role user.
-            // We can't always know partner role from chat object; try to use initiator.role/recipient.role if present.
-            const initiatorRole = c.initiator?.role || c.initiator_role || null;
-            const recipientRole = c.recipient?.role || c.recipient_role || null;
-
-            // If roles present, include only chats where the opposite is 'user'
-            if (initiatorRole || recipientRole) {
-                // if initiator is user and recipient is satgas OR vice versa, include
-                const isUserInitiator = initiatorRole === "user";
-                const isUserRecipient = recipientRole === "user";
-                return isUserInitiator || isUserRecipient;
-            }
-
-            // fallback: if current user is satgas (myId matches one side), include that chat
-            // but user demanded satgas only see list from user — assume satgas account will have myId and we'll show chats where myId involved
-            return a === myIdStr || b === myIdStr;
-        });
-
-        // Map to meta objects and sort: unread desc, then lastMsgTime desc
-        const enriched = satgasChats.map(c => {
-            const { partner, partnerId } = getPartnerForChat(c);
-            const { lastMsgText, lastMsgTime, unreadCount } = computeChatMeta(c);
+    const getPartnerInfo = (chat) => {
+        const initId = String(chat.initiatorId);
+        if (initId === myId) {
             return {
-                chatId: c.id,
-                partner,
-                partnerId,
-                lastMsgText,
-                lastMsgTime,
-                unreadCount: unreadCount ?? 0,
-                raw: c
+                id: String(chat.recipientId),
+                name: chat.recipient?.name || "User",
             };
-        });
-
-        enriched.sort((x, y) => {
-            // unread first
-            if ((y.unreadCount || 0) - (x.unreadCount || 0) !== 0) {
-                return (y.unreadCount || 0) - (x.unreadCount || 0);
-            }
-            // then last message time
-            return new Date(y.lastMsgTime) - new Date(x.lastMsgTime);
-        });
-
-        const filtered = enriched.filter(it => it.partner?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
-        if (filtered.length === 0) return <div className="text-center mt-20 opacity-50">Belum ada pesan masuk.</div>;
-
-        return filtered.map(item => (
-            <div key={item.chatId} onClick={() => navigate(`/chat/${item.chatId}`, { state: { partnerName: item.partner?.name, partnerId: item.partnerId } })}
-                 className="flex items-center p-4 border-b bg-white hover:bg-gray-50 cursor-pointer transition-colors">
-                <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-sm">
-                        {item.partner?.name?.charAt(0)?.toUpperCase() || "U"}
-                    </div>
-                </div>
-
-                <div className="ml-4 flex-1 min-w-0">
-                    <div className="flex justify-between items-baseline mb-1">
-                        <h3 className="font-bold text-gray-900 truncate pr-2 text-base">{item.partner?.name || "User"}</h3>
-                        <span className="text-[10px] font-medium text-gray-400 shrink-0 bg-gray-100 px-2 py-0.5 rounded-full">
-                            {formatTime(item.lastMsgTime)}
-                        </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <p className={`text-sm truncate ${item.lastMsgText ? "text-gray-800 font-medium" : "text-gray-400 italic"}`}>
-                            {item.lastMsgText || "Klik untuk membuka percakapan"}
-                        </p>
-                        {item.unreadCount > 0 && (
-                            <div className="ml-3 bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
-                                {item.unreadCount}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        ));
+        }
+        return {
+            id: initId,
+            name: chat.initiator?.name || "User",
+        };
     };
 
-    // User view: show satgas list (from satgasList), prioritize existing chats & unread
-    const renderUserView = () => {
-        if (!currentUserId) {
+    // --- VIEWS ---
+
+    // VIEW 1: List Inbox (Satgas/User melihat Chat Langsung)
+    const renderInboxList = () => {
+        const filtered = chats.filter(c => getPartnerInfo(c).name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        if (filtered.length === 0) return <div className="text-center mt-20 opacity-50 text-sm">Belum ada pesan.</div>;
+
+        return filtered.map(item => {
+            const partner = getPartnerInfo(item);
             return (
-                <div className="text-center mt-10 text-red-500 text-sm p-4">
-                    <p>Memuat profil...</p>
-                    <button onClick={() => window.location.reload()} className="mt-2 text-blue-500 underline text-xs">Refresh</button>
+                <div key={item.id} onClick={() => navigate(`/chat/${item.id}`, { state: { partnerName: partner.name, partnerId: partner.id } })}
+                     className="flex items-center p-4 border-b bg-white hover:bg-gray-50 cursor-pointer transition-colors">
+                    
+                    {/* AVATAR */}
+                    <div className="relative">
+                        <div className="w-12 h-12 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-lg shrink-0 overflow-hidden">
+                            {partner.name.charAt(0).toUpperCase()}
+                        </div>
+                    </div>
+
+                    <div className="ml-4 flex-1 min-w-0">
+                        <div className="flex justify-between items-baseline mb-1">
+                            <h3 className="font-bold text-gray-900 truncate pr-2 text-base">{partner.name}</h3>
+                            {/* JAM - Hijau kalau unread */}
+                            <span className={`text-[11px] font-medium shrink-0 ${item.unreadCount > 0 ? 'text-[#25D366]' : 'text-gray-400'}`}>
+                                {formatTime(item.lastMsgTime)}
+                            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm truncate text-gray-500 max-w-[80%]">
+                                {typeof item.lastMessage === 'string' ? item.lastMessage : "📷 Foto"}
+                            </p>
+                            
+                            {/* BADGE HIJAU */}
+                            {item.unreadCount > 0 && (
+                                <div className="bg-[#25D366] text-white text-[10px] font-bold min-w-[20px] h-5 flex items-center justify-center rounded-full px-1 shadow-sm animate-in zoom-in">
+                                    {item.unreadCount}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             );
-        }
+        });
+    };
 
-        // For each satgas, find related chat if exists
-        const merged = satgasList.map(s => {
-            const pid = getSafeId(s);
-            // find chat between currentUserId and pid
-            const found = chats.find(c => {
-                const a = String(c.initiatorId || getSafeId(c.initiator) || "");
-                const b = String(c.recipientId || getSafeId(c.recipient) || "");
-                return (a === String(pid) && b === String(currentUserId)) || (b === String(pid) && a === String(currentUserId));
+    // VIEW 2: List Satgas (Hanya untuk User yang mau konsultasi)
+    const renderSatgasContactList = () => {
+        const mergedList = satgasList.map(s => {
+            const existingChat = chats.find(c => {
+                const p = getPartnerInfo(c);
+                return String(p.id) === String(s.id);
             });
-
-            const meta = found ? computeChatMeta(found) : { lastMsgText: "", lastMsgTime: 0, unreadCount: 0 };
-
-            return {
-                ...s,
-                partnerId: pid,
-                hasChat: !!found,
-                chatId: found ? found.id : null,
-                lastMsgText: meta.lastMsgText,
-                lastMsgTime: meta.lastMsgTime,
-                unreadCount: meta.unreadCount || 0
-            };
+            return { ...s, chatData: existingChat || null };
         });
 
-        // Sort: unread desc, then hasChat (recent) then name
-        merged.sort((a, b) => {
-            if ((b.unreadCount || 0) - (a.unreadCount || 0) !== 0) return (b.unreadCount || 0) - (a.unreadCount || 0);
-            if ((b.lastMsgTime || 0) - (a.lastMsgTime || 0) !== 0) return (b.lastMsgTime || 0) - (a.lastMsgTime || 0);
+        // Sort: Unread > Recent > Name
+        mergedList.sort((a, b) => {
+            const unreadA = a.chatData?.unreadCount || 0;
+            const unreadB = b.chatData?.unreadCount || 0;
+            if (unreadB !== unreadA) return unreadB - unreadA;
+            
+            const timeA = a.chatData?.lastMsgTime || 0;
+            const timeB = b.chatData?.lastMsgTime || 0;
+            if (timeA && timeB) return new Date(timeB) - new Date(timeA);
+            
             return a.name.localeCompare(b.name);
         });
 
-        const filtered = merged.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
-        if (filtered.length === 0) return <div className="text-center mt-20 opacity-50">Tidak ada kontak Satgas.</div>;
+        const filtered = mergedList.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
         return filtered.map(item => (
-            <div key={item.partnerId}
+            <div key={item.id}
                 onClick={() => {
-                    if (item.hasChat && item.chatId) {
-                        navigate(`/chat/${item.chatId}`, { state: { partnerName: item.name, partnerId: item.partnerId } });
+                    if (item.chatData) {
+                        navigate(`/chat/${item.chatData.id}`, { state: { partnerName: item.name, partnerId: item.id } });
                     } else {
-                        navigate(`/chat/new`, { state: { partnerName: item.name, partnerId: item.partnerId } });
+                        navigate(`/chat/new`, { state: { partnerName: item.name, partnerId: item.id } });
                     }
                 }}
                 className="flex items-center p-4 border-b bg-white hover:bg-gray-50 cursor-pointer"
@@ -290,15 +315,22 @@ const ChatList = () => {
                     <div className="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
                         {item.name.charAt(0).toUpperCase()}
                     </div>
-                    {item.hasChat && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>}
                 </div>
                 <div className="ml-4 flex-1">
                     <div className="flex justify-between items-center">
                         <p className="font-bold text-gray-900">{item.name}</p>
-                        {item.unreadCount > 0 && <span className="text-[12px] bg-red-500 text-white px-2 py-0.5 rounded-full">{item.unreadCount}</span>}
+                        
+                        {/* BADGE HIJAU DI LIST SATGAS */}
+                        {item.chatData?.unreadCount > 0 && (
+                             <div className="bg-[#25D366] text-white text-[10px] font-bold min-w-[20px] h-5 flex items-center justify-center rounded-full px-1 shadow-sm">
+                                {item.chatData.unreadCount}
+                            </div>
+                        )}
                     </div>
-                    <p className="text-sm text-gray-500">
-                        {item.hasChat ? (item.lastMsgText || "Lihat riwayat percakapan") : "Klik untuk mulai konsultasi"}
+                    <p className={`text-sm ${item.chatData ? 'text-gray-500' : 'text-blue-500 italic'}`}>
+                        {item.chatData ? 
+                            (typeof item.chatData.lastMessage === 'string' ? item.chatData.lastMessage : "📷 Foto") 
+                            : "Klik untuk mulai konsultasi"}
                     </p>
                 </div>
             </div>
@@ -310,18 +342,18 @@ const ChatList = () => {
             <Navbar />
             <div className="p-4 bg-white border-b flex items-center space-x-3 sticky top-0 z-10 shadow-sm">
                 <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-gray-200"><ArrowLeft className="w-5 h-5 text-gray-700" /></button>
-                <div className="flex-1 flex items-center space-x-3 border rounded-full px-4 py-2 bg-gray-100">
+                <div className="flex-1 flex items-center space-x-3 border rounded-full px-4 py-2 bg-gray-100 focus-within:ring-1 focus-within:ring-[#25D366] transition-all">
                     <Search className="w-5 h-5 text-gray-400" />
-                    <input type="text" placeholder="Cari..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 bg-transparent focus:outline-none" />
+                    <input type="text" placeholder="Cari..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 bg-transparent focus:outline-none text-sm" />
                 </div>
             </div>
 
             <div className="flex-1 overflow-y-auto">
-                <div className="px-4 py-3 bg-gray-50 text-xs font-bold text-gray-500 uppercase">
-                    {userRole === 'satgas' ? 'Inbox User' : 'Daftar Konselor / Satgas'}
+                <div className="px-4 py-3 bg-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wide">
+                    {userRole === 'satgas' ? 'Inbox Pesan' : 'Daftar Konselor'}
                 </div>
-                {loading ? <div className="flex justify-center mt-20"><Loader2 className="animate-spin text-blue-500" /></div> : (
-                    userRole === 'satgas' ? renderSatgasView() : renderUserView()
+                {loading ? <div className="flex justify-center mt-20"><Loader2 className="animate-spin text-[#25D366]" /></div> : (
+                    userRole === 'satgas' ? renderInboxList() : renderSatgasContactList()
                 )}
             </div>
         </div>

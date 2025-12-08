@@ -106,7 +106,7 @@ export default function Footer() {
                   <MapPin className="w-5 h-5 text-blue-400" />
                 </div>
                 <span className="text-slate-400 leading-relaxed">
-                  Jl. Pemuda No. 123, Sekayu, <br/>Semarang Tengah, Jawa Tengah 50132
+                  Jalan Prof. Soedarto, Tembalang, <br/>Kota Semarang Tengah, Jawa Tengah 50132
                 </span>
               </li>
               <li className="flex items-center gap-4 group">
@@ -114,15 +114,15 @@ export default function Footer() {
                   <Phone className="w-5 h-5 text-green-400" />
                 </div>
                 <a href="tel:+6281234567890" className="text-slate-400 hover:text-white transition-colors font-medium">
-                  +62 812 3456 7890
+                  +62 856 4057 8970
                 </a>
               </li>
               <li className="flex items-center gap-4 group">
                 <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-yellow-900/50 transition-colors">
                   <Mail className="w-5 h-5 text-yellow-400" />
                 </div>
-                <a href="mailto:halo@gugah.id" className="text-slate-400 hover:text-white transition-colors font-medium">
-                  halo@gugah.id
+                <a href="mailto:satgasgugah@gmail.com" className="text-slate-400 hover:text-white transition-colors font-medium">
+                  satgasgugah@gmail.com
                 </a>
               </li>
             </ul>
@@ -132,7 +132,7 @@ export default function Footer() {
         {/* Footer Bottom */}
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-slate-500 text-sm text-center md:text-left">
-            © 2025 GUGAH Indonesia. Dilindungi Undang-Undang.
+            © 2025 GUGAH
           </p>
           <div className="flex gap-8 text-sm font-medium">
             <a href="#" className="text-slate-500 hover:text-blue-400 transition-colors">Privasi</a>
