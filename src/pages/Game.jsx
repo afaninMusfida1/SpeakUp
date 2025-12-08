@@ -125,6 +125,20 @@ const Game = () => {
     if (gamePhase === 'finished') {
         const newTotalXP = currentXP + sessionXP;
         setCurrentXP(newTotalXP);
+
+        const updatedUserXP = async() => {
+            try {
+                await axios.put(`${API_BASE_URL}/user/xp`, { xp: sessionXP }, {
+                    headers: {
+                        Authorization: 'Bearer ' + token
+                    }
+                })
+            } catch (error) {
+                console.error("Gagal memperbarui XP pengguna:", error);
+            }
+        }
+
+        updatedUserXP();
         localStorage.setItem('userXp', newTotalXP.toString());
     }
   }, [gamePhase]);
@@ -197,6 +211,7 @@ const Game = () => {
 
   const rotation = dragPos.x * 0.05;
   const progressPercent = questions.length > 0 ? ((currentIndex) / questions.length) * 100 : 0;
+  const token = localStorage.getItem("token");
 
   return (
     <div className="min-h-screen font-sans bg-slate-900 flex flex-col text-white overflow-hidden">

@@ -118,16 +118,40 @@ export default function ArticleDetail() {
             })
 
             const result = response.data?.payload?.datas;
+            localStorage.setItem('userXp', result.userXp || 0);
                 
-            if (!result || !result.id) {
+            if (!result.articleContent || !result.articleContent.id) {
                 throw new Error("Artikel tidak ditemukan");
             }
 
-            joinedArticleContent(result);
+            joinedArticleContent(result.articleContent);
         } catch (error) {
-            console.error("Purchase Article Error:", error);
+            const status = error.response?.status;
+            let errorMessage = "Terjadi kesalahan jaringan saat akan mengakses artikel."
+
+            if(status === 403){
+                errorMessage = "XP tidak cukup untuk mengakses artikel ini.";
+            } else if(status === 404){
+                errorMessage = "Artikel yang kamu cari mungkin sudah dihapus atau tidak tersedia.";
+            }
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Memuat Artikel',
+                text: errorMessage,
+                showCancelButton: false,
+                showConfirmButton: true,
+                confirmButtonText: "Kembali ke Daftar",
+                allowOutsideClick: false,
+                confirmButtonColor: "#3b82f6",
+                customClass: {
+                    popup: "rounded-2xl font-sans",
+                    confirmButton: "rounded-xl px-6 py-2.5"
+                }
+            }).then(() => {
+                handleBack()
+            })
         }
-        console.log("Purchasing article with XP:", articleId);
     }
 
     useEffect(() => {
@@ -216,7 +240,7 @@ export default function ArticleDetail() {
                         }).then(() => {
                             navigate("/login");
                         });
-                    }
+                    } 
 
                     if (result.isConfirmed) {
                         handleBack();

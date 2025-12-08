@@ -11,13 +11,11 @@ const useDashboardData = () => {
     const [userXp, setUserXp] = useState(parseInt(localStorage.getItem("userXp")) || 0);
     const isSatgas = role === "satgas";
     
-    // HAPUS: unreadChatCount state
     const [mapCenter, setMapCenter] = useState(null);
     const [showMap, setShowMap] = useState(false);
     const [articles, setArticles] = useState([]);
     const [loadingArticles, setLoadingArticles] = useState(true);
 
-    // HAPUS: useEffect untuk setUnreadChatCount(3)
 
     useEffect(() => {
         const fetchArticles = async () => {
@@ -32,7 +30,7 @@ const useDashboardData = () => {
                         title: item.title,
                         description: item.summary || "Tidak ada deskripsi singkat.",
                         category: item.category || "Umum",
-                        readTime: item.timeRead ? `${item.timeRead} menit` : "5 menit",
+                        readTime: item.timeRead ? `${item.timeRead}` : "5",
                         image: item.imageUrl || null, 
                         color: "blue",
                         requiredXp: item.requiredXp || 0,
@@ -94,7 +92,6 @@ const useDashboardData = () => {
         role,
         userXp,
         isSatgas,
-        // HAPUS: unreadChatCount dari return
         mapCenter,
         showMap,
         articles,
