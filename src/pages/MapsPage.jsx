@@ -170,7 +170,7 @@ export default function MapsPage() {
 
   return (
     <div className="h-screen w-full flex flex-col bg-gray-50 overflow-hidden">
-      <Navbar backButton={true} title="Peta Bantuan" />
+      <Navbar backButton={true} title="Daftar Pusat Bantuan" />
 
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
         
