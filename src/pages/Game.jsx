@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import useDashboardData from "../hooks/useDashboardData";
 
 // Ganti URL ini sesuai backend kamu
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // --- FUNGSI FETCH DATA ---
 const fetchQuestions = async () => {

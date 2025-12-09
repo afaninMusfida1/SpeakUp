@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ExternalLink, Globe, HeartHandshake, ShieldCheck } from "lucide-react";
 import Navbar from "../components/Navbar";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000"; 
+const API_BASE_URL = import.meta.env.VITE_API_URL; 
 
 // Helper function untuk Ikon (dibiarkan default)
 const getIconByType = (type) => {

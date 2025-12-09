@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar"; 
 
 // --- PENGATURAN API ---
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000"; 
+const API_BASE_URL = import.meta.env.VITE_API_URL; 
 
 // Fungsi untuk menentukan status
 const getStatus = (eventDate) => {

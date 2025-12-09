@@ -6,7 +6,7 @@ import axios from "axios";
 // --- NEW: Import helper socket ---
 import { getSocket } from "../lib/socketUtils"; 
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Format waktu singkat
 const formatTime = (dateString) => {

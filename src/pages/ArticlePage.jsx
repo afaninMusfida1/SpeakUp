@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 import Navbar from "../components/Navbar";
 
 // Ambil URL API dari env
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000"; 
+const API_BASE_URL = import.meta.env.VITE_API_URL; 
 
 // Helper warna kategori
 const getCategoryColor = (categoryName) => {

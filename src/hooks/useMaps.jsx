@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:2007";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Helper Hitung Jarak (Haversine)
 const haversineKm = (lat1, lon1, lat2, lon2) => {
