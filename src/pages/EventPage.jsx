@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, Clock, MapPin, Video, ExternalLink } from "lucide-react"; // ExternalLink diimpor kembali
+import { Calendar, Clock, MapPin, Video, ExternalLink, Loader2 } from "lucide-react"; // ExternalLink diimpor kembali
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar"; 
 
@@ -94,11 +94,16 @@ export default function EventsPage() {
     // --- LOGIKA TAMPILAN LOADING/ERROR (Tidak berubah) ---
     if (isLoading) {
          return (
-            <div className="min-h-screen bg-[#F8FAFC]">
-                <Navbar backButton title="Agenda Kegiatan" />
-                <main className="max-w-4xl mx-auto px-4 py-8 text-center">
-                    <p className="text-gray-600">Memuat jadwal kegiatan...</p>
-                </main>
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+                <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-75"></div>
+                    <div className="relative bg-white p-4 rounded-full shadow-xl shadow-blue-100 border border-blue-50">
+                        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+                    </div>
+                </div>
+                <p className="text-gray-500 font-medium text-sm uppercase tracking-widest animate-pulse">
+                    Memuat Event...
+                </p>
             </div>
         );
     }

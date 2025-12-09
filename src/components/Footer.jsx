@@ -1,14 +1,45 @@
 import React from "react";
-import { Shield, MapPin, Mail, Phone, Instagram, Twitter, Facebook, Linkedin, ArrowRight } from "lucide-react";
+import { MapPin, Mail, Phone, ArrowRight } from "lucide-react";
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Footer() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleLoginClick = () => {
+    navigate('/login');
+  }
+
+  // Fungsi untuk scroll halus ke section tertentu
+  const scrollToSection = (e, sectionId) => {
+    e.preventDefault(); // Mencegah reload default browser
+
+    // Cek apakah kita sedang di halaman Home ('/')
+    if (location.pathname === '/') {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      // Jika di halaman lain (misal Login), pindah ke Home dulu
+      navigate('/');
+      // Tunggu sebentar sampai halaman Home dimuat, baru scroll
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
+
   return (
-    // HAPUS mt-32, GANTI dengan pt-44 atau pt-48 agar konten turun ke bawah memberi ruang untuk CTA Card yang melayang
-    <footer className="relative bg-slate-950 text-slate-300 pt-48 pb-12 font-sans">
+    // PERBAIKAN:
+    // 1. pt-[20rem]: Padding atas disesuaikan agar pas (tidak terlalu jauh, tidak menumpuk).
+    <footer className="relative bg-slate-950 text-slate-300 pt-[20rem] md:pt-48 pb-12 font-sans">
       
       {/* === CTA CARD (FLOATING) === */}
-      {/* Absolute positioning: top-0 minus setengah tinggi card untuk efek menumpuk */}
-      <div className="absolute -top-24 left-0 w-full px-4 z-20">
+      <div className="absolute -top-12 md:-top-24 left-0 w-full px-4 z-20">
         <div className="max-w-5xl mx-auto bg-gradient-to-r from-blue-100 to-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-blue-900/50 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left relative overflow-hidden border border-white/10">
           
           {/* Dekorasi Background Card */}
@@ -20,18 +51,15 @@ export default function Footer() {
               Edukasi Diri, Putus Rantai Kekerasan
             </h3>
             <p className="text-blue-700 text-lg max-w-lg leading-relaxed">
-              Pengetahuan adalah perlindungan terbaik. Pelajari tentang <i>consent</i>, hak tubuh, dan cara mencegah kekerasan seksual sekarang.
+              Pengetahuan adalah perlindungan terbaik. Pelajari tentang <i>consent</i>, hak tubuh, dan cara mencegah kekerasan sekarang.
             </p>
           </div>
 
-          <div className="relative z-10">
-            <Link 
-              to="/login" 
-              className="bg-blue-800 text-white hover:bg-blue-500 transition-all duration-300 px-8 py-4 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 group"
-            >
+          <div className="relative z-10 w-full md:w-auto">
+            <button onClick={handleLoginClick} className="w-full md:w-auto justify-center bg-blue-800 text-white hover:bg-blue-500 transition-all duration-300 px-8 py-4 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 group">
               Mulai Sekarang
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -39,40 +67,38 @@ export default function Footer() {
       {/* === MAIN FOOTER CONTENT === */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 mb-16">
+        {/* GRID LAYOUT FIX:
+            - Mobile: grid-cols-2
+            - Desktop: lg:grid-cols-4
+        */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10 mb-16">
           
-          {/* 1. BRAND COLUMN */}
-          <div className="space-y-6">
+          {/* 1. BRAND COLUMN (Full Width di HP) */}
+          <div className="space-y-4 col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3">
-              {/* <div className="p-2.5 bg-blue-600 rounded-xl shadow-lg shadow-blue-900/20"> */}
-                {/* Pastikan warna text-white agar icon terlihat jelas */}
-                  <img src="https://res.cloudinary.com/dj2gwflqs/image/upload/v1764211938/Group_1_gryebt.png" alt="Logo Gugah" className="w-10 h-10 object-contain drop-shadow-sm" />
-              {/* </div> */}
+                <img src="https://res.cloudinary.com/dj2gwflqs/image/upload/v1764211938/Group_1_gryebt.png" alt="Logo Gugah" className="w-10 h-10 object-contain drop-shadow-sm" />
               <span className="text-3xl font-black text-white tracking-tighter">GUGAH</span>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed pr-4">
-              Platform ekosistem digital untuk pencegahan kekerasan seksual. Kami hadir sebagai ruang aman untuk bicara, belajar, dan mendapatkan dukungan profesional.
+              Platform ekosistem digital untuk pencegahan kekerasan. Kami hadir sebagai ruang aman untuk bicara.
             </p>
-            {/* Social Icons */}
-            <div className="flex gap-3">
-              {[Instagram, Twitter, Linkedin, Facebook].map((Icon, i) => (
-                <a key={i} href="#" className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all duration-300">
-                  <Icon size={18} />
-                </a>
-              ))}
-            </div>
           </div>
 
-          {/* 2. LINKS: LAYANAN */}
-          <div>
-            <h4 className="text-white font-bold text-lg mb-6 relative inline-block">
-              Layanan Utama
+          {/* 2. LINKS: LAYANAN (Kiri di HP) */}
+          <div className="col-span-1">
+            <h4 className="text-white font-bold text-lg mb-4 relative inline-block">
+              Layanan
               <span className="absolute -bottom-2 left-0 w-8 h-1 bg-blue-500 rounded-full"></span>
             </h4>
-            <ul className="space-y-4">
-              {['Konseling Online', 'Chat Satgas 24/7', 'Menfess Anonim', 'Peta Darurat', 'Edukasi Seksual'].map((item, i) => (
+            <ul className="space-y-3">
+              {['Chat Satgas 24/7', 'Peta Darurat', 'Edukasi'].map((item, i) => (
                 <li key={i}>
-                  <a href="#" className="text-slate-400 hover:text-blue-400 hover:pl-2 transition-all duration-300 inline-block text-sm font-medium">
+                  {/* UPDATE: Menambahkan onClick untuk scroll ke id="layanan" */}
+                  <a 
+                    href="#layanan" 
+                    onClick={(e) => scrollToSection(e, 'layanan')}
+                    className="text-slate-400 hover:text-blue-400 hover:pl-2 transition-all duration-300 inline-block text-sm font-medium cursor-pointer"
+                  >
                     {item}
                   </a>
                 </li>
@@ -80,16 +106,21 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* 3. LINKS: TENTANG */}
-          <div>
-            <h4 className="text-white font-bold text-lg mb-6 relative inline-block">
-              Tentang Kami
+          {/* 3. LINKS: TENTANG (Kanan di HP) */}
+          <div className="col-span-1">
+            <h4 className="text-white font-bold text-lg mb-4 relative inline-block">
+              Tentang
               <span className="absolute -bottom-2 left-0 w-8 h-1 bg-purple-500 rounded-full"></span>
             </h4>
-            <ul className="space-y-4">
-              {['Profil GUGAH', 'Tim Profesional', 'Blog & Artikel', 'Karir', 'Menjadi Partner'].map((item, i) => (
+            <ul className="space-y-3">
+              {['Profil GUGAH', 'Landasan Hukum', 'Artikel', 'Partner'].map((item, i) => (
                 <li key={i}>
-                  <a href="#" className="text-slate-400 hover:text-purple-400 hover:pl-2 transition-all duration-300 inline-block text-sm font-medium">
+                  {/* UPDATE: Menambahkan onClick untuk scroll ke id="home" (Bagian atas/profil) */}
+                  <a 
+                    href="#home"
+                    onClick={(e) => scrollToSection(e, 'home')} 
+                    className="text-slate-400 hover:text-purple-400 hover:pl-2 transition-all duration-300 inline-block text-sm font-medium cursor-pointer"
+                  >
                     {item}
                   </a>
                 </li>
@@ -97,32 +128,32 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* 4. CONTACT INFO */}
-          <div>
-            <h4 className="text-white font-bold text-lg mb-6 relative inline-block">
+          {/* 4. CONTACT INFO (Full Width di HP agar rapi) */}
+          <div className="col-span-2 lg:col-span-1">
+            <h4 className="text-white font-bold text-lg mb-4 relative inline-block">
               Hubungi Kami
               <span className="absolute -bottom-2 left-0 w-8 h-1 bg-blue-500 rounded-full"></span>
             </h4>
-            <ul className="space-y-5 text-sm">
+            <ul className="space-y-4 text-sm">
               <li className="flex items-start gap-4 group">
-                <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-blue-900/50 transition-colors">
-                  <MapPin className="w-5 h-5 text-blue-400" />
+                <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-blue-900/50 transition-colors shrink-0">
+                  <MapPin className="w-4 h-4 text-blue-400" />
                 </div>
                 <span className="text-slate-400 leading-relaxed">
-                  Jalan Prof. Soedarto, Tembalang, <br/>Kota Semarang Tengah, Jawa Tengah 50132
+                  Jalan Prof. Soedarto, Tembalang, Kota Semarang.
                 </span>
               </li>
               <li className="flex items-center gap-4 group">
-                <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-green-900/50 transition-colors">
-                  <Phone className="w-5 h-5 text-green-400" />
+                <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-green-900/50 transition-colors shrink-0">
+                  <Phone className="w-4 h-4 text-green-400" />
                 </div>
                 <a href="tel:+6281234567890" className="text-slate-400 hover:text-white transition-colors font-medium">
                   +62 856 4057 8970
                 </a>
               </li>
               <li className="flex items-center gap-4 group">
-                <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-yellow-900/50 transition-colors">
-                  <Mail className="w-5 h-5 text-yellow-400" />
+                <div className="p-2 bg-slate-800 rounded-lg group-hover:bg-yellow-900/50 transition-colors shrink-0">
+                  <Mail className="w-4 h-4 text-yellow-400" />
                 </div>
                 <a href="mailto:satgasgugah@gmail.com" className="text-slate-400 hover:text-white transition-colors font-medium">
                   satgasgugah@gmail.com
@@ -137,9 +168,9 @@ export default function Footer() {
           <p className="text-slate-500 text-sm text-center md:text-left">
             © 2025 GUGAH
           </p>
-          <div className="flex gap-8 text-sm font-medium">
+          <div className="flex gap-6 text-sm font-medium flex-wrap justify-center">
             <a href="#" className="text-slate-500 hover:text-blue-400 transition-colors">Privasi</a>
-            <a href="#" className="text-slate-500 hover:text-blue-400 transition-colors">Syarat & Ketentuan</a>
+            <a href="#" className="text-slate-500 hover:text-blue-400 transition-colors">S&K</a>
             <a href="#" className="text-slate-500 hover:text-blue-400 transition-colors">FAQ</a>
           </div>
         </div>

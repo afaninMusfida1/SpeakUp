@@ -153,7 +153,7 @@ const LandingPage = () => {
 };
 
   return (
-    <div className="min-h-screen font-sans bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-50">
+    <div className="min-h-screen font-sans bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-50 overflow-x-hidden">
       <SkipToContent />
       <Navbar showMenu={true} showUrgent={true} className="bg-white" />
 
@@ -169,7 +169,7 @@ const LandingPage = () => {
       </button>
 
       {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 h-1.5 bg-blue-300 z-50">
+      {/* <div className="fixed top-0 left-0 right-0 h-1.5 bg-blue-300 z-50">
         <div 
           className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300 ease-out"
           style={{
@@ -180,7 +180,7 @@ const LandingPage = () => {
           aria-valuemin="0"
           aria-valuemax="100"
         ></div>
-      </div>
+      </div> */}
 
       {/* Main content */}
       <main id="main-content" tabIndex="-1">
@@ -208,23 +208,23 @@ const LandingPage = () => {
               </SimpleFadeIn>
 
               <SimpleFadeIn delay={100}>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 leading-tight tracking-tight">
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
                       GUGAH
                     </span>
                     <span> Kesadaran,</span> 
                     <br className="hidden lg:block" />
                     <span>
-                      Cegah Kekerasan Seksual
+                      Cegah Kekerasan
                     </span>
-                </h1>
+                  </h1>
               </SimpleFadeIn>
 
               <SimpleFadeIn delay={200}>
                 {/* --- TEKS BARU (Updated) --- */}
                 <div className="space-y-4">
                     <p className="text-base text-gray-700 leading-relaxed font-medium">
-                        Gugah adalah platform edukasi yang berfokus pada pendidikan seksual komprehensif dan upaya pencegahan kekerasan seksual.
+                        Gugah adalah platform edukasi yang berfokus pada pendidikan komprehensif dan upaya pencegahan kekerasan.
                     </p>
                 </div>
                 {/* -------------------------------- */}
@@ -257,7 +257,7 @@ const LandingPage = () => {
                 <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-xl border-4 border-white transform rotate-2 hover:rotate-0 transition-transform duration-500">
                     <ImageWithFallback 
                         src={HERO_IMAGE_URL} 
-                        alt="Ilustrasi edukasi seksual" 
+                        alt="Ilustrasi edukasi" 
                         className="w-full h-full object-cover bg-gray-100"
                         loading="lazy"
                         width={600}
@@ -273,7 +273,7 @@ const LandingPage = () => {
                    role="note"
                  >
                     <div className="flex items-center gap-2 mb-1">
-                      <div className="bg-green-100 p-1.5 rounded-full text-green-600">
+                      <div className="bg-blue-100 p-1.5 rounded-full text-blue-600">
                         <Shield size={16} />
                       </div>
                       <span className="font-bold text-gray-800 text-xs">Edukasi</span>
@@ -285,11 +285,11 @@ const LandingPage = () => {
                    className="absolute top-4 -right-2 md:top-8 md:-right-4 bg-white/90 backdrop-blur-md p-2 rounded-xl shadow-lg border border-white/50 items-center gap-2 animate-pulse hidden sm:flex"
                    role="note"
                  >
-                      <div className="bg-blue-100 p-1.5 rounded-full text-blue-600">
+                      <div className="bg-green-100 p-1.5 rounded-full text-green-600">
                         <BookOpen size={14} fill="currentColor" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-800">Cegah KS</p>
+                        <p className="text-[10px] font-bold text-gray-800">Cegah Kekerasan</p>
                       </div>
                  </div>
               </div>
@@ -338,7 +338,7 @@ const LandingPage = () => {
               </h2>
               
               <p className="text-slate-300 text-lg leading-relaxed max-w-xl">
-                Kekerasan seksual bukan sekadar statistik di atas kertas. Ini adalah panggilan darurat. 
+                Kekerasan bukan sekadar statistik di atas kertas. Ini adalah panggilan darurat. 
                 Data ini adalah alasan kenapa <strong className="text-white">GUGAH</strong> berdiri tegak di sini.
               </p>
 
@@ -450,7 +450,7 @@ const LandingPage = () => {
             Kami hadir untuk mengisi celah pengetahuan kritis yang seringkali tidak diajarkan baik di sekolah maupun dalam lingkungan masyarakat luas.
           </p>
           <p className="mt-4 text-slate-600 text-base leading-relaxed">
-            Melalui Gugah, masyarakat dapat mempelajari tentang kesehatan reproduksi, <span className="text-blue-700 font-bold italic">consent</span> (persetujuan), hingga cara mengenali, mencegah, dan melaporkan tindakan kekerasan seksual.
+            Melalui Gugah, masyarakat dapat mempelajari tentang kesehatan reproduksi, <span className="text-blue-700 font-bold italic">consent</span> (persetujuan), hingga cara mengenali, mencegah, dan melaporkan tindakan kekerasan.
           </p>
         </SimpleFadeIn>
       </div>
@@ -468,14 +468,14 @@ const LandingPage = () => {
         },
         {
           title: "Profesional",
-          desc: "Bukan sekadar bot. Kamu didukung oleh psikolog klinis dan satgas yang terlatih menangani trauma.",
+          desc: "Bukan sekadar bot. Kamu didukung oleh satgas yang terlatih.",
           icon: Heart,
           bgIcon: "bg-rose-100",
           textIcon: "text-rose-600"
         },
         {
           title: "Akses 24/7",
-          desc: "Trauma tidak mengenal jam kerja. Fitur bantuan darurat dan Menfess kami aktif kapanpun kamu butuh.",
+          desc: "Trauma tidak mengenal jam kerja. Fitur bantuan kami aktif kapanpun kamu butuh.",
           icon: Activity,
           bgIcon: "bg-indigo-100",
           textIcon: "text-indigo-600"
@@ -513,40 +513,44 @@ const LandingPage = () => {
   </div>
 </section>
 
-{/* ================= SECTION 3.5: PARTNERSHIP (CINEMATIC BLEND - REVISI) ================= */}
-      <section className="relative w-full h-[600px] md:h-[500px] overflow-hidden bg-white z-30 group">
+{/* ================= SECTION 3.5: PARTNERSHIP (MOBILE FIXED FINAL V3) ================= */}
+      <section className="relative w-full h-[650px] md:h-[500px] overflow-hidden bg-white z-30 group">
          
          {/* 1. LAYER FOTO BACKGROUND */}
          <div className="absolute inset-0 w-full h-full">
             <ImageWithFallback 
                 src={'https://res.cloudinary.com/dj2gwflqs/image/upload/v1764929630/WhatsApp_Image_2025-12-04_at_4.04.28_PM2_xxy9im.jpg'} 
                 alt="Dokumentasi Satgas PPK Polines" 
-                // REVISI 1: Menggeser fokus foto lebih ke kiri (25% dari kiri)
-                className="w-full h-full object-cover object-center md:object-[-25%_center]" 
+                // PERBAIKAN 1: Posisi Foto
+                // object-[35%_top]: Menggeser fokus horizontal foto agar visualnya bergeser ke kanan di HP.
+                // md:object...: Posisi desktop tidak diubah.
+                className="w-full h-full object-cover object-[10%_top] md:object-[-25%_center]" 
             />
          </div>
 
-         {/* 2. GRADIENT OVERLAY (REVISI) */}
-         {/* REVISI 2: Mengurangi ketebalan gradient (via-white/50) agar foto kanan lebih terlihat */}
-         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent md:bg-gradient-to-l md:from-white md:via-white/50 md:to-transparent"></div>
+         {/* 2. GRADIENT OVERLAY (Tetap seperti V2) */}
+         <div className="absolute bottom-0 left-0 w-full h-[85%] md:h-full bg-gradient-to-t from-white from-40% via-white/80 to-transparent md:bg-gradient-to-l md:from-white md:via-white/50 md:to-transparent"></div>
 
          {/* 3. KONTEN (Teks) */}
-         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-end md:justify-center items-center md:items-end pb-12 md:pb-0">
+         {/* PERBAIKAN 2: Spasi Bawah
+             Ubah pb-12 menjadi pb-24 agar ada ruang lega di bawah tulisan "Terverifikasi"
+         */}
+         <div className="relative max-w-7xl mx-auto px-6 sm:px-6 lg:px-8 h-full flex flex-col justify-end md:justify-center items-start md:items-end pb-24 md:pb-0">
             
-            <div className="max-w-lg text-center md:text-right">
+            <div className="max-w-lg text-left md:text-right relative z-10">
                
                <SimpleFadeIn direction="up">
-                  {/* Badge Minimalis (Dipindah ke atas headline biar rapi) */}
-                  <div className="inline-flex items-center justify-center md:justify-end gap-2 mb-6 w-full">
+                  {/* Badge */}
+                  <div className="inline-flex items-center justify-start md:justify-end gap-2 mb-4 w-full">
                      <span className="relative flex h-2.5 w-2.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
                      </span>
-                     <span className="text-sm font-bold tracking-widest text-blue-700 uppercase">KOLABORASI RESMI</span>
+                     <span className="text-xs font-bold tracking-widest text-blue-700 uppercase">KOLABORASI RESMI</span>
                   </div>
 
-                  {/* Headline Besar & Bersih */}
-                  <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 leading-tight">
+                  {/* Headline */}
+                  <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-4 leading-tight">
                      Didukung Penuh oleh <br/>
                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
                         Satgas PPK Polines
@@ -554,23 +558,19 @@ const LandingPage = () => {
                   </h2>
 
                   {/* Deskripsi */}
-                  <p className="text-slate-600 text-lg leading-relaxed mb-8 font-medium">
+                  <p className="text-slate-600 text-sm md:text-lg leading-relaxed mb-6 font-medium">
                      Seluruh materi edukasi dan alur pelaporan di aplikasi GUGAH telah ditinjau dan disetujui oleh Satgas PPK Polines. Kami menjamin standar keamanan yang sesuai prosedur.
                   </p>
 
-                  {/* Signature / Footer (REVISI TOTAL) */}
-                  {/* REVISI 3: Mengubah layout Status/Year menjadi satu baris horizontal yang bersih */}
-                  <div className="flex items-center justify-center md:justify-end gap-3 border-t border-slate-200/60 pt-6 text-slate-500 font-medium text-sm mb-20">
-                     
+                  {/* Signature */}
+                  {/* mb-0 karena sudah di-handle oleh padding parent (pb-24) */}
+                  <div className="flex items-center justify-start md:justify-end gap-3 border-t border-slate-200/60 pt-4 text-slate-500 font-medium text-xs md:text-sm mb-0 md:mb-20">
                      <div className="flex items-center gap-2 text-blue-700 font-bold">
-                        <CheckCheck size={18} />
+                        <CheckCheck size={16} />
                         <span>Terverifikasi</span>
                      </div>
-                     
-                     <span>•</span> {/* Pemisah Titik */}
-                     
-                     <span>Sejak Tahun 2025</span>
-
+                     <span>•</span>
+                     <span>2025</span>
                   </div>
                </SimpleFadeIn>
 
@@ -616,7 +616,7 @@ const LandingPage = () => {
 
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
     {/* Header */}
-    <div className="text-center max-w-3xl mx-auto mb-24">
+    <div className="text-center max-w-3xl mx-auto mb-8">
       <SimpleFadeIn>
         {/* 3. TEXT: Ganti jadi White biar kebaca */}
         <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight">
@@ -630,69 +630,7 @@ const LandingPage = () => {
     </div>
     
     {/* Timeline Items */}
-    <div className="space-y-24 md:space-y-0 relative">
-      
-      {/* === ITEM 1: MENFESS === */}
-      <div className="relative md:flex md:items-center md:justify-between group">
-        <SimpleFadeIn direction="right" className="md:w-[45%] md:pr-16 mb-8 md:mb-0 order-1">
-          <div className="p-8 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[2rem] shadow-xl shadow-fuchsia-900/30 hover:shadow-fuchsia-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-end text-right text-white">
-            <div className="inline-flex p-3 bg-white/20 backdrop-blur-md text-white rounded-xl mb-4 shadow-inner border border-white/20">
-              <MessageCircle size={26} />
-            </div>
-            <h3 className="text-2xl md:text-3xl font-bold mb-2">Menfess <span className="text-fuchsia-200">Anonim</span></h3>
-            <p className="text-base text-violet-50 mb-8 leading-relaxed font-medium">
-              Curhat tanpa identitas. Cerita lo aman di sini, lega tanpa takut dihakimi.
-            </p>
-            <button className="group/btn flex items-center gap-2 bg-white text-fuchsia-700 text-sm font-bold px-5 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all">
-              Mulai Nulis <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform"/>
-            </button>
-          </div>
-        </SimpleFadeIn>
-        
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-fuchsia-600 rounded-full border-4 border-slate-900 shadow-lg z-20"></div>
-        
-        {/* === TEKS PENJELASAN (KANAN) === */}
-        <div className="md:w-[45%] order-2 pl-8 md:pl-16 hidden md:block">
-           <SimpleFadeIn delay={200} direction="left">
-             {/* TEXT: Ganti jadi Blue-400 & Slate-300 */}
-             <h4 className="text-blue-400 font-bold uppercase tracking-widest text-sm mb-3">Tanpa Penghakiman</h4>
-             <p className="text-2xl font-serif text-slate-300 leading-relaxed italic">
-               "Terkadang, yang paling kita butuhkan hanyalah didengar. Lepaskan bebanmu di sini, tanpa rasa takut."
-             </p>
-           </SimpleFadeIn>
-        </div>
-      </div>
-      
-      {/* === ITEM 2: GAME === */}
-      <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
-        
-        {/* === TEKS PENJELASAN (KIRI) === */}
-        <div className="md:w-[45%] order-1 pr-8 md:pr-16 text-right hidden md:block">
-           <SimpleFadeIn delay={200} direction="right">
-             <h4 className="text-cyan-400 font-bold uppercase tracking-widest text-sm mb-3">Belajar Seru</h4>
-             <p className="text-2xl font-serif text-slate-300 leading-relaxed italic">
-               "Pahami batasan dan hak tubuhmu lewat simulasi nyata. Karena teori saja tidak cukup."
-             </p>
-           </SimpleFadeIn>
-        </div>
-
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-cyan-500 rounded-full border-4 border-slate-900 shadow-lg z-20"></div>
-        
-        <SimpleFadeIn direction="left" className="md:w-[45%] md:pl-16 order-2">
-          <div className="p-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-[2rem] shadow-xl shadow-cyan-900/30 hover:shadow-cyan-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-start text-left text-white">
-            <div className="inline-flex p-3 bg-white/20 backdrop-blur-md text-white rounded-xl mb-4 shadow-inner border border-white/20">
-              <Gamepad2 size={26} />
-            </div>
-            <h3 className="text-2xl md:text-3xl font-bold mb-2">Game <span className="text-cyan-100">Edukasi</span></h3>
-            <p className="text-base text-blue-50 mb-8 leading-relaxed font-medium">
-              Simulasi interaktif. Belajar soal <i>consent</i> & <i>red flag</i> dengan cara yang asik.
-            </p>
-            <button className="group/btn flex items-center gap-2 bg-white text-cyan-700 text-sm font-bold px-5 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all">
-              Main Game <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform"/>
-            </button>
-          </div>
-        </SimpleFadeIn>
-      </div>
+    <div className="space-y-24 md:space-y-0 relative mb-10">
 
       {/* === ITEM 3: SATGAS === */}
       <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
@@ -758,6 +696,41 @@ const LandingPage = () => {
         </SimpleFadeIn>
       </div>
 
+{/* === ITEM 2: GAME (POSISI KIRI) === */}
+      <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
+        
+        {/* 1. CARD GAME (Sekarang di Kiri - Order 1) */}
+        <SimpleFadeIn direction="right" className="md:w-[45%] md:pr-16 mb-8 md:mb-0 order-1">
+          {/* Ubah items-start -> items-end dan text-left -> text-right agar rapi di kiri */}
+          <div className="p-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-[2rem] shadow-xl shadow-cyan-900/30 hover:shadow-cyan-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-end text-right text-white">
+            <div className="inline-flex p-3 bg-white/20 backdrop-blur-md text-white rounded-xl mb-4 shadow-inner border border-white/20">
+              <Gamepad2 size={26} />
+            </div>
+            <h3 className="text-2xl md:text-3xl font-bold mb-2">Game <span className="text-cyan-100">Edukasi</span></h3>
+            <p className="text-base text-blue-50 mb-8 leading-relaxed font-medium">
+              Simulasi interaktif. Belajar soal <i>consent</i> & <i>red flag</i> dengan cara yang asik.
+            </p>
+            <button className="group/btn flex items-center gap-2 bg-white text-cyan-700 text-sm font-bold px-5 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all">
+              Main Game <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform"/>
+            </button>
+          </div>
+        </SimpleFadeIn>
+
+        {/* 2. CENTER DOT */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-cyan-500 rounded-full border-4 border-slate-900 shadow-lg z-20"></div>
+        
+        {/* 3. TEKS PENJELASAN (Sekarang di Kanan - Order 2) */}
+        <div className="md:w-[45%] order-2 pl-8 md:pl-16 text-left hidden md:block">
+           <SimpleFadeIn delay={200} direction="left">
+             <h4 className="text-cyan-400 font-bold uppercase tracking-widest text-sm mb-3">Belajar Seru</h4>
+             <p className="text-2xl font-serif text-slate-300 leading-relaxed italic">
+               "Pahami batasan dan hak tubuhmu lewat simulasi nyata. Karena teori saja tidak cukup."
+             </p>
+           </SimpleFadeIn>
+        </div>
+
+      </div>
+      
     </div>
   </div>
 </section>
@@ -803,7 +776,7 @@ const LandingPage = () => {
                 <CheckCircle size={16}/>
               </div>
               <span className="text-slate-700 font-medium">
-                Preview fitur Menfess & Game Edukasi.
+                Preview fitur Game Edukasi.
               </span>
             </li>
           </ul>
@@ -863,7 +836,7 @@ const LandingPage = () => {
       </h2>
 
       <p className="text-lg md:text-xl text-blue-100/90 font-medium max-w-2xl mx-auto leading-relaxed">
-        Kekerasan seksual bisa dihentikan jika kita berhenti memalingkan wajah. 
+        Kekerasan bisa dihentikan jika kita berhenti memalingkan wajah. 
         Jadilah bagian dari perubahan, mulai dari dirimu sendiri.
       </p>
 
