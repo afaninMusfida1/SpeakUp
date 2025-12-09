@@ -350,9 +350,9 @@ const ChatList = () => {
 
             <div className="flex-1 overflow-y-auto">
                 <div className="px-4 py-3 bg-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wide">
-                    {userRole === 'satgas' ? 'Inbox Pesan' : 'Daftar Konselor'}
+                    {userRole === 'satgas' ? 'Pesan' : 'Daftar Konselor'}
                 </div>
-                {loading ? <div className="flex justify-center mt-20"><Loader2 className="animate-spin text-[#25D366]" /></div> : (
+                {loading ? <div className="flex justify-center mt-20"><Loader2 className="animate-spin text-blue-600" /></div> : (
                     userRole === 'satgas' ? renderInboxList() : renderSatgasContactList()
                 )}
             </div>

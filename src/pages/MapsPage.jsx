@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import { Phone, MessageCircle, Navigation, MapPin, Crosshair } from "lucide-react";
+import { Phone, MessageCircle, Navigation, MapPin, Crosshair,Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2"; // Import SweetAlert
 
@@ -179,9 +179,16 @@ export default function MapsPage() {
           
           {/* Loading State Visual */}
           {loadingLoc && (
-            <div className="absolute inset-0 bg-gray-100/80 z-50 flex flex-col items-center justify-center animate-pulse">
-              <MapPin className="w-10 h-10 text-purple-500 mb-2 animate-bounce" />
-              <p className="text-gray-500 font-medium">Mencari titik lokasi...</p>
+            <div className="absolute inset-0 bg-gray-50/90 z-50 flex flex-col items-center justify-center">
+              <div className="relative mb-4">
+                 <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-75"></div>
+                 <div className="relative bg-white p-4 rounded-full shadow-xl shadow-blue-100 border border-blue-50">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                 </div>
+              </div>
+              <p className="text-gray-500 font-medium text-xs uppercase tracking-widest animate-pulse">
+                Mencari Lokasi...
+              </p>
             </div>
           )}
 

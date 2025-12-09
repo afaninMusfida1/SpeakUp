@@ -416,9 +416,12 @@ const Navbar = ({
            ))}
            <hr className="my-2 border-gray-100"/>
            {activeRole === 'guest' ? (
-               <Button variant="outline" onClick={() => { navigate("/login"); setIsOpen(false); }} className="w-full justify-center gap-2"><LogIn size={18} /> Masuk</Button>
+               <Button variant="outline" onClick={() => { navigate("/login"); setIsOpen(false); }} className="w-full justify-start gap-2 items-center flex"><LogIn size={18} /> Masuk</Button>
            ) : (
-               <Button variant="ghost" onClick={() => { handleDefaultLogout(); setIsOpen(false); }} className="w-full justify-center gap-2 text-red-600 hover:bg-red-50"><LogOut size={18} /> Keluar</Button>
+               <Button variant="ghost" onClick={() => { handleDefaultLogout(); setIsOpen(false); }} className="w-full justify-start gap-2 text-red-600 hover:bg-red-50 items-center flex">
+                <LogOut size={18} /> 
+                Keluar
+                </Button>
            )}
         </div>
       )}

@@ -173,7 +173,7 @@ const Game = () => {
     let isCorrect = (direction === 'left' && isRedFlag) || (direction === 'right' && !isRedFlag);
 
     if (isCorrect) {
-        setSessionXP(prev => prev + 5); 
+        setSessionXP(prev => prev + 3); 
         setCorrectCount(prev => prev + 1);
     }
 

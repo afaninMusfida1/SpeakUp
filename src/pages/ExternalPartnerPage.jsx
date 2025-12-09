@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ExternalLink, Globe, HeartHandshake, ShieldCheck } from "lucide-react";
+import { ExternalLink, Globe, HeartHandshake, ShieldCheck, Loader2 } from "lucide-react";
 import Navbar from "../components/Navbar";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL; 
@@ -66,7 +66,7 @@ export default function ExternalPartnersPage() {
                 setError(null);
             } catch (err) {
                 console.error("Error fetching partners:", err);
-                setError("Gagal memuat data jejaring. Silakan coba lagi nanti.");
+                setError("Gagal memuat data Komunitas. Silakan coba lagi nanti.");
             } finally {
                 setIsLoading(false);
             }
@@ -76,20 +76,34 @@ export default function ExternalPartnersPage() {
     }, []);
 
     // --- Tampilan Loading dan Error (Dihilangkan untuk brevity, asumsikan tidak berubah) ---
-    if (isLoading) { /* ... */ return (<div>Memuat...</div>); }
+    if (isLoading) { 
+        return (
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+                <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-75"></div>
+                    <div className="relative bg-white p-4 rounded-full shadow-xl shadow-blue-100 border border-blue-50">
+                        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+                    </div>
+                </div>
+                <p className="text-gray-500 font-medium text-sm uppercase tracking-widest animate-pulse">
+                    Menghubungkan Komunitas...
+                </p>
+            </div>
+        ); 
+    }
     if (error) { /* ... */ return (<div>Error: {error}</div>); }
 
     // --- Tampilan Utama ---
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
-            <Navbar backButton title="Jejaring Eksternal" />
+            <Navbar backButton title="Komunitas Eksternal" />
 
             <main className="max-w-5xl mx-auto px-4 py-8">
                 
                 <div className="text-center mb-10 max-w-2xl mx-auto">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-3">Mitra & Organisasi</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-3">Komunitas</h1>
                     <p className="text-gray-500 leading-relaxed">
-                        Kami terhubung dengan berbagai lembaga nasional dan komunitas untuk memastikan kamu mendapatkan dukungan yang tepat dan valid.
+                        Tempat untuk kamu menambah pengetahuan dan mencari dukungan.
                     </p>
                 </div>
 

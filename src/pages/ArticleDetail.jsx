@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios"; 
-import { ArrowLeft, BookOpen, Calendar, Clock } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, Clock, Loader2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2"; // 1. Import SweetAlert2
 import Navbar from "../components/Navbar";
@@ -366,7 +366,7 @@ export default function ArticleDetail() {
                             size="lg"
                             className="w-full md:w-auto px-10 shadow-soft-xl hover:shadow-soft-xl text-white"
                         >
-                            Mulai Chat Anonim
+                            Chat Satgas
                         </Button>
                     </div>
                 </div>
