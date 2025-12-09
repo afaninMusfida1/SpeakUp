@@ -143,6 +143,11 @@ export default function Dashboard() {
                 }
 
             } catch (error) {
+                const errorCode = error.response?.status;
+                if(errorCode === 401) {
+                    navigate('/login');
+                    return;
+                }
                 console.error("Gagal mengambil data user:", error);
             } finally {
                 setLoadingUser(false);

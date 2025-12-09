@@ -133,6 +133,9 @@ export default function ArticleDetail() {
                 errorMessage = "XP tidak cukup untuk mengakses artikel ini.";
             } else if(status === 404){
                 errorMessage = "Artikel yang kamu cari mungkin sudah dihapus atau tidak tersedia.";
+            } else if(status === 401){
+                navigate("/login");
+                return;
             }
 
             Swal.fire({

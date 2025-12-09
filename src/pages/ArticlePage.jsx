@@ -73,6 +73,11 @@ export default function ArticlePage() {
                     setArticles([]);
                 }
             } catch (err) {
+                const errorCode = err.response?.status;         
+                if(errorCode === 401) {
+                    navigate('/login');
+                    return;
+                }
                 console.error("Fetch Articles Error:", err);
                 Swal.fire({
                     icon: 'error',

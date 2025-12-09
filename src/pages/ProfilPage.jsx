@@ -42,6 +42,7 @@ export default function ProfilePage() {
       } catch (err) {
         if (err.response?.status === 401) {
            setError("Sesi habis. Silakan login kembali.");
+           navigate("/login");
         } else {
            setError("Gagal memuat profil.");
         }

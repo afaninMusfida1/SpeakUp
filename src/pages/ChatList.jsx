@@ -199,6 +199,11 @@ const ChatList = () => {
 
         setChats(uniqueByPartner);
     } catch (err) {
+        const errorCode = err.response?.status;
+
+        if(errorCode === 401) {
+            navigate('/login');
+        }
         console.error("fetchChatHistory error:", err);
     }
 };
@@ -210,7 +215,14 @@ const ChatList = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSatgasList(res.data?.payload?.datas || []);
-        } catch (e) { console.error("Err satgas", e); }
+        } catch (e) { 
+            const errorCode = e.response?.status;
+
+            if(errorCode === 401) {
+                navigate('/login');
+            }
+            console.error("Err satgas", e); 
+        }
     };
 
     const getPartnerInfo = (chat) => {

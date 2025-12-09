@@ -47,6 +47,11 @@ const fetchQuestions = async () => {
         return formattedQuestions;
 
     } catch (error) {
+        const errorCode = error.response?.status;
+
+        if(errorCode === 401) {
+            navigate('/login');
+        }
         console.error("Gagal mengambil soal dari API:", error);
         return []; 
     }
@@ -134,6 +139,11 @@ const Game = () => {
                     }
                 })
             } catch (error) {
+                const errorCode = error.response?.status;
+
+                if(errorCode === 401) {
+                    navigate('/login');
+                }
                 console.error("Gagal memperbarui XP pengguna:", error);
             }
         }

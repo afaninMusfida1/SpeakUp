@@ -76,6 +76,11 @@ export default function EventsPage() {
                 setEvents(formattedEvents);
                 setError(null);
             } catch (err) {
+                const errorCode = err.response?.status;
+                if(errorCode === 401) {
+                    navigate('/login');
+                    return;
+                }
                 console.error("Error fetching events:", err);
                 setError("Gagal memuat jadwal kegiatan. Pastikan URL dan struktur respons API sudah benar.");
             } finally {

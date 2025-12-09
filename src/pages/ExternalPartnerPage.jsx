@@ -65,6 +65,11 @@ export default function ExternalPartnersPage() {
                 setPartners(formattedData);
                 setError(null);
             } catch (err) {
+                const errorCode = err.response?.status;
+                if(errorCode === 401) {
+                    navigate('/login');
+                    return;
+                }
                 console.error("Error fetching partners:", err);
                 setError("Gagal memuat data jejaring. Silakan coba lagi nanti.");
             } finally {
