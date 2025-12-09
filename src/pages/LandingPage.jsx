@@ -259,7 +259,7 @@ const LandingPage = () => {
                         src={HERO_IMAGE_URL} 
                         alt="Ilustrasi edukasi" 
                         className="w-full h-full object-cover bg-gray-100"
-                        loading="lazy"
+                        fetchpriority="high"
                         width={600}
                         height={400}
                         decoding="async"
@@ -521,20 +521,15 @@ const LandingPage = () => {
             <ImageWithFallback 
                 src={'https://res.cloudinary.com/dj2gwflqs/image/upload/v1764929630/WhatsApp_Image_2025-12-04_at_4.04.28_PM2_xxy9im.jpg'} 
                 alt="Dokumentasi Satgas PPK Polines" 
-                // PERBAIKAN 1: Posisi Foto
-                // object-[35%_top]: Menggeser fokus horizontal foto agar visualnya bergeser ke kanan di HP.
-                // md:object...: Posisi desktop tidak diubah.
                 className="w-full h-full object-cover object-[10%_top] md:object-[-25%_center]" 
+                fetchpriority="high"
             />
          </div>
 
          {/* 2. GRADIENT OVERLAY (Tetap seperti V2) */}
          <div className="absolute bottom-0 left-0 w-full h-[85%] md:h-full bg-gradient-to-t from-white from-40% via-white/80 to-transparent md:bg-gradient-to-l md:from-white md:via-white/50 md:to-transparent"></div>
 
-         {/* 3. KONTEN (Teks) */}
-         {/* PERBAIKAN 2: Spasi Bawah
-             Ubah pb-12 menjadi pb-24 agar ada ruang lega di bawah tulisan "Terverifikasi"
-         */}
+          {/* 3. KONTEN UTAMA */}
          <div className="relative max-w-7xl mx-auto px-6 sm:px-6 lg:px-8 h-full flex flex-col justify-end md:justify-center items-start md:items-end pb-24 md:pb-0">
             
             <div className="max-w-lg text-left md:text-right relative z-10">

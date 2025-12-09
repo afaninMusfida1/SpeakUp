@@ -73,7 +73,12 @@ const SectionHeader = ({ icon: Icon, title, subtitle, action }) => (
             </h3>
             <p className="text-sm text-gray-500 mt-1 max-w-xl leading-relaxed">{subtitle}</p>
         </div>
-        {action && action}
+
+        {action && (
+            <div className="flex justify-end sm:justify-start">
+                {action}
+            </div>
+        )}
     </div>
 );
 
@@ -148,7 +153,6 @@ export default function Dashboard() {
                     navigate('/login');
                     return;
                 }
-                console.error("Gagal mengambil data user:", error);
             } finally {
                 setLoadingUser(false);
             }
@@ -311,6 +315,7 @@ export default function Dashboard() {
                     <SectionHeader 
                         title="Bacaan Pilihan" 
                         subtitle="Wawasan baru hari ini."
+                        className="justify-end"
                         action={<Button onClick={handleGoToAllArticles} variant="ghost">Lihat Semua →</Button>}
                     />
 
@@ -394,8 +399,6 @@ export default function Dashboard() {
                     />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* KARTU 1: CHAT SATGAS (HANYA UNTUK USER) */}
-                        {/* Satgas tidak butuh tombol chat ke satgas, karena mereka adalah satgas */}
                         {!isSatgas && (
                             <Card onClick={handleStartChat} className="p-6 hover:border-blue-400 group h-full flex flex-col justify-between">
                                 <div>
@@ -457,9 +460,7 @@ export default function Dashboard() {
                                 </div>
                             </div>
                         </Card>
-
-                        {/* KARTU 3: PETA (HANYA UNTUK USER) */}
-                        {/* Satgas sudah punya Live Monitoring di atas, jadi yang di bawah ini disembunyikan agar tidak redundan */}
+                        
                         {!isSatgas && (
                             <div className="md:col-span-2">
                                 <Card className="p-0 overflow-hidden border border-gray-200 h-[250px] relative">
@@ -509,12 +510,12 @@ export default function Dashboard() {
                     
                     <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-3xl p-1 shadow-lg overflow-hidden">
                         <div className="bg-white/5 backdrop-blur-sm p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 rounded-[20px]">
-                            
-                            <div className="flex items-center gap-5">
+                            <div className="flex flex-col gap-4"> 
                                 <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                                     <Send className="w-8 h-8 text-white ml-1" />
                                 </div>
-                                <div>
+                                
+                                <div> 
                                     <h3 className="text-xl md:text-2xl font-bold text-white mb-2 flex items-center gap-2">
                                         Butuh Teman Cerita?
                                         <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
@@ -525,6 +526,7 @@ export default function Dashboard() {
                                 </div>
                             </div>
 
+                            {/* Tombol */}
                             <Button 
                                 onClick={handleOpenChatBot} 
                                 variant="white"

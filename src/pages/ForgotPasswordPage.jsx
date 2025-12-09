@@ -50,7 +50,6 @@ export default function ForgotPasswordPage() {
             await axios.post(`${API_BASE_URL}/auth/forgot-password`, { email });
             setIsSent(true);
         } catch (error) {
-            console.error("Error:", error);
             const msg = error.response?.data?.message || "Gagal mengirim email. Coba lagi.";
             Swal.fire({
                 icon: 'error',

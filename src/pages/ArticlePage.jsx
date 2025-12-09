@@ -69,7 +69,6 @@ export default function ArticlePage() {
                 } else if (Array.isArray(result)) {
                     setArticles(result); 
                 } else {
-                    console.warn("Format data artikel tidak dikenali", result);
                     setArticles([]);
                 }
             } catch (err) {
@@ -78,7 +77,7 @@ export default function ArticlePage() {
                     navigate('/login');
                     return;
                 }
-                console.error("Fetch Articles Error:", err);
+                
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal Memuat',

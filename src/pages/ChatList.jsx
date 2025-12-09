@@ -72,8 +72,6 @@ const ChatList = () => {
 
         // Handler saat ada pesan baru masuk
         const handleNewMessage = (newMsg) => {
-            console.log("ChatList: New Message Received", newMsg);
-
             setChats(prevChats => {
                 const incomingChatId = String(newMsg.chatId || newMsg.chat_id);
                 const senderId = String(newMsg.senderId || newMsg.sender_id);
@@ -221,7 +219,6 @@ const ChatList = () => {
             if(errorCode === 401) {
                 navigate('/login');
             }
-            console.error("Err satgas", e); 
         }
     };
 

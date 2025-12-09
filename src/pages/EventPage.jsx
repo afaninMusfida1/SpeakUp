@@ -81,7 +81,7 @@ export default function EventsPage() {
                     navigate('/login');
                     return;
                 }
-                console.error("Error fetching events:", err);
+                
                 setError("Gagal memuat jadwal kegiatan. Pastikan URL dan struktur respons API sudah benar.");
             } finally {
                 setIsLoading(false);

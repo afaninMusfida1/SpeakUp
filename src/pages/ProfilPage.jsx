@@ -107,7 +107,6 @@ export default function ProfilePage() {
         });
 
     } catch (err) {
-        console.error(err);
         Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan alamat.', 'error');
     } finally {
         setIsSaving(false);

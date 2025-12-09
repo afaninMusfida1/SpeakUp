@@ -52,7 +52,6 @@ const fetchQuestions = async () => {
         if(errorCode === 401) {
             navigate('/login');
         }
-        console.error("Gagal mengambil soal dari API:", error);
         return []; 
     }
 };
@@ -144,7 +143,6 @@ const Game = () => {
                 if(errorCode === 401) {
                     navigate('/login');
                 }
-                console.error("Gagal memperbarui XP pengguna:", error);
             }
         }
 

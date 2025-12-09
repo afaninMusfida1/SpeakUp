@@ -403,7 +403,6 @@ const CurrentChat = () => {
         }
       }
     } catch (err) {
-      console.error(err);
       if (err?.response?.status === 401) return handleSessionExpired();
       setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, _isSending: false, _isFailed: true } : m)));
     }

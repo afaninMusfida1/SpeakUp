@@ -192,8 +192,6 @@ export default function ArticleDetail() {
 
                 joinedArticleContent(result);
             } catch (err) {
-                console.error("Fetch Article Error:", err);
-                
                 // 3. Trigger SweetAlert jika fetch error
                 let status = err.response?.status;
                 let errorMessage = "Terjadi kesalahan jaringan.";

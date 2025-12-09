@@ -70,7 +70,6 @@ export default function ExternalPartnersPage() {
                     navigate('/login');
                     return;
                 }
-                console.error("Error fetching partners:", err);
                 setError("Gagal memuat data Komunitas. Silakan coba lagi nanti.");
             } finally {
                 setIsLoading(false);
