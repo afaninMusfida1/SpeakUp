@@ -342,7 +342,7 @@ const ChatList = () => {
                     <p className={`text-sm ${item.chatData ? 'text-gray-500' : 'text-blue-500 italic'}`}>
                         {item.chatData ? 
                             (typeof item.chatData.lastMessage === 'string' ? item.chatData.lastMessage : "📷 Foto") 
-                            : "Klik untuk mulai konsultasi"}
+                            : "Klik untuk mulai Konsultasi"}
                     </p>
                 </div>
             </div>
