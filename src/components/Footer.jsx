@@ -1,12 +1,13 @@
 import React from "react";
 import { Shield, MapPin, Mail, Phone, Instagram, Twitter, Facebook, Linkedin, ArrowRight } from "lucide-react";
 
-const handleLoginClick = () => {
+
+
+export default function Footer() {
+  const handleLoginClick = () => {
     // Bisa tambah logika lain di sini
     navigate('/login');
   }
-
-export default function Footer() {
   return (
     // HAPUS mt-32, GANTI dengan pt-44 atau pt-48 agar konten turun ke bawah memberi ruang untuk CTA Card yang melayang
     <footer className="relative bg-slate-950 text-slate-300 pt-48 pb-12 font-sans">
