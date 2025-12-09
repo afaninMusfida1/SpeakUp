@@ -1,9 +1,10 @@
 import React from "react";
 import { Shield, MapPin, Mail, Phone, Instagram, Twitter, Facebook, Linkedin, ArrowRight } from "lucide-react";
-
+import { useNavigate } from 'react-router-dom';
 
 
 export default function Footer() {
+  const navigate = useNavigate();
   const handleLoginClick = () => {
     // Bisa tambah logika lain di sini
     navigate('/login');
