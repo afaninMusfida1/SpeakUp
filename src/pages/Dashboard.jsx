@@ -453,7 +453,7 @@ export default function Dashboard() {
                                         <ExternalLink size={16} />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-bold text-gray-800">Komunitas Mitra</p>
+                                        <p className="text-sm font-bold text-gray-800">Komunitas Eksternal</p>
                                         <p className="text-xs text-gray-500">Jejaring komunitas</p>
                                     </div>
                                     <ArrowRight size={14} className="text-gray-400" />
