@@ -267,7 +267,8 @@ const LandingPage = () => {
                         src={HERO_IMAGE_URL} 
                         alt="Ilustrasi edukasi" 
                         className="w-full h-full object-cover bg-gray-100"
-                        fetchpriority="high"
+                        loading="eager" 
+                        fetchPriority="high" 
                         width={600}
                         height={400}
                         decoding="async"
