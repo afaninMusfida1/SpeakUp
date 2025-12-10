@@ -16,7 +16,7 @@ import {
     Sparkles,
     Calendar,
     Download,
-    ExternalLink
+    ExternalLink,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import { useNavigate } from "react-router-dom"; 
@@ -93,7 +93,22 @@ export default function Dashboard() {
     
     const [realUser, setRealUser] = useState(null);
     const [loadingUser, setLoadingUser] = useState(true);
-    const [currentXP, setCurrentXP] = useState(0);
+    const [currentXP, setCurrentXP] = useState(0);    
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const toggleVisibility = () => {
+            // Jika scroll lebih dari 300px, tombol muncul
+            if (window.scrollY > 300) {
+                setIsVisible(true);
+            } else {
+                setIsVisible(false);
+            }
+        };
+
+        window.addEventListener("scroll", toggleVisibility);
+        return () => window.removeEventListener("scroll", toggleVisibility);
+    }, []);
 
     const {
         mapCenter,
@@ -220,6 +235,7 @@ export default function Dashboard() {
 
             <main className="max-w-6xl mx-auto px-4 py-8 space-y-12">
                 
+
                 {/* HEADER DASHBOARD */}
                 <section className={`rounded-3xl p-8 text-white shadow-lg relative overflow-hidden ${isSatgas ? 'bg-gradient-to-r from-slate-800 to-slate-900' : 'bg-gradient-to-r from-blue-600 to-indigo-600'}`}>
                     <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -539,6 +555,26 @@ export default function Dashboard() {
                     </div>
                 </section>
 
+<div className={`fixed bottom-8 right-8 z-[9999] flex flex-col gap-4 items-center transition-all duration-300 ${
+                  isVisible 
+                    ? 'opacity-100 translate-y-0 visible' 
+                    : 'opacity-0 translate-y-10 invisible'
+                }`}>
+                
+                {/* Ping Animation */}
+                <span className="absolute -inset-0.5 rounded-full bg-purple-500 opacity-75 animate-ping pointer-events-none"></span>
+                
+                {/* Tombol Link Telegram */}
+                <a
+                  href="https://t.me/gugahassistant_bot" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  aria-label="Chat dengan AI di Telegram"
+                  className="relative z-10 animate-bounce flex items-center justify-center p-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                >
+                  <Sparkles size={24} />
+                </a>
+            </div>
             </main>
         </div>
     );

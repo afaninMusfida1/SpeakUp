@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react"; 
-import { AlertTriangle, Users, Home, Heart, MessageCircle, MapPin, Shield, Lock, ArrowRight, ArrowUp, Play, Gamepad2, Activity, CheckCircle, ArrowDown, BookOpen, Handshake, FileCheck, Award, CheckCheck } from "lucide-react";
+import { AlertTriangle, Users, Home, Heart, MessageCircle, MapPin, Shield, Lock, ArrowRight, ArrowUp, Bot, Play, Gamepad2, Activity, CheckCircle, ArrowDown, BookOpen, Handshake, FileCheck, Award, CheckCheck, Sparkles } from "lucide-react";
 import Swal from "sweetalert2"; 
 import { HERO_IMAGE_URL } from '../lib/landingPageUtils'; 
 import Navbar from "../components/Navbar";
@@ -165,16 +165,44 @@ const LandingPage = () => {
       <SkipToContent />
       <Navbar showMenu={true} showUrgent={true} className="bg-white" />
 
-      {/* Back to top button */}
-      <button
-        onClick={scrollToTop}
-        aria-label="Kembali ke atas"
-        className={`fixed bottom-8 right-8 z-[9999] p-3 bg-blue-600 text-white rounded-full shadow-lg transform transition-all duration-300 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        } hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-      >
-        <ArrowUp size={24} />
-      </button>
+      <div className="fixed bottom-8 right-8 z-[9999] flex flex-col gap-4 items-center">
+  
+  {/* --- BUTTON AI (Dengan Logic isVisible & Animasi Ripple) --- */}
+  <div className={`relative group transform transition-all duration-300 ${
+      isVisible 
+        ? 'opacity-100 translate-y-0 visible' 
+        : 'opacity-0 translate-y-10 invisible'
+    }`}>
+    
+    {/* Animasi Ping/Sinyal */}
+    <span className="absolute -inset-0.5 rounded-full bg-purple-500 opacity-75 animate-ping"></span>
+    
+    {/* Tombol Link Telegram */}
+    <a
+      href="https://t.me/gugahassistant_bot" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      aria-label="Chat dengan AI di Telegram"
+      className="animate-bounce flex items-center justify-center p-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+>
+      <Sparkles size={24} />
+    </a>
+  </div>
+
+  {/* --- BUTTON UP (Logic isVisible Asli) --- */}
+  <button
+    onClick={scrollToTop}
+    aria-label="Kembali ke atas"
+    className={`p-3 bg-blue-600 text-white rounded-full shadow-lg transform transition-all duration-300 ${
+      isVisible 
+        ? 'opacity-100 translate-y-0 visible' 
+        : 'opacity-0 translate-y-10 invisible'
+    } hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+  >
+    <ArrowUp size={24} />
+  </button>
+
+</div>
 
       {/* Progress bar */}
       {/* <div className="fixed top-0 left-0 right-0 h-1.5 bg-blue-300 z-50">
@@ -629,6 +657,81 @@ const LandingPage = () => {
     {/* Timeline Items Wrapper */}
     {/* PERBAIKAN: space-y-24 diganti jadi space-y-12 biar mobile lebih rapat */}
     <div className="space-y-12 md:space-y-0 relative mb-10">
+    <div className="relative md:flex md:items-center md:justify-between group md:pt-12 mb-12 md:mb-0">
+        
+        {/* DESKRIPSI (Kiri - Hanya tampil di Desktop) */}
+        <div className="md:w-[45%] order-1 pr-8 md:pr-16 text-right hidden md:block">
+           <SimpleFadeIn delay={200} direction="right">
+             <div className="flex items-center justify-end gap-2 mb-3">
+               <span className="px-3 py-1 rounded-full bg-fuchsia-900/50 border border-fuchsia-500 text-fuchsia-300 text-xs font-bold tracking-wider uppercase animate-pulse">
+                 New Feature
+               </span>
+               <h4 className="text-fuchsia-400 font-bold uppercase tracking-widest text-sm">Cerdas & Rahasia</h4>
+             </div>
+             <p className="text-2xl font-serif text-slate-300 leading-relaxed italic">
+               "Bingung harus cerita ke siapa? AI kami siap mendengarkan tanpa menghakimi, 24 jam non-stop."
+             </p>
+           </SimpleFadeIn>
+        </div>
+
+        {/* DOT TENGAH (Special Glowing Effect) */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block z-20">
+            {/* Efek Ping Besar */}
+            <div className="w-8 h-8 bg-fuchsia-500 rounded-full animate-ping absolute opacity-75"></div>
+            {/* Dot Utama */}
+            <div className="w-8 h-8 bg-gradient-to-r from-fuchsia-600 to-purple-600 rounded-full border-4 border-slate-900 shadow-[0_0_20px_rgba(192,38,211,0.7)] relative flex items-center justify-center">
+                <Sparkles size={14} className="text-white" />
+            </div>
+        </div>
+        
+        {/* KARTU UTAMA (Kanan) */}
+        <SimpleFadeIn direction="left" className="md:w-[45%] md:pl-16 order-2">
+          {/* Tambahan Ring Border Glowing agar mencolok */}
+          <div className="relative p-1 rounded-[2.1rem] bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-500 shadow-2xl shadow-fuchsia-900/50 hover:shadow-fuchsia-600/50 transition-all duration-500 hover:-translate-y-2 group-hover:scale-[1.02]">
+            
+            {/* Background Inner Card */}
+            <div className="p-6 md:p-8 bg-slate-900 rounded-[2rem] relative overflow-hidden h-full flex flex-col items-start text-left text-white">
+                
+                {/* Dekorasi Background Abstrak */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-fuchsia-600/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-600/20 rounded-full blur-3xl -ml-10 -mb-10"></div>
+
+                <div className="w-full flex items-center justify-between mb-4 relative z-10">
+                  <div className="inline-flex p-3 bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white rounded-xl shadow-lg border border-white/10">
+                    <Bot size={28} className="md:w-[30px]" />
+                  </div>
+                  {/* Badge Live */}
+                  <div className="flex items-center gap-2 px-3 py-1 bg-fuchsia-950/50 border border-fuchsia-500/30 rounded-full backdrop-blur-md">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                    </span>
+                    <span className="text-[10px] md:text-xs font-bold text-fuchsia-200">ONLINE 24/7</span>
+                  </div>
+                </div>
+
+                <h3 className="text-2xl md:text-4xl font-bold mb-2 relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-white via-fuchsia-100 to-purple-200">
+                  Gugah <span className="text-fuchsia-500">AI</span>
+                </h3>
+                
+                <p className="text-sm md:text-base text-slate-300 mb-6 md:mb-8 leading-relaxed font-medium relative z-10">
+                  Asisten virtual cerdas yang siap membantu menjawab pertanyaan hukum, memberikan tips keamanan, atau sekadar teman curhat yang aman.
+                </p>
+
+                <a 
+                   href="https://t.me/gugahassistant_bot" 
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   className="relative z-10 w-full md:w-auto bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-sm font-bold px-6 py-3.5 rounded-full shadow-lg hover:shadow-fuchsia-500/40 transition-all flex items-center justify-center gap-2 group/btn hover:brightness-110"
+                >
+                  <Sparkles size={18} className="animate-pulse"/>
+                  Mulai Chat Sekarang 
+                  <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform"/>
+                </a>
+            </div>
+          </div>
+        </SimpleFadeIn>
+      </div>
 
       {/* === ITEM 1: SATGAS === */}
       {/* PERBAIKAN: md:pt-24 untuk efek zigzag desktop */}

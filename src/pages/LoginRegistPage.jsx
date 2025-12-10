@@ -105,7 +105,7 @@ export default function LoginRegisterPage({ onAuthSuccess = () => {} }) {
                             <span className="text-blue-200">Cegah Kekerasan.</span>
                         </h1>
                         <p className="text-blue-100 text-base leading-relaxed opacity-90">
-                            Akses edukasi, pelaporan aman, dan dukungan pemulihan dalam satu genggaman. Identitasmu adalah prioritas kami.
+                            Akses edukasi, layanan dan dukungan pemulihan dalam satu genggaman. Identitasmu adalah prioritas kami.
                         </p>
                     </div>
 
@@ -114,12 +114,12 @@ export default function LoginRegisterPage({ onAuthSuccess = () => {} }) {
                         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/20 transition-colors">
                             <ShieldCheck className="text-green-400 w-6 h-6 mb-2" />
                             <h3 className="font-bold text-sm">Privasi Terjaga</h3>
-                            <p className="text-xs text-blue-200 mt-1">Laporan terenkripsi & anonim.</p>
+                            <p className="text-xs text-blue-200 mt-1">Terenkripsi & anonim.</p>
                         </div>
                         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/20 transition-colors">
                             <Heart className="text-pink-400 w-6 h-6 mb-2" />
                             <h3 className="font-bold text-sm">Pendampingan</h3>
-                            <p className="text-xs text-blue-200 mt-1">Psikolog & Satgas siap bantu.</p>
+                            <p className="text-xs text-blue-200 mt-1">Konseling & Satgas siap bantu.</p>
                         </div>
                     </div>
                 </div>
