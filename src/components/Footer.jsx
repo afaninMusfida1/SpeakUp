@@ -84,27 +84,89 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* 2. LINKS: LAYANAN (Kiri di HP) */}
-          <div className="col-span-1">
-            <h4 className="text-white font-bold text-lg mb-4 relative inline-block">
-              Layanan
-              <span className="absolute -bottom-2 left-0 w-8 h-1 bg-blue-500 rounded-full"></span>
-            </h4>
-            <ul className="space-y-3">
-              {['Chat Satgas 24/7', 'Peta Darurat', 'Edukasi'].map((item, i) => (
-                <li key={i}>
-                  {/* UPDATE: Menambahkan onClick untuk scroll ke id="layanan" */}
-                  <a 
-                    href="#layanan" 
-                    onClick={(e) => scrollToSection(e, 'layanan')}
-                    className="text-slate-400 hover:text-blue-400 hover:pl-2 transition-all duration-300 inline-block text-sm font-medium cursor-pointer"
-                  >
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* 2. LINKS: LAYANAN (3 KELOMPOK) */}
+<div className="col-span-1">
+  <h4 className="text-white font-bold text-lg mb-6 relative inline-block">
+    Layanan
+    <span className="absolute -bottom-2 left-0 w-8 h-1 bg-blue-500 rounded-full"></span>
+  </h4>
+
+  <div className="space-y-6">
+    
+    {/* KELOMPOK 1: BANTUAN DARURAT */}
+    <div>
+      <h5 className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+        Bantuan Darurat
+      </h5>
+      <ul className="space-y-1.5">
+        {['Chat Satgas 24/7', 'Peta & Zona Aman'].map((item, i) => (
+          <li key={i}>
+            <a 
+              href="#layanan" 
+              onClick={(e) => {
+                e.preventDefault();
+                const el = document.getElementById('layanan');
+                if(el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-slate-300 hover:text-blue-400 hover:pl-2 transition-all duration-300 inline-block text-sm font-medium cursor-pointer"
+            >
+              {item}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    {/* KELOMPOK 2: EDUKASI (Jeda Sendiri) */}
+    <div>
+      <h5 className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+        Edukasi
+      </h5>
+      <ul className="space-y-1.5">
+        {['Artikel Edukasi', 'Game Edukasi'].map((item, i) => (
+          <li key={i}>
+            <a 
+              href="#layanan" 
+              onClick={(e) => {
+                e.preventDefault();
+                const el = document.getElementById('layanan');
+                if(el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-slate-300 hover:text-blue-400 hover:pl-2 transition-all duration-300 inline-block text-sm font-medium cursor-pointer"
+            >
+              {item}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    {/* KELOMPOK 3: EVENT & KOMUNITAS */}
+    <div>
+      <h5 className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+        Sosial & Event
+      </h5>
+      <ul className="space-y-1.5">
+        {['Webinar & Event', 'Komunitas'].map((item, i) => (
+          <li key={i}>
+            <a 
+              href="#home" 
+              onClick={(e) => {
+                e.preventDefault();
+                const el = document.getElementById('layanan');
+                if(el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-slate-300 hover:text-blue-400 hover:pl-2 transition-all duration-300 inline-block text-sm font-medium cursor-pointer"
+            >
+              {item}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+  </div>
+</div>
 
           {/* 3. LINKS: TENTANG (Kanan di HP) */}
           <div className="col-span-1">
@@ -113,7 +175,7 @@ export default function Footer() {
               <span className="absolute -bottom-2 left-0 w-8 h-1 bg-purple-500 rounded-full"></span>
             </h4>
             <ul className="space-y-3">
-              {['Profil GUGAH', 'Landasan Hukum', 'Artikel', 'Partner'].map((item, i) => (
+              {['Profil GUGAH', 'Landasan Hukum', 'Partner'].map((item, i) => (
                 <li key={i}>
                   {/* UPDATE: Menambahkan onClick untuk scroll ke id="home" (Bagian atas/profil) */}
                   <a 

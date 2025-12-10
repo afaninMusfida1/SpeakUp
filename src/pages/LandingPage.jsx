@@ -122,6 +122,14 @@ const LandingPage = () => {
       });
   };
 
+  const handleArtikelNavigation = () => {
+      navigate('/articles')
+  };
+
+  const handleGameNavigation = () => {
+      navigate('/login')
+  };
+
   const SkipToContent = () => (
     <a 
       href="#main-content" 
@@ -161,7 +169,7 @@ const LandingPage = () => {
       <button
         onClick={scrollToTop}
         aria-label="Kembali ke atas"
-        className={`fixed bottom-8 right-8 z-50 p-3 bg-blue-600 text-white rounded-full shadow-lg transform transition-all duration-300 ${
+        className={`fixed bottom-8 right-8 z-[9999] p-3 bg-blue-600 text-white rounded-full shadow-lg transform transition-all duration-300 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         } hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
       >
@@ -196,7 +204,7 @@ const LandingPage = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-8 md:gap-10 items-center">
             
-            <div className="space-y-5">
+            <div className="space-y-5 mt-20 md:mt-0">
               <SimpleFadeIn delay={0}>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-blue-100 shadow-sm">
                    <span className="relative flex h-2 w-2">
@@ -278,7 +286,7 @@ const LandingPage = () => {
                       </div>
                       <span className="font-bold text-gray-800 text-xs">Edukasi</span>
                     </div>
-                    <p className="text-[10px] text-gray-500 leading-tight">Materi terpercaya.</p>
+                    <p className="text-[10px] text-gray-500 leading-tight">Materi relevan.</p>
                  </div>
 
                  <div 
@@ -573,22 +581,19 @@ const LandingPage = () => {
          </div>
       </section>
 
-      {/* ================= SECTION 4: LAYANAN (DARK MODE) ================= */}
-{/* 1. BACKGROUND: Ganti bg-slate-50 jadi bg-slate-900 (Gelap) */}
-<section id="layanan" className="relative py-20 md:py-28 lg:py-36 bg-slate-900 z-40">
+      {/* ================= SECTION 4: LAYANAN (DARK MODE - MOBILE OPTIMIZED) ================= */}
+<section id="layanan" className="relative py-12 md:py-28 lg:py-36 bg-slate-900 z-40">
 
-  {/* WAVE FIX: Tetap fill-slate-100 (Ikut Section ATASNYA yang Terang) */}
+  {/* WAVE FIX */}
   <div className="absolute top-0 left-0 w-full -translate-y-[98%] z-10 leading-[0]">
     <SectionTopWave color="fill-slate-900" />
   </div>
 
   {/* Decorative Background */}
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-    {/* 2. GRADIENT: Ganti dari White jadi Slate-900 biar nyatu sama bg */}
     <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-900 to-blue-900/30"></div>
-    
-    <div className="absolute top-[20%] left-[-10%] w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px]"></div>
-    <div className="absolute bottom-[20%] right-[-10%] w-[600px] h-[600px] bg-fuchsia-500/10 rounded-full blur-[120px]"></div>
+    <div className="absolute top-[20%] left-[-10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-blue-500/10 rounded-full blur-[80px] md:blur-[120px]"></div>
+    <div className="absolute bottom-[20%] right-[-10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-fuchsia-500/10 rounded-full blur-[80px] md:blur-[120px]"></div>
     
     <div className="absolute top-0 left-0 w-full h-full hidden md:block z-0 opacity-100">
       <svg className="w-full h-full" viewBox="0 0 1440 1600" fill="none" preserveAspectRatio="none">
@@ -601,8 +606,6 @@ const LandingPage = () => {
         </defs>
         <path d="M720 0 L720 150 C720 300 300 300 300 500 C300 700 1140 700 1140 900 C1140 1100 720 1100 720 1300 L720 1600" 
           stroke="url(#roadGrad)" strokeWidth="100" strokeLinecap="round" />
-        
-        {/* Marka Jalan: Opacity diturunin dikit biar enak di mata gelap */}
         <path d="M720 0 L720 150 C720 300 300 300 300 500 C300 700 1140 700 1140 900 C1140 1100 720 1100 720 1300 L720 1600" 
           stroke="white" strokeWidth="4" strokeDasharray="20 20" className="opacity-30" />
       </svg>
@@ -611,31 +614,34 @@ const LandingPage = () => {
 
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
     {/* Header */}
-    <div className="text-center max-w-3xl mx-auto mb-8">
+    <div className="text-center max-w-3xl mx-auto mb-10 md:mb-16">
       <SimpleFadeIn>
-        {/* 3. TEXT: Ganti jadi White biar kebaca */}
-        <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight">
+        <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4 md:mb-6 tracking-tight">
           Eksplor <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">Fitur Kami</span>
         </h2>
-        {/* TEXT: Ganti jadi Slate-400 */}
-        <p className="text-l text-slate-400 font-medium max-w-2xl mx-auto">
+        <p className="text-sm md:text-lg text-slate-400 font-medium max-w-2xl mx-auto">
           Dari simulasi interaktif, curhat anonim, hingga akses darurat, semua dirancang untuk keamananmu.
         </p>
       </SimpleFadeIn>
     </div>
     
-    {/* Timeline Items */}
-    <div className="space-y-24 md:space-y-0 relative mb-10">
+    {/* Timeline Items Wrapper */}
+    {/* PERBAIKAN: space-y-24 diganti jadi space-y-12 biar mobile lebih rapat */}
+    <div className="space-y-12 md:space-y-0 relative mb-10">
 
-      {/* === ITEM 3: SATGAS === */}
-      <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
-        <SimpleFadeIn direction="right" className="md:w-[45%] md:pr-16 mb-8 md:mb-0 order-1">
-          <div className="p-8 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-[2rem] shadow-xl shadow-indigo-900/30 hover:shadow-indigo-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-end text-right text-white">
+      {/* === ITEM 1: SATGAS === */}
+      {/* PERBAIKAN: md:pt-24 untuk efek zigzag desktop */}
+      <div className="relative md:flex md:items-center md:justify-between group md:pt-24">
+        
+        {/* PERBAIKAN: mb-4 agar jarak teks ke bawah tidak kejauhan di HP */}
+        <SimpleFadeIn direction="right" className="md:w-[45%] md:pr-16 mb-4 md:mb-0 order-1">
+          {/* PERBAIKAN: p-6 md:p-8 agar padding kartu pas di HP */}
+          <div className="p-6 md:p-8 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-[2rem] shadow-xl shadow-indigo-900/30 hover:shadow-indigo-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-end text-right text-white">
             <div className="inline-flex p-3 bg-white/20 backdrop-blur-md text-white rounded-xl mb-4 shadow-inner border border-white/20">
-              <Shield size={26} />
+              <Shield size={24} className="md:w-[26px]" />
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold mb-2">Chat <span className="text-indigo-200">Satgas</span></h3>
-            <p className="text-base text-indigo-50 mb-8 leading-relaxed font-medium">
+            <h3 className="text-xl md:text-3xl font-bold mb-2">Chat <span className="text-indigo-200">Satgas</span></h3>
+            <p className="text-sm md:text-base text-indigo-50 mb-6 md:mb-8 leading-relaxed font-medium">
               Butuh bantuan hukum atau psikolog? Langsung chat Satgas PPKS di sini.
             </p>
             <button onClick={handleLogin} className="group/btn flex items-center gap-2 bg-white text-indigo-700 text-sm font-bold px-5 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all">
@@ -646,7 +652,6 @@ const LandingPage = () => {
         
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-indigo-600 rounded-full border-4 border-slate-900 shadow-lg z-20"></div>
         
-        {/* === TEKS PENJELASAN (KANAN) === */}
         <div className="md:w-[45%] order-2 pl-8 md:pl-16 hidden md:block">
            <SimpleFadeIn delay={200} direction="left">
              <h4 className="text-indigo-400 font-bold uppercase tracking-widest text-sm mb-3">Pendampingan</h4>
@@ -657,10 +662,9 @@ const LandingPage = () => {
         </div>
       </div>
       
-      {/* === ITEM 4: MAPS === */}
-      <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
+      {/* === ITEM 2: MAPS === */}
+      <div className="relative md:flex md:items-center md:justify-between group md:pt-24">
         
-        {/* === TEKS PENJELASAN (KIRI) === */}
         <div className="md:w-[45%] order-1 pr-8 md:pr-16 text-right hidden md:block">
            <SimpleFadeIn delay={200} direction="right">
              <h4 className="text-red-400 font-bold uppercase tracking-widest text-sm mb-3">Respons Cepat</h4>
@@ -673,15 +677,15 @@ const LandingPage = () => {
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-orange-500 rounded-full border-4 border-slate-900 shadow-lg z-20 animate-ping"></div>
         
         <SimpleFadeIn direction="left" className="md:w-[45%] md:pl-16 order-2">
-          <div className="p-8 bg-gradient-to-br from-red-600 to-orange-500 rounded-[2rem] shadow-xl shadow-orange-900/30 hover:shadow-orange-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-start text-left text-white">
+          <div className="p-6 md:p-8 bg-gradient-to-br from-red-600 to-orange-500 rounded-[2rem] shadow-xl shadow-orange-900/30 hover:shadow-orange-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-start text-left text-white">
             <div className="w-full flex items-center justify-between mb-4">
               <div className="inline-flex p-3 bg-white/20 backdrop-blur-md text-white rounded-xl shadow-inner border border-white/20">
-                <MapPin size={26} />
+                <MapPin size={24} className="md:w-[26px]" />
               </div>
-              <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-red-600 text-xs font-bold rounded-full animate-pulse shadow-sm">DARURAT</span>
+              <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-red-600 text-[10px] md:text-xs font-bold rounded-full animate-pulse shadow-sm">DARURAT</span>
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold mb-2">Zona <span className="text-orange-200">Aman</span></h3>
-            <p className="text-base text-red-50 mb-8 leading-relaxed font-medium">
+            <h3 className="text-xl md:text-3xl font-bold mb-2">Zona <span className="text-orange-200">Aman</span></h3>
+            <p className="text-sm md:text-base text-red-50 mb-6 md:mb-8 leading-relaxed font-medium">
               Cari Rumah Aman, Polisi, atau RS terdekat dalam satu kali klik.
             </p>
             <button onClick={handleMapNavigation} className="bg-white text-orange-600 text-sm font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl hover:bg-orange-50 transition-all flex items-center gap-2">
@@ -691,32 +695,41 @@ const LandingPage = () => {
         </SimpleFadeIn>
       </div>
 
-{/* === ITEM 2: GAME (POSISI KIRI) === */}
-      <div className="relative md:flex md:items-center md:justify-between group md:pt-32">
+{/* === ARTIKEL === */}
+      <div className="relative md:flex md:items-center md:justify-between group md:pt-24">
         
-        {/* 1. CARD GAME (Sekarang di Kiri - Order 1) */}
-        <SimpleFadeIn direction="right" className="md:w-[45%] md:pr-16 mb-8 md:mb-0 order-1">
-          {/* Ubah items-start -> items-end dan text-left -> text-right agar rapi di kiri */}
-          <div className="p-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-[2rem] shadow-xl shadow-cyan-900/30 hover:shadow-cyan-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-end text-right text-white">
+        <SimpleFadeIn direction="right" className="md:w-[45%] md:pr-16 mb-4 md:mb-0 order-1">
+          <div className="p-6 md:p-8 bg-gradient-to-br from-teal-600 to-emerald-500 rounded-[2rem] shadow-xl shadow-teal-900/30 hover:shadow-teal-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-end text-right text-white">
             <div className="inline-flex p-3 bg-white/20 backdrop-blur-md text-white rounded-xl mb-4 shadow-inner border border-white/20">
-              <Gamepad2 size={26} />
+              <BookOpen size={24} className="md:w-[26px]" />
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold mb-2">Game <span className="text-cyan-100">Edukasi</span></h3>
-            <p className="text-base text-blue-50 mb-8 leading-relaxed font-medium">
-              Simulasi interaktif. Belajar soal <i>consent</i> & <i>red flag</i> dengan cara yang asik.
+            <h3 className="text-xl md:text-3xl font-bold mb-2">Artikel <span className="text-teal-200">Edukasi</span></h3>
+            <p className="text-sm md:text-base text-teal-50 mb-6 md:mb-8 leading-relaxed font-medium">
+              Akses library lengkap tentang materi kekerasan seksual, modul pencegahan, hingga regulasi hukum terbaru.
             </p>
-            <button className="group/btn flex items-center gap-2 bg-white text-cyan-700 text-sm font-bold px-5 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all">
-              Main Game <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform"/>
+            <button onClick={handleArtikelNavigation} className="group/btn flex items-center gap-2 bg-white text-teal-700 text-sm font-bold px-5 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all">
+              Baca Artikel <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform"/>
             </button>
           </div>
         </SimpleFadeIn>
 
-        {/* 2. CENTER DOT */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-cyan-500 rounded-full border-4 border-slate-900 shadow-lg z-20"></div>
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-teal-500 rounded-full border-4 border-slate-900 shadow-lg z-20"></div>
         
-        {/* 3. TEKS PENJELASAN (Sekarang di Kanan - Order 2) */}
         <div className="md:w-[45%] order-2 pl-8 md:pl-16 text-left hidden md:block">
            <SimpleFadeIn delay={200} direction="left">
+             <h4 className="text-teal-400 font-bold uppercase tracking-widest text-sm mb-3">Literasi Digital</h4>
+             <p className="text-2xl font-serif text-slate-300 leading-relaxed italic">
+               "Pengetahuan adalah perisai pertama. Bekali dirimu dengan informasi yang valid dan terpercaya."
+             </p>
+           </SimpleFadeIn>
+        </div>
+      </div>
+
+      {/* === ITEM 3: GAME === */}
+      <div className="relative md:flex md:items-center md:justify-between group md:pt-24">
+        
+        <div className="md:w-[45%] order-1 pr-8 md:pr-16 text-right hidden md:block">
+           <SimpleFadeIn delay={200} direction="right">
              <h4 className="text-cyan-400 font-bold uppercase tracking-widest text-sm mb-3">Belajar Seru</h4>
              <p className="text-2xl font-serif text-slate-300 leading-relaxed italic">
                "Pahami batasan dan hak tubuhmu lewat simulasi nyata. Karena teori saja tidak cukup."
@@ -724,6 +737,22 @@ const LandingPage = () => {
            </SimpleFadeIn>
         </div>
 
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block w-6 h-6 bg-cyan-500 rounded-full border-4 border-slate-900 shadow-lg z-20"></div>
+        
+        <SimpleFadeIn direction="left" className="md:w-[45%] md:pl-16 order-2">
+          <div className="p-6 md:p-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-[2rem] shadow-xl shadow-cyan-900/30 hover:shadow-cyan-600/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-start text-left text-white">
+            <div className="inline-flex p-3 bg-white/20 backdrop-blur-md text-white rounded-xl mb-4 shadow-inner border border-white/20">
+              <Gamepad2 size={24} className="md:w-[26px]" />
+            </div>
+            <h3 className="text-xl md:text-3xl font-bold mb-2">Game <span className="text-cyan-100">Edukasi</span></h3>
+            <p className="text-sm md:text-base text-blue-50 mb-6 md:mb-8 leading-relaxed font-medium">
+              Simulasi interaktif. Belajar soal <i>consent</i> & <i>red flag</i> dengan cara yang asik.
+            </p>
+            <button onClick={handleGameNavigation} className="group/btn flex items-center gap-2 bg-white text-cyan-700 text-sm font-bold px-5 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all">
+              Main Game <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform"/>
+            </button>
+          </div>
+        </SimpleFadeIn>
       </div>
       
     </div>
@@ -731,7 +760,7 @@ const LandingPage = () => {
 </section>
 
       {/* ================= SECTION 5: VIDEO DEMO ================= */}
-<section className="relative py-20 md:py-28 lg:pt-36 lg:pb-48 bg-blue-50 z-50">
+<section className="relative py-20 md:py-28 lg:pt-36 lg:pb-38 bg-blue-50 z-50">
   
   <div className="absolute top-0 left-0 w-full -translate-y-[98%] z-10 leading-[0]">
     <SectionTopWave color="fill-blue-50" />
@@ -808,9 +837,9 @@ const LandingPage = () => {
   </div>
 </section>
 
-      {/* ================= SECTION 6: SLOGAN & FOOTER CONNECTOR (FINAL) ================= */}
+{/* ================= SECTION 6: SLOGAN & FOOTER CONNECTOR (FINAL) ================= */}
 {/* Background dibuat gradient dari Blue-700 (atas) ke Slate-950 (bawah) biar nyambung mulus ke footer */}
-<section className="relative py-20 md:py-24 lg:py-32 bg-gradient-to-b from-blue-700 to-slate-950 z-40 rounded-[3rem]">
+<section className="relative py-20 md:py-24 lg:py-32 bg-gradient-to-b from-blue-700 to-slate-950 z-40 rounded-[2rem] ">
 
   <div className="max-w-4xl mx-auto px-6 relative z-30 text-center">
     <SimpleFadeIn>

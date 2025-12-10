@@ -488,8 +488,8 @@ export default function Dashboard() {
                                         ) : (
                                             <div className="w-full h-full bg-gray-50 flex items-center justify-center text-xs text-gray-400">Peta dimuat...</div>
                                         )}
-                                        <div className="absolute bottom-4 right-4 z-[400] sm:hidden">
-                                            <Button onClick={handleGoToMaps} className="bg-white text-gray-900 hover:bg-gray-50 border border-gray-200 shadow-lg text-xs h-9">
+                                        <div className="absolute bottom-4 right-4 z-[1000] sm:hidden">
+                                            <Button onClick={handleGoToMaps} className="hover:bg-blue-100 border hover:text-blue-600 shadow-lg text-xs h-9">
                                                 Buka Peta
                                             </Button>
                                         </div>
