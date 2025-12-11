@@ -447,7 +447,7 @@ export default function Dashboard() {
                                         <FileText size={16} />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-bold text-gray-800">Permendikbud No. 30</p>
+                                        <p className="text-sm font-bold text-gray-800">Permendikbud No. 55</p>
                                         <p className="text-xs text-gray-500">Unduh Dokumen PDF</p>
                                     </div>
                                     <Download size={14} className="text-gray-400" />
