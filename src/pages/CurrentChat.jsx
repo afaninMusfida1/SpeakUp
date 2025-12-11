@@ -131,38 +131,42 @@ const CurrentChat = () => {
     return false; 
   };
 
-  // ---------------- MARK AS READ (FIXED URL) ----------------
+  // ---------------- MARK AS READ (FIXED) ----------------
   const markMessagesAsRead = async (messageList = messages) => {
     if (!token || !messageList.length) return;
 
+    // Filter pesan yang BUKAN dari kita & statusnya belum dibaca
     const unreadMessages = messageList.filter(
       (msg) => !isMessageFromMe(msg) && !msg.isRead
     );
 
     if (unreadMessages.length === 0) return;
 
-    // 1. Update Server via HTTP
+    // A. Update Server via HTTP (Satu per satu atau buat endpoint bulk di backend lebih baik)
     for (const msg of unreadMessages) {
       try {
-        // 🔥 FIX: Hapus '/api/v1' karena API_BASE_URL sudah mengandung path tersebut
-        // URL Sebelumnya: `${API_BASE_URL}/api/v1/message/read/${msg.id}` -> ERROR 404 (Double api/v1)
         await axios.put(
           `${API_BASE_URL}/message/read/${msg.id}`, 
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // 2. Update UI State Lokal
+        // B. Update UI State Lokal (Biar centang biru di layar sendiri)
         setMessages((prev) =>
           prev.map((m) =>
             m.id === msg.id ? { ...m, isRead: true } : m
           )
         );
 
-        // 3. Emit Socket Event
+        // C. Emit Socket Event (INI YANG KITA PERBAIKI)
         const socket = getSocket();
         if (socket && chatIdParam) {
-            socket.emit("read_message", { chatId: chatIdParam, messageId: msg.id });
+            socket.emit("read_message", { 
+                chatId: chatIdParam, 
+                messageId: msg.id,
+                userId: localUserId,   // TAMBAHAN PENTING: ID Kita (supaya ChatList kita reset)
+                partnerId: partnerId   // TAMBAHAN PENTING: ID Lawan (supaya dia dapat centang biru)
+            });
         }
 
       } catch (err) {
@@ -170,7 +174,6 @@ const CurrentChat = () => {
       }
     }
   };
-
 
   // ---------------- EFFECTS & SOCKET LOGIC ----------------
   useEffect(() => {
@@ -239,7 +242,13 @@ const CurrentChat = () => {
         setIsLoadingHistory(false);
 
         setTimeout(() => scrollToBottom(false), 0);
-        }
+        
+        // --- TAMBAHKAN INI ---
+        // Langsung tandai pesan yang baru dimuat sebagai 'dibaca'
+        setTimeout(() => {
+            markMessagesAsRead(normalized); 
+        }, 500); // Delay sedikit biar render selesai dulu
+    }
 
       } catch (err) {
         if (isMounted) {
@@ -403,6 +412,7 @@ const CurrentChat = () => {
         }
       }
     } catch (err) {
+      console.error(err);
       if (err?.response?.status === 401) return handleSessionExpired();
       setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, _isSending: false, _isFailed: true } : m)));
     }
