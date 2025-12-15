@@ -7,6 +7,8 @@ import Footer from "../components/Footer";
 import ImageWithFallback from "../components/common/ImageWithFallback"; 
 import useLandingPageData from "../hooks/useLandingPageData";
 
+const YOUTUBE_THUMBNAIL_URL = 'https://img.youtube.com/vi/q3sKxZGAr4g/maxresdefault.jpg';
+
 const SimpleFadeIn = ({ children, delay = 0, className = "", direction = "up" }) => {
   const [isVisible, setIsVisible] = useState(false);
   const domRef = useRef();
@@ -913,12 +915,19 @@ const LandingPage = () => {
         {/* Video Placeholder */}
         <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 group cursor-pointer shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 border-4 border-slate-100">
           <a 
-    href="https://youtu.be/q3sKxZGAr4g?si=emh05XSoFthFZt8b" 
-    target="_blank" 
-    rel="noopener noreferrer"
-    className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 group cursor-pointer shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 border-4 border-slate-100"
->
-    </a>
+        href="https://youtu.be/q3sKxZGAr4g?si=emh05XSoFthFZt8b" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        // Atur agar link menutupi seluruh area parent div
+        className="absolute inset-0" 
+    >
+        {/* 2. Gambar Thumbnail diganti ke link YouTube yang benar */}
+        <ImageWithFallback 
+          src={YOUTUBE_THUMBNAIL_URL} 
+          alt="Thumbnail Video Demo Aplikasi" 
+          className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity" 
+        />
+
           <div className="absolute inset-0 flex items-center justify-center">
             {/* Tombol Play dengan efek Pulse */}
             <div className="relative">
@@ -933,6 +942,7 @@ const LandingPage = () => {
           <div className="absolute bottom-4 right-4 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-md backdrop-blur-sm">
             04:25
           </div>
+          </a>
         </div>
 
       </div>
