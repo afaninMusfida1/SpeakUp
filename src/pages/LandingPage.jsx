@@ -912,11 +912,13 @@ const LandingPage = () => {
 
         {/* Video Placeholder */}
         <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 group cursor-pointer shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 border-4 border-slate-100">
-          <ImageWithFallback 
-            src={HERO_IMAGE_URL} 
-            alt="Thumbnail Video Demo Aplikasi" 
-            className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity" 
-          />
+          <a 
+    href="https://youtu.be/q3sKxZGAr4g?si=emh05XSoFthFZt8b" 
+    target="_blank" 
+    rel="noopener noreferrer"
+    className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 group cursor-pointer shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 border-4 border-slate-100"
+>
+    </a>
           <div className="absolute inset-0 flex items-center justify-center">
             {/* Tombol Play dengan efek Pulse */}
             <div className="relative">
@@ -929,7 +931,7 @@ const LandingPage = () => {
           
           {/* Label Durasi di Pojok */}
           <div className="absolute bottom-4 right-4 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-md backdrop-blur-sm">
-            01:45
+            04:25
           </div>
         </div>
 
