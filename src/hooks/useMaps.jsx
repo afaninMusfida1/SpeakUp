@@ -68,7 +68,7 @@ const useMaps = () => {
         const rawData = response.data?.payload?.datas || [];
         
         // Debugging di console biar yakin
-        if(rawData.length > 0) console.log("🔍 Data Pertama:", rawData[0]);
+        if(rawData.length > 0);
 
         const parsedLocations = rawData.map((item) => {
           const lat = parseFloat(item.latitude);
